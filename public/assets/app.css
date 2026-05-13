@@ -1,0 +1,138 @@
+:root {
+  --bg-a: #f4efe7;
+  --bg-b: #d9e7f4;
+  --ink: #1a2333;
+  --brand: #174f9b;
+  --brand-2: #1e8e6f;
+}
+
+body {
+  font-family: 'Barlow', sans-serif;
+  color: var(--ink);
+}
+
+.login-bg {
+  min-height: 100vh;
+  background: radial-gradient(circle at 20% 30%, #ffffff 0, #f7ead3 32%, transparent 55%),
+              radial-gradient(circle at 80% 70%, #d9f2ec 0, #c4dcf4 35%, transparent 60%),
+              linear-gradient(140deg, var(--bg-a), var(--bg-b));
+}
+
+.login-wrap {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 430px;
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(4px);
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.1);
+}
+
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  background: linear-gradient(160deg, #f6f9ff, #eef5ff);
+}
+
+.app-sidebar {
+  width: 260px;
+  background: linear-gradient(180deg, #17335d, #0f2442);
+  color: #fff;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.brand {
+  margin: 0;
+  letter-spacing: 1px;
+  font-weight: 700;
+  font-size: 1.2rem;
+}
+
+.brand-sub {
+  margin: 0;
+  opacity: 0.7;
+  font-size: 0.9rem;
+}
+
+.nav-link {
+  color: rgba(255, 255, 255, 0.85);
+  border-radius: 12px;
+  transition: all 160ms ease;
+}
+
+.nav-link:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.logout {
+  margin-top: auto;
+  color: #ffd9d9;
+  text-decoration: none;
+}
+
+.app-main {
+  flex: 1;
+  padding: 1.5rem;
+}
+
+.app-header {
+  padding: 0.75rem 1rem;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgba(23, 51, 93, 0.08);
+}
+
+.user-chip {
+  background: #eef5ff;
+  color: #16335d;
+  border-radius: 999px;
+  padding: 0.45rem 0.9rem;
+  font-weight: 500;
+}
+
+.metric-card {
+  background: #fff;
+  border: 1px solid #edf2fb;
+  border-radius: 14px;
+  padding: 1rem;
+  box-shadow: 0 8px 20px rgba(17, 40, 70, 0.06);
+}
+
+.metric-card span {
+  color: #4b5d79;
+}
+
+.metric-card h3 {
+  margin: 0.35rem 0 0;
+  font-size: 1.8rem;
+  color: var(--brand);
+}
+
+@media (max-width: 992px) {
+  .app-shell {
+    flex-direction: column;
+  }
+
+  .app-sidebar {
+    width: 100%;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+
+  .logout {
+    margin-top: 0;
+  }
+}
