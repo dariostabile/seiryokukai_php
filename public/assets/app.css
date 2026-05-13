@@ -70,6 +70,26 @@ body {
   transition: all 160ms ease;
 }
 
+.nav-group-label {
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 0.75rem;
+}
+
+.nav-link.active {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.nav-link.nav-link-disabled {
+  color: rgba(255, 255, 255, 0.45);
+  cursor: not-allowed;
+  background: transparent;
+}
+
 .nav-link:hover {
   color: #fff;
   background: rgba(255, 255, 255, 0.12);

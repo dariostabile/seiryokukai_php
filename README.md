@@ -5,6 +5,7 @@ Gestionale client/server PHP con template grafico admin responsive.
 ## Stack
 
 - PHP 8+
+- MySQL (MAMP)
 - Sessioni PHP per autenticazione
 - API JSON lato server (`public/api`)
 - Template UI con Bootstrap + Font Awesome + CSS custom
@@ -13,24 +14,21 @@ Gestionale client/server PHP con template grafico admin responsive.
 
 1. Punta Apache alla cartella `seiryokukai_php/public`.
 2. Copia `config/.env.example` in `config/.env`.
-3. (Opzionale) aggiungi credenziali custom in `config/.env`:
-
-APP_USER=admin
-APP_PASS=admin123
-
-4. Apri nel browser:
+3. Crea il database importando `database/seiryokukai.sql`.
+4. Verifica credenziali DB in `config/.env` (`DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASS`).
+5. Apri nel browser:
 
 http://localhost/seiryokukai_php/public/index.php?page=login
 
-## Credenziali demo
+## Login
 
-- Username: `admin`
-- Password: `admin123`
+- Usa un utente presente nella tabella `utenti` del dump importato.
+- La verifica password supporta hash SHA-256 esadecimale (come nel dump) e bcrypt.
 
 ## Struttura
 
 - `public/index.php`: front controller pagine
 - `public/api`: endpoint API
-- `src/lib`: logica auth + dati
+- `src/lib`: logica auth su `utenti` + dati anagrafica su `atleti`
 - `src/views`: viste template
-- `storage/clients.json`: archivio clienti demo
+- `database/seiryokukai.sql`: dump completo fornito

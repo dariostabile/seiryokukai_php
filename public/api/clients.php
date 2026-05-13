@@ -15,11 +15,25 @@ if (!is_logged_in()) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $action = trim((string) ($_POST['action'] ?? 'add'));
     $name = trim((string) ($_POST['name'] ?? ''));
-    $plan = trim((string) ($_POST['plan'] ?? 'Mensile'));
+    $id = (int) ($_POST['id'] ?? 0);
 
-    if ($name !== '') {
-        add_client($name, $plan);
+    if ($action === 'status' && $id > 0) {
+        $status = trim((string) ($_POST['status'] ?? ''));
+        update_client_status($id, $status);
+        header('Location: /seiryokukai_php/public/index.php?page=clients');
+        exit;
+    }
+
+    if ($action === 'delete' && $id > 0) {
+        delete_client($id);
+        header('Location: /seiryokukai_php/public/index.php?page=clients');
+        exit;
+    }
+
+    if ($action === 'add' && $name !== '') {
+        add_client($name);
     }
 
     header('Location: /seiryokukai_php/public/index.php?page=clients');

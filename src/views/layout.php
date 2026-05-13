@@ -5,6 +5,8 @@ declare(strict_types=1);
 /** @var string $pageTitle */
 /** @var string $viewContent */
 /** @var array|null $user */
+/** @var array $menuGroups */
+/** @var string $currentPage */
 ?>
 <!doctype html>
 <html lang="it">
@@ -27,8 +29,29 @@ declare(strict_types=1);
         <p class="brand-sub">Gestionale PHP</p>
       </div>
       <nav class="nav flex-column gap-2 mt-4">
-        <a class="nav-link" href="/seiryokukai_php/public/index.php?page=dashboard"><i class="fa-solid fa-chart-line me-2"></i>Dashboard</a>
-        <a class="nav-link" href="/seiryokukai_php/public/index.php?page=clients"><i class="fa-solid fa-users me-2"></i>Clienti</a>
+        <a class="nav-link <?= $currentPage === 'dashboard' ? 'active' : '' ?>" href="/seiryokukai_php/public/index.php?page=dashboard">
+          <i class="fa-solid fa-chart-line me-2"></i>Dashboard
+        </a>
+
+        <?php foreach ($menuGroups as $group): ?>
+          <span class="nav-group-label">
+            <i class="<?= htmlspecialchars((string) ($group['icon'] ?? 'fa-solid fa-layer-group')) ?> me-2"></i>
+            <?= htmlspecialchars((string) ($group['label'] ?? 'Applicazioni')) ?>
+          </span>
+          <?php foreach (($group['items'] ?? []) as $item): ?>
+            <?php if (($item['enabled'] ?? false) === true): ?>
+              <a class="nav-link <?= ($item['page'] ?? '') === $currentPage ? 'active' : '' ?>" href="/seiryokukai_php/public/index.php?page=<?= urlencode((string) $item['page']) ?>">
+                <i class="<?= htmlspecialchars((string) ($item['icon'] ?? 'fa-solid fa-circle')) ?> me-2"></i>
+                <?= htmlspecialchars((string) ($item['label'] ?? 'Modulo')) ?>
+              </a>
+            <?php else: ?>
+              <span class="nav-link nav-link-disabled" title="Modulo non ancora disponibile in questa versione">
+                <i class="<?= htmlspecialchars((string) ($item['icon'] ?? 'fa-solid fa-circle')) ?> me-2"></i>
+                <?= htmlspecialchars((string) ($item['label'] ?? 'Modulo')) ?>
+              </span>
+            <?php endif; ?>
+          <?php endforeach; ?>
+        <?php endforeach; ?>
       </nav>
       <a class="logout" href="/seiryokukai_php/public/index.php?page=logout"><i class="fa-solid fa-right-from-bracket me-2"></i>Logout</a>
     </aside>
