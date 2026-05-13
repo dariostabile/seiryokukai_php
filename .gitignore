@@ -1,0 +1,6 @@
+.DS_Store
+/vendor/
+/.env
+/config/.env
+/storage/*.log
+/storage/*.cache
