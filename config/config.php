@@ -33,7 +33,7 @@ function db_connection(): \PDO
     }
 
     $host = env_value('DB_HOST', '127.0.0.1');
-    $port = env_value('DB_PORT', '3306');
+    $port = env_value('DB_PORT', '8889');
     $name = env_value('DB_NAME', 'seiryokukai');
     $user = env_value('DB_USER', 'root');
     $pass = env_value('DB_PASS', 'root');
