@@ -20,47 +20,7 @@ if (!$auth->isLoggedIn()) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = trim((string) ($_POST['action'] ?? 'add'));
 
-    if ($action === 'update') {
-        $courseId = (int) ($_POST['course_id'] ?? 0);
-        $name = trim((string) ($_POST['name'] ?? ''));
-        $siteId = (int) ($_POST['site_id'] ?? 0);
-        $disciplineId = (int) ($_POST['discipline_id'] ?? 0);
-        $userId = (int) ($_POST['user_id'] ?? 0);
-        $startDateRaw = trim((string) ($_POST['start_date'] ?? ''));
-        $monthlyFeeRaw = trim((string) ($_POST['monthly_fee'] ?? ''));
-
-        $startDate = $startDateRaw !== '' ? $startDateRaw : null;
-        $monthlyFee = $monthlyFeeRaw !== '' ? (float) $monthlyFeeRaw : null;
-
-        $days = [
-            'lun' => isset($_POST['day_lun']),
-            'mar' => isset($_POST['day_mar']),
-            'merc' => isset($_POST['day_merc']),
-            'giov' => isset($_POST['day_giov']),
-            'ven' => isset($_POST['day_ven']),
-            'sab' => isset($_POST['day_sab']),
-            'dom' => isset($_POST['day_dom']),
-        ];
-
-        if ($courseId > 0 && $name !== '' && $siteId > 0 && $disciplineId > 0 && $userId > 0) {
-            $data->updateCourse($courseId, $siteId, $disciplineId, $userId, $name, $startDate, $monthlyFee, $days);
-        }
-
-        header('Location: /seiryokukai_php/public/index.php?page=corsi');
-        exit;
-    }
-
-    if ($action === 'delete') {
-        $courseId = (int) ($_POST['course_id'] ?? 0);
-
-        if ($courseId > 0) {
-            $data->deleteCourse($courseId);
-        }
-
-        header('Location: /seiryokukai_php/public/index.php?page=corsi');
-        exit;
-    }
-
+    $courseId = (int) ($_POST['course_id'] ?? 0);
     $name = trim((string) ($_POST['name'] ?? ''));
     $siteId = (int) ($_POST['site_id'] ?? 0);
     $disciplineId = (int) ($_POST['discipline_id'] ?? 0);
@@ -71,18 +31,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $startDate = $startDateRaw !== '' ? $startDateRaw : null;
     $monthlyFee = $monthlyFeeRaw !== '' ? (float) $monthlyFeeRaw : null;
 
-    $days = [
-        'lun' => isset($_POST['day_lun']),
-        'mar' => isset($_POST['day_mar']),
-        'merc' => isset($_POST['day_merc']),
-        'giov' => isset($_POST['day_giov']),
-        'ven' => isset($_POST['day_ven']),
-        'sab' => isset($_POST['day_sab']),
-        'dom' => isset($_POST['day_dom']),
+    $orari = [
+        'lun_inizio' => trim((string) ($_POST['lun_inizio'] ?? '')),
+        'lun_fine' => trim((string) ($_POST['lun_fine'] ?? '')),
+        'mar_inizio' => trim((string) ($_POST['mar_inizio'] ?? '')),
+        'mar_fine' => trim((string) ($_POST['mar_fine'] ?? '')),
+        'mer_inizio' => trim((string) ($_POST['mer_inizio'] ?? '')),
+        'mer_fine' => trim((string) ($_POST['mer_fine'] ?? '')),
+        'gio_inizio' => trim((string) ($_POST['gio_inizio'] ?? '')),
+        'gio_fine' => trim((string) ($_POST['gio_fine'] ?? '')),
+        'ven_inizio' => trim((string) ($_POST['ven_inizio'] ?? '')),
+        'ven_fine' => trim((string) ($_POST['ven_fine'] ?? '')),
+        'sab_inizio' => trim((string) ($_POST['sab_inizio'] ?? '')),
+        'sab_fine' => trim((string) ($_POST['sab_fine'] ?? '')),
+        'dom_inizio' => trim((string) ($_POST['dom_inizio'] ?? '')),
+        'dom_fine' => trim((string) ($_POST['dom_fine'] ?? '')),
     ];
 
+    if ($action === 'delete') {
+        if ($courseId > 0) {
+            $data->deleteCourse($courseId);
+        }
+
+        header('Location: /seiryokukai_php/public/index.php?page=corsi');
+        exit;
+    }
+
+    if ($action === 'update') {
+        if ($courseId > 0 && $name !== '' && $siteId > 0 && $disciplineId > 0 && $userId > 0) {
+            $data->updateCourse($courseId, $siteId, $disciplineId, $userId, $name, $startDate, $monthlyFee, $orari);
+        }
+
+        header('Location: /seiryokukai_php/public/index.php?page=corsi');
+        exit;
+    }
+
     if ($name !== '' && $siteId > 0 && $disciplineId > 0 && $userId > 0) {
-        $data->addCourse($siteId, $disciplineId, $userId, $name, $startDate, $monthlyFee, $days);
+        $data->addCourse($siteId, $disciplineId, $userId, $name, $startDate, $monthlyFee, $orari);
     }
 
     header('Location: /seiryokukai_php/public/index.php?page=corsi');

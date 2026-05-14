@@ -301,7 +301,13 @@ final class DatiService
                 TRIM(CONCAT(COALESCE(u.nome, ''), ' ', COALESCE(u.cognome, ''))) AS teacher,
                 c.data_inizio_corso AS start_date,
                 c.quota_mensile_corso AS monthly_fee,
-                c.lun, c.mar, c.merc, c.giov, c.ven, c.sab, c.dom
+                     c.lun_inizio, c.lun_fine,
+                     c.mar_inizio, c.mar_fine,
+                     c.mer_inizio, c.mer_fine,
+                     c.gio_inizio, c.gio_fine,
+                     c.ven_inizio, c.ven_fine,
+                     c.sab_inizio, c.sab_fine,
+                     c.dom_inizio, c.dom_fine
              FROM corsi c
              INNER JOIN sedi s ON s.idsede = c.idsede
              INNER JOIN discipline d ON d.iddisciplina = c.iddisciplina
@@ -321,7 +327,7 @@ final class DatiService
         string $name,
         ?string $startDate = null,
         ?float $monthlyFee = null,
-        array $days = []
+        array $orari = []
     ): array {
         $name = trim($name);
 
@@ -329,18 +335,21 @@ final class DatiService
             throw new \InvalidArgumentException('Dati corso non validi');
         }
 
-        $lun = $days['lun'] ? 1 : 0;
-        $mar = $days['mar'] ? 1 : 0;
-        $merc = $days['merc'] ? 1 : 0;
-        $giov = $days['giov'] ? 1 : 0;
-        $ven = $days['ven'] ? 1 : 0;
-        $sab = $days['sab'] ? 1 : 0;
-        $dom = $days['dom'] ? 1 : 0;
+        $orariNormalizzati = $this->normalizzaOrariSettimana($orari);
 
         $pdo = db_connection();
         $stmt = $pdo->prepare(
-            'INSERT INTO corsi (idsede, iddisciplina, idutente, nome_corso, data_inizio_corso, quota_mensile_corso, lun, mar, merc, giov, ven, sab, dom)
-             VALUES (:idsede, :iddisciplina, :idutente, :nome_corso, :data_inizio_corso, :quota_mensile_corso, :lun, :mar, :merc, :giov, :ven, :sab, :dom)'
+            'INSERT INTO corsi (
+                idsede, iddisciplina, idutente, nome_corso, data_inizio_corso, quota_mensile_corso,
+                lun_inizio, lun_fine, mar_inizio, mar_fine, mer_inizio, mer_fine,
+                gio_inizio, gio_fine, ven_inizio, ven_fine, sab_inizio, sab_fine,
+                dom_inizio, dom_fine
+             ) VALUES (
+                :idsede, :iddisciplina, :idutente, :nome_corso, :data_inizio_corso, :quota_mensile_corso,
+                :lun_inizio, :lun_fine, :mar_inizio, :mar_fine, :mer_inizio, :mer_fine,
+                :gio_inizio, :gio_fine, :ven_inizio, :ven_fine, :sab_inizio, :sab_fine,
+                :dom_inizio, :dom_fine
+             )'
         );
         $stmt->execute([
             'idsede' => $siteId,
@@ -349,13 +358,20 @@ final class DatiService
             'nome_corso' => $name,
             'data_inizio_corso' => $startDate,
             'quota_mensile_corso' => $monthlyFee,
-            'lun' => $lun,
-            'mar' => $mar,
-            'merc' => $merc,
-            'giov' => $giov,
-            'ven' => $ven,
-            'sab' => $sab,
-            'dom' => $dom,
+            'lun_inizio' => $orariNormalizzati['lun_inizio'],
+            'lun_fine' => $orariNormalizzati['lun_fine'],
+            'mar_inizio' => $orariNormalizzati['mar_inizio'],
+            'mar_fine' => $orariNormalizzati['mar_fine'],
+            'mer_inizio' => $orariNormalizzati['mer_inizio'],
+            'mer_fine' => $orariNormalizzati['mer_fine'],
+            'gio_inizio' => $orariNormalizzati['gio_inizio'],
+            'gio_fine' => $orariNormalizzati['gio_fine'],
+            'ven_inizio' => $orariNormalizzati['ven_inizio'],
+            'ven_fine' => $orariNormalizzati['ven_fine'],
+            'sab_inizio' => $orariNormalizzati['sab_inizio'],
+            'sab_fine' => $orariNormalizzati['sab_fine'],
+            'dom_inizio' => $orariNormalizzati['dom_inizio'],
+            'dom_fine' => $orariNormalizzati['dom_fine'],
         ]);
 
         return [
@@ -383,7 +399,13 @@ final class DatiService
                 TRIM(CONCAT(COALESCE(u.nome, ''), ' ', COALESCE(u.cognome, ''))) AS teacher,
                 c.data_inizio_corso AS start_date,
                 c.quota_mensile_corso AS monthly_fee,
-                c.lun, c.mar, c.merc, c.giov, c.ven, c.sab, c.dom
+                     c.lun_inizio, c.lun_fine,
+                     c.mar_inizio, c.mar_fine,
+                     c.mer_inizio, c.mer_fine,
+                     c.gio_inizio, c.gio_fine,
+                     c.ven_inizio, c.ven_fine,
+                     c.sab_inizio, c.sab_fine,
+                     c.dom_inizio, c.dom_fine
              FROM corsi c
              INNER JOIN sedi s ON s.idsede = c.idsede
              INNER JOIN discipline d ON d.iddisciplina = c.iddisciplina
@@ -405,7 +427,7 @@ final class DatiService
         string $name,
         ?string $startDate = null,
         ?float $monthlyFee = null,
-        array $days = []
+        array $orari = []
     ): bool {
         $name = trim($name);
 
@@ -413,13 +435,7 @@ final class DatiService
             throw new \InvalidArgumentException('Dati corso non validi per aggiornamento');
         }
 
-        $lun = $days['lun'] ? 1 : 0;
-        $mar = $days['mar'] ? 1 : 0;
-        $merc = $days['merc'] ? 1 : 0;
-        $giov = $days['giov'] ? 1 : 0;
-        $ven = $days['ven'] ? 1 : 0;
-        $sab = $days['sab'] ? 1 : 0;
-        $dom = $days['dom'] ? 1 : 0;
+        $orariNormalizzati = $this->normalizzaOrariSettimana($orari);
 
         $pdo = db_connection();
         $stmt = $pdo->prepare(
@@ -430,13 +446,20 @@ final class DatiService
                  nome_corso = :nome_corso,
                  data_inizio_corso = :data_inizio_corso,
                  quota_mensile_corso = :quota_mensile_corso,
-                 lun = :lun,
-                 mar = :mar,
-                 merc = :merc,
-                 giov = :giov,
-                 ven = :ven,
-                 sab = :sab,
-                 dom = :dom
+                 lun_inizio = :lun_inizio,
+                 lun_fine = :lun_fine,
+                 mar_inizio = :mar_inizio,
+                 mar_fine = :mar_fine,
+                 mer_inizio = :mer_inizio,
+                 mer_fine = :mer_fine,
+                 gio_inizio = :gio_inizio,
+                 gio_fine = :gio_fine,
+                 ven_inizio = :ven_inizio,
+                 ven_fine = :ven_fine,
+                 sab_inizio = :sab_inizio,
+                 sab_fine = :sab_fine,
+                 dom_inizio = :dom_inizio,
+                 dom_fine = :dom_fine
              WHERE idcorso = :id'
         );
 
@@ -448,14 +471,52 @@ final class DatiService
             'nome_corso' => $name,
             'data_inizio_corso' => $startDate,
             'quota_mensile_corso' => $monthlyFee,
-            'lun' => $lun,
-            'mar' => $mar,
-            'merc' => $merc,
-            'giov' => $giov,
-            'ven' => $ven,
-            'sab' => $sab,
-            'dom' => $dom,
+            'lun_inizio' => $orariNormalizzati['lun_inizio'],
+            'lun_fine' => $orariNormalizzati['lun_fine'],
+            'mar_inizio' => $orariNormalizzati['mar_inizio'],
+            'mar_fine' => $orariNormalizzati['mar_fine'],
+            'mer_inizio' => $orariNormalizzati['mer_inizio'],
+            'mer_fine' => $orariNormalizzati['mer_fine'],
+            'gio_inizio' => $orariNormalizzati['gio_inizio'],
+            'gio_fine' => $orariNormalizzati['gio_fine'],
+            'ven_inizio' => $orariNormalizzati['ven_inizio'],
+            'ven_fine' => $orariNormalizzati['ven_fine'],
+            'sab_inizio' => $orariNormalizzati['sab_inizio'],
+            'sab_fine' => $orariNormalizzati['sab_fine'],
+            'dom_inizio' => $orariNormalizzati['dom_inizio'],
+            'dom_fine' => $orariNormalizzati['dom_fine'],
         ]);
+    }
+
+    private function normalizzaOrariSettimana(array $orari): array
+    {
+        $chiavi = [
+            'lun_inizio', 'lun_fine',
+            'mar_inizio', 'mar_fine',
+            'mer_inizio', 'mer_fine',
+            'gio_inizio', 'gio_fine',
+            'ven_inizio', 'ven_fine',
+            'sab_inizio', 'sab_fine',
+            'dom_inizio', 'dom_fine',
+        ];
+
+        $out = [];
+
+        foreach ($chiavi as $chiave) {
+            $valore = trim((string) ($orari[$chiave] ?? ''));
+            if ($valore === '') {
+                $out[$chiave] = null;
+                continue;
+            }
+
+            if (!preg_match('/^\d{2}:\d{2}(:\d{2})?$/', $valore)) {
+                throw new \InvalidArgumentException('Formato orario non valido per ' . $chiave);
+            }
+
+            $out[$chiave] = $valore;
+        }
+
+        return $out;
     }
 
     public function deleteCourse(int $id): bool

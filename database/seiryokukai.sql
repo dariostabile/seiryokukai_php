@@ -151,13 +151,20 @@ CREATE TABLE `corsi` (
   `data_fine_corso` varchar(45) DEFAULT NULL,
   `quota_mensile_corso` decimal(6,2) DEFAULT NULL,
   `orari` varchar(255) DEFAULT NULL,
-  `lun` tinyint DEFAULT '0',
-  `mar` tinyint DEFAULT '0',
-  `merc` tinyint DEFAULT '0',
-  `giov` tinyint DEFAULT '0',
-  `ven` tinyint DEFAULT '0',
-  `sab` tinyint DEFAULT '0',
-  `dom` tinyint DEFAULT '0'
+  `lun_inizio` time DEFAULT NULL,
+  `lun_fine` time DEFAULT NULL,
+  `mar_inizio` time DEFAULT NULL,
+  `mar_fine` time DEFAULT NULL,
+  `mer_inizio` time DEFAULT NULL,
+  `mer_fine` time DEFAULT NULL,
+  `gio_inizio` time DEFAULT NULL,
+  `gio_fine` time DEFAULT NULL,
+  `ven_inizio` time DEFAULT NULL,
+  `ven_fine` time DEFAULT NULL,
+  `sab_inizio` time DEFAULT NULL,
+  `sab_fine` time DEFAULT NULL,
+  `dom_inizio` time DEFAULT NULL,
+  `dom_fine` time DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 -- --------------------------------------------------------
