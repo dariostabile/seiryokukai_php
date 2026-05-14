@@ -8,7 +8,7 @@ declare(strict_types=1);
   <div class="card-body">
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h5 class="m-0">Gestione Sedi</h5>
-      <form method="post" action="/seiryokukai_php/public/api/sites.php" class="d-flex gap-2">
+      <form method="post" action="/seiryokukai_php/public/api/sedi.php" class="d-flex gap-2">
         <input class="form-control" name="name" placeholder="Nome sede" required>
         <input class="form-control" name="code" placeholder="Codice sede (es. PALERMO)">
         <button class="btn btn-success">Aggiungi</button>

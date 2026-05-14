@@ -8,7 +8,7 @@ declare(strict_types=1);
   <div class="card-body">
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h5 class="m-0">Gestione Discipline</h5>
-      <form method="post" action="/seiryokukai_php/public/api/disciplines.php" class="d-flex gap-2">
+      <form method="post" action="/seiryokukai_php/public/api/disciplina.php" class="d-flex gap-2">
         <input class="form-control" name="name" placeholder="Nome disciplina" required>
         <input class="form-control" name="notes" placeholder="Note (opzionale)">
         <button class="btn btn-success">Aggiungi</button>

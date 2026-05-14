@@ -7,7 +7,10 @@ session_start();
 require_once __DIR__ . '/../../src/lib/auth.php';
 require_once __DIR__ . '/../../src/lib/data.php';
 
-if (!is_logged_in()) {
+$auth = auth_service();
+$data = data_service();
+
+if (!$auth->isLoggedIn()) {
     http_response_code(401);
     header('Content-Type: application/json; charset=utf-8');
     echo json_encode(['error' => 'Non autorizzato'], JSON_UNESCAPED_UNICODE);
@@ -15,16 +18,15 @@ if (!is_logged_in()) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $name = trim((string) ($_POST['name'] ?? ''));
-    $code = trim((string) ($_POST['code'] ?? ''));
+    $type = trim((string) ($_POST['type'] ?? ''));
 
-    if ($name !== '') {
-        add_site($name, $code);
+    if ($type !== '') {
+        $data->addDocumentType($type);
     }
 
-    header('Location: /seiryokukai_php/public/index.php?page=sites');
+    header('Location: /seiryokukai_php/public/index.php?page=tipi_documento');
     exit;
 }
 
 header('Content-Type: application/json; charset=utf-8');
-echo json_encode(read_sites(), JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+echo json_encode($data->readDocumentTypes(), JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);

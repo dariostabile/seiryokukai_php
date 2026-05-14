@@ -7,7 +7,10 @@ session_start();
 require_once __DIR__ . '/../../src/lib/auth.php';
 require_once __DIR__ . '/../../src/lib/data.php';
 
-if (!is_logged_in()) {
+$auth = auth_service();
+$data = data_service();
+
+if (!$auth->isLoggedIn()) {
     http_response_code(401);
     header('Content-Type: application/json; charset=utf-8');
     echo json_encode(['error' => 'Non autorizzato'], JSON_UNESCAPED_UNICODE);
@@ -24,12 +27,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $startDate = $startDateRaw !== '' ? $startDateRaw : null;
 
     if ($name !== '' && $siteId > 0 && $disciplineId > 0 && $userId > 0) {
-        add_course($siteId, $disciplineId, $userId, $name, $startDate, null);
+        $data->addCourse($siteId, $disciplineId, $userId, $name, $startDate, null);
     }
 
-    header('Location: /seiryokukai_php/public/index.php?page=courses');
+    header('Location: /seiryokukai_php/public/index.php?page=corsi');
     exit;
 }
 
 header('Content-Type: application/json; charset=utf-8');
-echo json_encode(read_courses(), JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+echo json_encode($data->readCourses(), JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);

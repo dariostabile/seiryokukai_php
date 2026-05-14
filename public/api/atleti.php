@@ -7,7 +7,10 @@ session_start();
 require_once __DIR__ . '/../../src/lib/auth.php';
 require_once __DIR__ . '/../../src/lib/data.php';
 
-if (!is_logged_in()) {
+$auth = auth_service();
+$data = data_service();
+
+if (!$auth->isLoggedIn()) {
     http_response_code(401);
     header('Content-Type: application/json; charset=utf-8');
     echo json_encode(['error' => 'Non autorizzato'], JSON_UNESCAPED_UNICODE);
@@ -21,24 +24,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($action === 'status' && $id > 0) {
         $status = trim((string) ($_POST['status'] ?? ''));
-        update_client_status($id, $status);
-        header('Location: /seiryokukai_php/public/index.php?page=clients');
+        $data->updateClientStatus($id, $status);
+        header('Location: /seiryokukai_php/public/index.php?page=atleti');
         exit;
     }
 
     if ($action === 'delete' && $id > 0) {
-        delete_client($id);
-        header('Location: /seiryokukai_php/public/index.php?page=clients');
+        $data->deleteClient($id);
+        header('Location: /seiryokukai_php/public/index.php?page=atleti');
         exit;
     }
 
     if ($action === 'add' && $name !== '') {
-        add_client($name);
+        $data->addClient($name);
     }
 
-    header('Location: /seiryokukai_php/public/index.php?page=clients');
+    header('Location: /seiryokukai_php/public/index.php?page=atleti');
     exit;
 }
 
 header('Content-Type: application/json; charset=utf-8');
-echo json_encode(read_clients(), JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+echo json_encode($data->readClients(), JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);

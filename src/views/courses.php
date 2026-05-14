@@ -13,7 +13,7 @@ declare(strict_types=1);
       <h5 class="m-0">Gestione Corsi</h5>
     </div>
 
-    <form method="post" action="/seiryokukai_php/public/api/courses.php" class="row g-2 mb-4">
+    <form method="post" action="/seiryokukai_php/public/api/corsi.php" class="row g-2 mb-4">
       <div class="col-12 col-md-3">
         <input class="form-control" name="name" placeholder="Nome corso" required>
       </div>

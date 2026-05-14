@@ -7,7 +7,10 @@ session_start();
 require_once __DIR__ . '/../../src/lib/auth.php';
 require_once __DIR__ . '/../../src/lib/data.php';
 
-if (!is_logged_in()) {
+$auth = auth_service();
+$data = data_service();
+
+if (!$auth->isLoggedIn()) {
     http_response_code(401);
     header('Content-Type: application/json; charset=utf-8');
     echo json_encode(['error' => 'Non autorizzato'], JSON_UNESCAPED_UNICODE);
@@ -20,12 +23,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($action === 'status' && $id > 0) {
         $status = trim((string) ($_POST['status'] ?? ''));
-        update_user_status($id, $status);
+        $data->updateUserStatus($id, $status);
     }
 
-    header('Location: /seiryokukai_php/public/index.php?page=users');
+    header('Location: /seiryokukai_php/public/index.php?page=utenti');
     exit;
 }
 
 header('Content-Type: application/json; charset=utf-8');
-echo json_encode(read_users(), JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+echo json_encode($data->readUsers(), JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);

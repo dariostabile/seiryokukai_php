@@ -39,7 +39,7 @@ declare(strict_types=1);
               </td>
               <td>
                 <div class="d-flex justify-content-end gap-2">
-                  <form method="post" action="/seiryokukai_php/public/api/users.php">
+                  <form method="post" action="/seiryokukai_php/public/api/utenti.php">
                     <input type="hidden" name="action" value="status">
                     <input type="hidden" name="id" value="<?= (int) ($u['id'] ?? 0) ?>">
                     <input type="hidden" name="status" value="<?= $isActive ? 'Sospeso' : 'Attivo' ?>">

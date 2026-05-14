@@ -8,35 +8,19 @@ require_once __DIR__ . '/../src/lib/auth.php';
 require_once __DIR__ . '/../src/lib/data.php';
 require_once __DIR__ . '/../src/lib/navigation.php';
 
+$auth = auth_service();
+$data = data_service();
+$navigation = navigation_service();
+
 $page = $_GET['page'] ?? 'dashboard';
 
-if ($page === 'atleti') {
-    $page = 'clients';
-}
-
-if ($page === 'sedi') {
-    $page = 'sites';
-}
-
-if ($page === 'tipi_documento') {
-    $page = 'document_types';
-}
-
-if ($page === 'disciplina' || $page === 'discipline') {
-    $page = 'disciplines';
-}
-
-if ($page === 'corsi') {
-    $page = 'courses';
-}
-
 if ($page === 'logout') {
-    logout_user();
+    $auth->logoutUser();
     header('Location: /seiryokukai_php/public/index.php?page=login');
     exit;
 }
 
-if (!is_logged_in() && $page !== 'login') {
+if (!$auth->isLoggedIn() && $page !== 'login') {
     header('Location: /seiryokukai_php/public/index.php?page=login');
     exit;
 }
@@ -46,53 +30,53 @@ if ($page === 'login') {
     exit;
 }
 
-$user = current_user();
-$menuGroups = navigation_menu_for_user((int) ($user['id'] ?? 0));
+$user = $auth->currentUser();
+$menuGroups = $navigation->navigationMenuForUser((int) ($user['id'] ?? 0));
 $currentPage = $page;
 $pageTitle = 'Dashboard';
 $viewContent = '';
 
-if ($page === 'clients') {
+if ($page === 'atleti') {
     $pageTitle = 'Atleti';
-    $clients = read_clients();
+    $clients = $data->readClients();
     ob_start();
     require __DIR__ . '/../src/views/clients.php';
     $viewContent = (string) ob_get_clean();
-} elseif ($page === 'users') {
+} elseif ($page === 'utenti') {
     $pageTitle = 'Utenti';
-    $users = read_users();
+    $users = $data->readUsers();
     ob_start();
     require __DIR__ . '/../src/views/users.php';
     $viewContent = (string) ob_get_clean();
-} elseif ($page === 'sites') {
+} elseif ($page === 'sedi') {
     $pageTitle = 'Sedi';
-    $sites = read_sites();
+    $sites = $data->readSites();
     ob_start();
     require __DIR__ . '/../src/views/sites.php';
     $viewContent = (string) ob_get_clean();
-} elseif ($page === 'document_types') {
+} elseif ($page === 'tipi_documento') {
     $pageTitle = 'Tipi Documento';
-    $documentTypes = read_document_types();
+    $documentTypes = $data->readDocumentTypes();
     ob_start();
     require __DIR__ . '/../src/views/document_types.php';
     $viewContent = (string) ob_get_clean();
-} elseif ($page === 'disciplines') {
+} elseif ($page === 'disciplina') {
     $pageTitle = 'Discipline';
-    $disciplines = read_disciplines();
+    $disciplines = $data->readDisciplines();
     ob_start();
     require __DIR__ . '/../src/views/disciplines.php';
     $viewContent = (string) ob_get_clean();
-} elseif ($page === 'courses') {
+} elseif ($page === 'corsi') {
     $pageTitle = 'Corsi';
-    $courses = read_courses();
-    $sites = read_sites();
-    $disciplines = read_disciplines();
-    $users = read_users();
+    $courses = $data->readCourses();
+    $sites = $data->readSites();
+    $disciplines = $data->readDisciplines();
+    $users = $data->readUsers();
     ob_start();
     require __DIR__ . '/../src/views/courses.php';
     $viewContent = (string) ob_get_clean();
 } else {
-    $stats = dashboard_stats();
+    $stats = $data->dashboardStats();
     ob_start();
     require __DIR__ . '/../src/views/dashboard.php';
     $viewContent = (string) ob_get_clean();
