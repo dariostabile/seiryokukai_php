@@ -7,8 +7,8 @@ session_start();
 require_once __DIR__ . '/../../src/lib/auth.php';
 require_once __DIR__ . '/../../src/lib/data.php';
 
-$auth = auth_service();
-$data = data_service();
+$auth = aut_service();
+$data = dati_service();
 
 header('Content-Type: application/json; charset=utf-8');
 

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-final class NavigationService
+final class NavigazioneService
 {
     public function mapApplicationToPage(string $urlApplicazione): ?string
     {

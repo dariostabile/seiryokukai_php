@@ -5,14 +5,14 @@ declare(strict_types=1);
 require_once __DIR__ . '/../../config/config.php';
 require_once __DIR__ . '/../autoload.php';
 
-use App\Services\DataService;
+use App\Services\DatiService;
 
-function data_service(): DataService
+function dati_service(): DatiService
 {
     static $service = null;
 
-    if (!$service instanceof DataService) {
-        $service = new DataService();
+    if (!$service instanceof DatiService) {
+        $service = new DatiService();
     }
 
     return $service;

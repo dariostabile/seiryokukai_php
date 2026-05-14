@@ -16,7 +16,7 @@ declare(strict_types=1);
     </div>
 
     <div class="table-responsive">
-      <table class="table align-middle">
+      <table class="table align-middle js-datatable">
         <thead>
           <tr>
             <th>ID</th>

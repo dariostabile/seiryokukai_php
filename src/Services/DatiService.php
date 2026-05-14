@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-final class DataService
+final class DatiService
 {
     public function readClients(): array
     {

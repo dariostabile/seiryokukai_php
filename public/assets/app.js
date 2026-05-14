@@ -9,4 +9,19 @@
       { duration: 250 + i * 80, easing: 'ease-out', fill: 'both' }
     );
   });
+
+  if (typeof DataTable !== 'undefined') {
+    const tables = document.querySelectorAll('table.js-datatable');
+
+    tables.forEach((table) => {
+      // Keeps server-rendered order unless user explicitly sorts.
+      new DataTable(table, {
+        language: {
+          url: 'https://cdn.datatables.net/plug-ins/2.0.8/i18n/it-IT.json',
+        },
+        order: [],
+        pageLength: 10,
+      });
+    });
+  }
 })();

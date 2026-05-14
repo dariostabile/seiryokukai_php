@@ -8,9 +8,9 @@ require_once __DIR__ . '/../src/lib/auth.php';
 require_once __DIR__ . '/../src/lib/data.php';
 require_once __DIR__ . '/../src/lib/navigation.php';
 
-$auth = auth_service();
-$data = data_service();
-$navigation = navigation_service();
+$auth = aut_service();
+$data = dati_service();
+$navigation = navigazione_service();
 
 $page = $_GET['page'] ?? 'dashboard';
 

@@ -6,7 +6,7 @@ session_start();
 
 require_once __DIR__ . '/../../src/lib/auth.php';
 
-$auth = auth_service();
+$auth = aut_service();
 
 $username = trim((string) ($_POST['username'] ?? ''));
 $password = trim((string) ($_POST['password'] ?? ''));

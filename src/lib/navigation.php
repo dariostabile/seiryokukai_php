@@ -5,14 +5,14 @@ declare(strict_types=1);
 require_once __DIR__ . '/../../config/config.php';
 require_once __DIR__ . '/../autoload.php';
 
-use App\Services\NavigationService;
+use App\Services\NavigazioneService;
 
-function navigation_service(): NavigationService
+function navigazione_service(): NavigazioneService
 {
     static $service = null;
 
-    if (!$service instanceof NavigationService) {
-        $service = new NavigationService();
+    if (!$service instanceof NavigazioneService) {
+        $service = new NavigazioneService();
     }
 
     return $service;

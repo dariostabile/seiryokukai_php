@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-final class AuthService
+final class AutenticazioneService
 {
     public function isLoggedIn(): bool
     {
