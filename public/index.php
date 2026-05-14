@@ -40,31 +40,31 @@ if ($page === 'atleti') {
     $pageTitle = 'Atleti';
     $clients = $data->readClients();
     ob_start();
-    require __DIR__ . '/../src/views/clients.php';
+    require __DIR__ . '/../src/views/atleti.php';
     $viewContent = (string) ob_get_clean();
 } elseif ($page === 'utenti') {
     $pageTitle = 'Utenti';
     $users = $data->readUsers();
     ob_start();
-    require __DIR__ . '/../src/views/users.php';
+    require __DIR__ . '/../src/views/utenti.php';
     $viewContent = (string) ob_get_clean();
 } elseif ($page === 'sedi') {
     $pageTitle = 'Sedi';
     $sites = $data->readSites();
     ob_start();
-    require __DIR__ . '/../src/views/sites.php';
+    require __DIR__ . '/../src/views/sedi.php';
     $viewContent = (string) ob_get_clean();
 } elseif ($page === 'tipi_documento') {
     $pageTitle = 'Tipi Documento';
     $documentTypes = $data->readDocumentTypes();
     ob_start();
-    require __DIR__ . '/../src/views/document_types.php';
+    require __DIR__ . '/../src/views/tipi_documento.php';
     $viewContent = (string) ob_get_clean();
 } elseif ($page === 'disciplina') {
     $pageTitle = 'Discipline';
     $disciplines = $data->readDisciplines();
     ob_start();
-    require __DIR__ . '/../src/views/disciplines.php';
+    require __DIR__ . '/../src/views/discipline.php';
     $viewContent = (string) ob_get_clean();
 } elseif ($page === 'corsi') {
     $pageTitle = 'Corsi';
@@ -73,7 +73,7 @@ if ($page === 'atleti') {
     $disciplines = $data->readDisciplines();
     $users = $data->readUsers();
     ob_start();
-    require __DIR__ . '/../src/views/courses.php';
+    require __DIR__ . '/../src/views/corsi.php';
     $viewContent = (string) ob_get_clean();
 } else {
     $stats = $data->dashboardStats();
