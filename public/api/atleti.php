@@ -43,5 +43,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     exit;
 }
 
+if (isset($_GET['draw'])) {
+    $draw = (int) ($_GET['draw'] ?? 0);
+    $start = (int) ($_GET['start'] ?? 0);
+    $length = (int) ($_GET['length'] ?? 10);
+    $search = trim((string) ($_GET['search']['value'] ?? ''));
+
+    $orderColumnIndex = (int) ($_GET['order'][0]['column'] ?? 0);
+    $orderDir = (string) ($_GET['order'][0]['dir'] ?? 'desc');
+    $orderColumn = (string) ($_GET['columns'][$orderColumnIndex]['data'] ?? 'id');
+
+    $page = $data->readClientsPage($start, $length, $search, $orderColumn, $orderDir);
+
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode([
+        'draw' => $draw,
+        'recordsTotal' => (int) ($page['total'] ?? 0),
+        'recordsFiltered' => (int) ($page['filtered'] ?? 0),
+        'data' => $page['data'] ?? [],
+    ], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
 header('Content-Type: application/json; charset=utf-8');
 echo json_encode($data->readClients(), JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);

@@ -64,7 +64,7 @@ body {
   font-size: 0.9rem;
 }
 
-.nav-link {
+.app-sidebar .nav-link {
   color: rgba(255, 255, 255, 0.85);
   border-radius: 12px;
   transition: all 160ms ease;
@@ -79,20 +79,43 @@ body {
   margin-top: 0.75rem;
 }
 
-.nav-link.active {
+.app-sidebar .nav-link.active {
   color: #fff;
   background: rgba(255, 255, 255, 0.18);
 }
 
-.nav-link.nav-link-disabled {
+.app-sidebar .nav-link.nav-link-disabled {
   color: rgba(255, 255, 255, 0.45);
   cursor: not-allowed;
   background: transparent;
 }
 
-.nav-link:hover {
+.app-sidebar .nav-link:hover {
   color: #fff;
   background: rgba(255, 255, 255, 0.12);
+}
+
+/* Template customtab look for user card tabs */
+.customtab {
+  border-bottom: 1px solid #e9ecef;
+}
+
+.customtab .nav-link {
+  border: 0;
+  padding: 15px 20px;
+  color: #212529;
+  border-radius: 0;
+  background: transparent;
+}
+
+.customtab .nav-link.active {
+  border-bottom: 2px solid #fb9678;
+  color: #fb9678;
+  background: transparent;
+}
+
+.customtab .nav-link:hover {
+  color: #fb9678;
 }
 
 .logout {
@@ -137,6 +160,11 @@ body {
   margin: 0.35rem 0 0;
   font-size: 1.8rem;
   color: var(--brand);
+}
+
+/* Minimal DataTable touch: softer row hover only */
+table.dataTable tbody tr:hover {
+  background-color: #f8fbff;
 }
 
 @media (max-width: 992px) {

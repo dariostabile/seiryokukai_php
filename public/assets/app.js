@@ -14,6 +14,10 @@
     const tables = document.querySelectorAll('table.js-datatable');
 
     tables.forEach((table) => {
+      if (table.dataset.serverSide === '1') {
+        return;
+      }
+
       // Keeps server-rendered order unless user explicitly sorts.
       new DataTable(table, {
         language: {

@@ -80,7 +80,7 @@ $dayLabels = [
     </form>
 
     <div class="table-responsive">
-      <table class="table align-middle js-datatable">
+      <table id="corsi-table" class="table align-middle js-datatable" data-server-side="1">
         <thead>
           <tr>
             <th>ID</th>
@@ -94,44 +94,7 @@ $dayLabels = [
             <th>Azioni</th>
           </tr>
         </thead>
-        <tbody>
-          <?php foreach ($courses as $course): ?>
-            <?php
-            $orari = [];
-            foreach ($dayLabels as $dayKey => $dayLabel) {
-                $inizio = trim((string) ($course[$dayKey . '_inizio'] ?? ''));
-                $fine = trim((string) ($course[$dayKey . '_fine'] ?? ''));
-                if ($inizio !== '' || $fine !== '') {
-                    $orari[] = substr($dayLabel, 0, 3) . ': ' . ($inizio !== '' ? $inizio : '--:--') . '-' . ($fine !== '' ? $fine : '--:--');
-                }
-            }
-            $orariStr = $orari !== [] ? implode(' | ', $orari) : '—';
-            ?>
-            <tr>
-              <td><?= (int) ($course['id'] ?? 0) ?></td>
-              <td><?= htmlspecialchars((string) ($course['name'] ?? '')) ?></td>
-              <td><?= htmlspecialchars((string) ($course['site'] ?? '')) ?></td>
-              <td><?= htmlspecialchars((string) ($course['discipline'] ?? '')) ?></td>
-              <td><?= htmlspecialchars((string) ($course['teacher'] ?? '')) ?></td>
-              <td><?= htmlspecialchars((string) ($course['start_date'] ?? '')) ?></td>
-              <td><?= htmlspecialchars((string) ($course['monthly_fee'] ?? '')) ?></td>
-              <td><small><?= htmlspecialchars($orariStr) ?></small></td>
-              <td>
-                <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editCourseModal"
-                        onclick="loadCourseData(<?= (int) ($course['id'] ?? 0) ?>, <?= htmlspecialchars(json_encode($course, JSON_UNESCAPED_UNICODE)) ?>)">
-                  <i class="fa-solid fa-pencil"></i>
-                </button>
-                <form method="post" action="/seiryokukai_php/public/api/corsi.php" style="display:inline;">
-                  <input type="hidden" name="action" value="delete">
-                  <input type="hidden" name="course_id" value="<?= (int) ($course['id'] ?? 0) ?>">
-                  <button class="btn btn-sm btn-danger" type="submit" onclick="return confirm('Eliminare questo corso?');">
-                    <i class="fa-solid fa-trash"></i>
-                  </button>
-                </form>
-              </td>
-            </tr>
-          <?php endforeach; ?>
-        </tbody>
+        <tbody></tbody>
       </table>
     </div>
   </div>
@@ -234,4 +197,88 @@ function loadCourseData(courseId, courseData) {
     }
   });
 }
+
+document.addEventListener('DOMContentLoaded', function () {
+  if (typeof DataTable === 'undefined') {
+    return;
+  }
+
+  const dayLabels = {
+    lun: 'Lun',
+    mar: 'Mar',
+    mer: 'Mer',
+    gio: 'Gio',
+    ven: 'Ven',
+    sab: 'Sab',
+    dom: 'Dom',
+  };
+
+  const buildOrariString = function (row) {
+    const parts = [];
+    ['lun', 'mar', 'mer', 'gio', 'ven', 'sab', 'dom'].forEach((day) => {
+      const start = (row[day + '_inizio'] || '').toString().substring(0, 5);
+      const end = (row[day + '_fine'] || '').toString().substring(0, 5);
+      if (start !== '' || end !== '') {
+        parts.push(dayLabels[day] + ': ' + (start || '--:--') + '-' + (end || '--:--'));
+      }
+    });
+
+    return parts.length > 0 ? parts.join(' | ') : '—';
+  };
+
+  new DataTable('#corsi-table', {
+    serverSide: true,
+    processing: true,
+    pageLength: 10,
+    order: [[0, 'desc']],
+    ajax: {
+      url: '/seiryokukai_php/public/api/corsi.php',
+      type: 'GET',
+    },
+    language: {
+      url: 'https://cdn.datatables.net/plug-ins/2.0.8/i18n/it-IT.json',
+    },
+    columns: [
+      { data: 'id' },
+      { data: 'name' },
+      { data: 'site' },
+      { data: 'discipline' },
+      { data: 'teacher' },
+      { data: 'start_date' },
+      { data: 'monthly_fee' },
+      {
+        data: null,
+        render: function (row) {
+          return '<small>' + buildOrariString(row) + '</small>';
+        },
+      },
+      {
+        data: null,
+        orderable: false,
+        searchable: false,
+        render: function (row) {
+          const id = Number(row.id || 0);
+          const dataAttr = String(JSON.stringify(row))
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+
+          return ''
+            + '<button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editCourseModal" data-course="' + dataAttr + '" onclick="loadCourseData(' + id + ', JSON.parse(this.dataset.course))">'
+            + '<i class="fa-solid fa-pencil"></i>'
+            + '</button> '
+            + '<form method="post" action="/seiryokukai_php/public/api/corsi.php" style="display:inline;">'
+            + '<input type="hidden" name="action" value="delete">'
+            + '<input type="hidden" name="course_id" value="' + id + '">'
+            + '<button class="btn btn-sm btn-danger" type="submit" onclick="return confirm(\'Eliminare questo corso?\');">'
+            + '<i class="fa-solid fa-trash"></i>'
+            + '</button>'
+            + '</form>';
+        },
+      },
+    ],
+  });
+});
 </script>

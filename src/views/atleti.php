@@ -15,7 +15,7 @@ declare(strict_types=1);
     </div>
 
     <div class="table-responsive">
-      <table class="table align-middle js-datatable">
+      <table id="atleti-table" class="table align-middle js-datatable" data-server-side="1">
         <thead>
           <tr>
             <th>ID</th>
@@ -26,40 +26,79 @@ declare(strict_types=1);
             <th class="text-end">Azioni</th>
           </tr>
         </thead>
-        <tbody>
-          <?php foreach ($clients as $client): ?>
-            <?php $isActive = ($client['status'] ?? '') === 'Attivo'; ?>
-            <tr>
-              <td><?= (int) $client['id'] ?></td>
-              <td><?= htmlspecialchars((string) $client['name']) ?></td>
-              <td><?= htmlspecialchars((string) ($client['email'] ?? '')) ?></td>
-              <td><?= htmlspecialchars((string) ($client['phone'] ?? '')) ?></td>
-              <td>
-                <span class="badge text-bg-<?= $isActive ? 'success' : 'secondary' ?>">
-                  <?= htmlspecialchars((string) $client['status']) ?>
-                </span>
-              </td>
-              <td>
-                <div class="d-flex justify-content-end gap-2">
-                  <form method="post" action="/seiryokukai_php/public/api/atleti.php">
-                    <input type="hidden" name="action" value="status">
-                    <input type="hidden" name="id" value="<?= (int) $client['id'] ?>">
-                    <input type="hidden" name="status" value="<?= $isActive ? 'Sospeso' : 'Attivo' ?>">
-                    <button class="btn btn-sm <?= $isActive ? 'btn-outline-warning' : 'btn-outline-success' ?>" type="submit">
-                      <?= $isActive ? 'Sospendi' : 'Attiva' ?>
-                    </button>
-                  </form>
-                  <form method="post" action="/seiryokukai_php/public/api/atleti.php" onsubmit="return confirm('Eliminare questo cliente?');">
-                    <input type="hidden" name="action" value="delete">
-                    <input type="hidden" name="id" value="<?= (int) $client['id'] ?>">
-                    <button class="btn btn-sm btn-outline-danger" type="submit">Elimina</button>
-                  </form>
-                </div>
-              </td>
-            </tr>
-          <?php endforeach; ?>
-        </tbody>
+        <tbody></tbody>
       </table>
     </div>
   </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  if (typeof DataTable === 'undefined') {
+    return;
+  }
+
+  const escapeHtml = (value) => String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+
+  new DataTable('#atleti-table', {
+    serverSide: true,
+    processing: true,
+    pageLength: 10,
+    order: [[0, 'desc']],
+    ajax: {
+      url: '/seiryokukai_php/public/api/atleti.php',
+      type: 'GET',
+    },
+    language: {
+      url: 'https://cdn.datatables.net/plug-ins/2.0.8/i18n/it-IT.json',
+    },
+    columns: [
+      { data: 'id' },
+      { data: 'name' },
+      { data: 'email' },
+      { data: 'phone' },
+      {
+        data: 'status',
+        render: function (data) {
+          const active = data === 'Attivo';
+          const cls = active ? 'success' : 'secondary';
+          return '<span class="badge text-bg-' + cls + '">' + escapeHtml(data) + '</span>';
+        },
+      },
+      {
+        data: null,
+        orderable: false,
+        searchable: false,
+        className: 'text-end',
+        render: function (row) {
+          const id = Number(row.id || 0);
+          const isActive = row.status === 'Attivo';
+          const nextStatus = isActive ? 'Sospeso' : 'Attivo';
+          const statusLabel = isActive ? 'Sospendi' : 'Attiva';
+          const statusClass = isActive ? 'btn-outline-warning' : 'btn-outline-success';
+
+          return ''
+            + '<div class="d-flex justify-content-end gap-2">'
+            + '<form method="post" action="/seiryokukai_php/public/api/atleti.php">'
+            + '<input type="hidden" name="action" value="status">'
+            + '<input type="hidden" name="id" value="' + id + '">'
+            + '<input type="hidden" name="status" value="' + nextStatus + '">'
+            + '<button class="btn btn-sm ' + statusClass + '" type="submit">' + statusLabel + '</button>'
+            + '</form>'
+            + '<form method="post" action="/seiryokukai_php/public/api/atleti.php" onsubmit="return confirm(\'Eliminare questo cliente?\');">'
+            + '<input type="hidden" name="action" value="delete">'
+            + '<input type="hidden" name="id" value="' + id + '">'
+            + '<button class="btn btn-sm btn-outline-danger" type="submit">Elimina</button>'
+            + '</form>'
+            + '</div>';
+        },
+      },
+    ],
+  });
+});
+</script>

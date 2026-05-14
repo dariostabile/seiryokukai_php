@@ -38,13 +38,16 @@ $viewContent = '';
 
 if ($page === 'atleti') {
     $pageTitle = 'Atleti';
-    $clients = $data->readClients();
+    $clients = [];
     ob_start();
     require __DIR__ . '/../src/views/atleti.php';
     $viewContent = (string) ob_get_clean();
 } elseif ($page === 'utenti') {
     $pageTitle = 'Utenti';
-    $users = $data->readUsers();
+    $users = [];
+    $profiles = $data->readProfiles();
+      $applicationsCatalog = $data->readApplicationsCatalog();
+    $currentUserId = (int) ($user['id'] ?? 0);
     ob_start();
     require __DIR__ . '/../src/views/utenti.php';
     $viewContent = (string) ob_get_clean();
@@ -68,7 +71,7 @@ if ($page === 'atleti') {
     $viewContent = (string) ob_get_clean();
 } elseif ($page === 'corsi') {
     $pageTitle = 'Corsi';
-    $courses = $data->readCourses();
+    $courses = [];
     $sites = $data->readSites();
     $disciplines = $data->readDisciplines();
     $users = $data->readUsers();
