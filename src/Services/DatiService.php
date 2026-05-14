@@ -300,7 +300,8 @@ final class DatiService
                 COALESCE(d.disciplina, '') AS discipline,
                 TRIM(CONCAT(COALESCE(u.nome, ''), ' ', COALESCE(u.cognome, ''))) AS teacher,
                 c.data_inizio_corso AS start_date,
-                c.quota_mensile_corso AS monthly_fee
+                c.quota_mensile_corso AS monthly_fee,
+                c.lun, c.mar, c.merc, c.giov, c.ven, c.sab, c.dom
              FROM corsi c
              INNER JOIN sedi s ON s.idsede = c.idsede
              INNER JOIN discipline d ON d.iddisciplina = c.iddisciplina
@@ -319,7 +320,8 @@ final class DatiService
         int $userId,
         string $name,
         ?string $startDate = null,
-        ?float $monthlyFee = null
+        ?float $monthlyFee = null,
+        array $days = []
     ): array {
         $name = trim($name);
 
@@ -327,10 +329,18 @@ final class DatiService
             throw new \InvalidArgumentException('Dati corso non validi');
         }
 
+        $lun = $days['lun'] ? 1 : 0;
+        $mar = $days['mar'] ? 1 : 0;
+        $merc = $days['merc'] ? 1 : 0;
+        $giov = $days['giov'] ? 1 : 0;
+        $ven = $days['ven'] ? 1 : 0;
+        $sab = $days['sab'] ? 1 : 0;
+        $dom = $days['dom'] ? 1 : 0;
+
         $pdo = db_connection();
         $stmt = $pdo->prepare(
-            'INSERT INTO corsi (idsede, iddisciplina, idutente, nome_corso, data_inizio_corso, quota_mensile_corso)
-             VALUES (:idsede, :iddisciplina, :idutente, :nome_corso, :data_inizio_corso, :quota_mensile_corso)'
+            'INSERT INTO corsi (idsede, iddisciplina, idutente, nome_corso, data_inizio_corso, quota_mensile_corso, lun, mar, merc, giov, ven, sab, dom)
+             VALUES (:idsede, :iddisciplina, :idutente, :nome_corso, :data_inizio_corso, :quota_mensile_corso, :lun, :mar, :merc, :giov, :ven, :sab, :dom)'
         );
         $stmt->execute([
             'idsede' => $siteId,
@@ -339,11 +349,123 @@ final class DatiService
             'nome_corso' => $name,
             'data_inizio_corso' => $startDate,
             'quota_mensile_corso' => $monthlyFee,
+            'lun' => $lun,
+            'mar' => $mar,
+            'merc' => $merc,
+            'giov' => $giov,
+            'ven' => $ven,
+            'sab' => $sab,
+            'dom' => $dom,
         ]);
 
         return [
             'id' => (int) $pdo->lastInsertId(),
             'name' => $name,
         ];
+    }
+
+    public function readCourseById(int $id): ?array
+    {
+        if ($id <= 0) {
+            return null;
+        }
+
+        $pdo = db_connection();
+        $stmt = $pdo->prepare(
+            "SELECT
+                c.idcorso AS id,
+                c.idsede AS site_id,
+                c.iddisciplina AS discipline_id,
+                c.idutente AS user_id,
+                COALESCE(c.nome_corso, '') AS name,
+                COALESCE(s.sede, '') AS site,
+                COALESCE(d.disciplina, '') AS discipline,
+                TRIM(CONCAT(COALESCE(u.nome, ''), ' ', COALESCE(u.cognome, ''))) AS teacher,
+                c.data_inizio_corso AS start_date,
+                c.quota_mensile_corso AS monthly_fee,
+                c.lun, c.mar, c.merc, c.giov, c.ven, c.sab, c.dom
+             FROM corsi c
+             INNER JOIN sedi s ON s.idsede = c.idsede
+             INNER JOIN discipline d ON d.iddisciplina = c.iddisciplina
+             INNER JOIN utenti u ON u.idutente = c.idutente
+             WHERE c.idcorso = :id
+             LIMIT 1"
+        );
+        $stmt->execute(['id' => $id]);
+        $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+
+        return is_array($row) ? $row : null;
+    }
+
+    public function updateCourse(
+        int $id,
+        int $siteId,
+        int $disciplineId,
+        int $userId,
+        string $name,
+        ?string $startDate = null,
+        ?float $monthlyFee = null,
+        array $days = []
+    ): bool {
+        $name = trim($name);
+
+        if ($id <= 0 || $siteId <= 0 || $disciplineId <= 0 || $userId <= 0 || $name === '') {
+            throw new \InvalidArgumentException('Dati corso non validi per aggiornamento');
+        }
+
+        $lun = $days['lun'] ? 1 : 0;
+        $mar = $days['mar'] ? 1 : 0;
+        $merc = $days['merc'] ? 1 : 0;
+        $giov = $days['giov'] ? 1 : 0;
+        $ven = $days['ven'] ? 1 : 0;
+        $sab = $days['sab'] ? 1 : 0;
+        $dom = $days['dom'] ? 1 : 0;
+
+        $pdo = db_connection();
+        $stmt = $pdo->prepare(
+            'UPDATE corsi
+             SET idsede = :idsede,
+                 iddisciplina = :iddisciplina,
+                 idutente = :idutente,
+                 nome_corso = :nome_corso,
+                 data_inizio_corso = :data_inizio_corso,
+                 quota_mensile_corso = :quota_mensile_corso,
+                 lun = :lun,
+                 mar = :mar,
+                 merc = :merc,
+                 giov = :giov,
+                 ven = :ven,
+                 sab = :sab,
+                 dom = :dom
+             WHERE idcorso = :id'
+        );
+
+        return $stmt->execute([
+            'id' => $id,
+            'idsede' => $siteId,
+            'iddisciplina' => $disciplineId,
+            'idutente' => $userId,
+            'nome_corso' => $name,
+            'data_inizio_corso' => $startDate,
+            'quota_mensile_corso' => $monthlyFee,
+            'lun' => $lun,
+            'mar' => $mar,
+            'merc' => $merc,
+            'giov' => $giov,
+            'ven' => $ven,
+            'sab' => $sab,
+            'dom' => $dom,
+        ]);
+    }
+
+    public function deleteCourse(int $id): bool
+    {
+        if ($id <= 0) {
+            throw new \InvalidArgumentException('ID corso non valido');
+        }
+
+        $pdo = db_connection();
+        $stmt = $pdo->prepare('DELETE FROM corsi WHERE idcorso = :id');
+        return $stmt->execute(['id' => $id]);
     }
 }
