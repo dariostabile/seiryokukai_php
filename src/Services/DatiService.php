@@ -209,13 +209,17 @@ final class DatiService
                      COALESCE(u.cognome, '') AS last_name,
                 TRIM(CONCAT(COALESCE(u.nome, ''), ' ', COALESCE(u.cognome, ''))) AS name,
                 COALESCE(u.username, '') AS username,
+                COALESCE(u.telefono1, '') AS phone1,
+                COALESCE(u.telefono2, '') AS phone2,
                 COALESCE(u.email1, '') AS email,
+                COALESCE(u.email2, '') AS email2,
                 CASE WHEN u.attivo = 1 THEN 'Attivo' ELSE 'Sospeso' END AS status,
                  COALESCE(u.immagine_utente, '') AS image_path,
                  COALESCE(up1.primary_profile_id, 0) AS profile_id,
                  COALESCE(up1.profile_ids_csv, '') AS profile_ids_csv,
                  COALESCE(up1.profile_names_csv, '') AS role,
-                 COALESCE(ua1.application_ids_csv, '') AS application_ids_csv
+                 COALESCE(ua1.application_ids_csv, '') AS application_ids_csv,
+                 COALESCE(u.data_scadenza_account, '') AS data_scadenza_account
              FROM utenti u
                  LEFT JOIN (
                      SELECT
@@ -316,13 +320,17 @@ final class DatiService
                 COALESCE(u.cognome, '') AS last_name,
                 TRIM(CONCAT(COALESCE(u.nome, ''), ' ', COALESCE(u.cognome, ''))) AS name,
                 COALESCE(u.username, '') AS username,
+                 COALESCE(u.telefono1, '') AS phone1,
+                 COALESCE(u.telefono2, '') AS phone2,
                 COALESCE(u.email1, '') AS email,
+                 COALESCE(u.email2, '') AS email2,
                 CASE WHEN u.attivo = 1 THEN 'Attivo' ELSE 'Sospeso' END AS status,
                      COALESCE(u.immagine_utente, '') AS image_path,
                 COALESCE(up1.primary_profile_id, 0) AS profile_id,
                      COALESCE(up1.profile_ids_csv, '') AS profile_ids_csv,
                      COALESCE(up1.profile_names_csv, '') AS role,
-                     COALESCE(ua1.application_ids_csv, '') AS application_ids_csv
+                     COALESCE(ua1.application_ids_csv, '') AS application_ids_csv,
+                     COALESCE(u.data_scadenza_account, '') AS data_scadenza_account
              FROM utenti u
              LEFT JOIN (
                 SELECT
@@ -385,13 +393,17 @@ final class DatiService
                 COALESCE(u.cognome, '') AS last_name,
                 TRIM(CONCAT(COALESCE(u.nome, ''), ' ', COALESCE(u.cognome, ''))) AS name,
                 COALESCE(u.username, '') AS username,
+                 COALESCE(u.telefono1, '') AS phone1,
+                 COALESCE(u.telefono2, '') AS phone2,
                 COALESCE(u.email1, '') AS email,
+                 COALESCE(u.email2, '') AS email2,
                 CASE WHEN u.attivo = 1 THEN 'Attivo' ELSE 'Sospeso' END AS status,
                 COALESCE(u.immagine_utente, '') AS image_path,
                 COALESCE(up1.primary_profile_id, 0) AS profile_id,
                      COALESCE(up1.profile_ids_csv, '') AS profile_ids_csv,
                      COALESCE(up1.profile_names_csv, '') AS role,
-                     COALESCE(ua1.application_ids_csv, '') AS application_ids_csv
+                     COALESCE(ua1.application_ids_csv, '') AS application_ids_csv,
+                     COALESCE(u.data_scadenza_account, '') AS data_scadenza_account
              FROM utenti u
              LEFT JOIN (
                 SELECT
@@ -474,14 +486,31 @@ final class DatiService
         string $username,
         string $password,
         string $email = '',
+        string $phone1 = '',
+        string $phone2 = '',
+        string $email2 = '',
         array $profileIds = [],
-        bool $attivo = true
+        bool $attivo = true,
+        string $accountExpiryDate = '',
+        array $applicationIds = []
     ): array {
         $nome = trim($nome);
         $cognome = trim($cognome);
         $username = trim($username);
         $email = trim($email);
+        $phone1 = trim($phone1);
+        $phone2 = trim($phone2);
+        $email2 = trim($email2);
+        $accountExpiryDate = trim($accountExpiryDate);
+        if ($accountExpiryDate === '') {
+            $accountExpiryDate = date('Y-m-d', strtotime('+1 year'));
+        }
+        if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $accountExpiryDate)) {
+            throw new \InvalidArgumentException('Data scadenza account non valida');
+        }
+        $accountExpiryDateTime = $accountExpiryDate . ' 23:59:59';
         $profileIds = array_values(array_unique(array_filter(array_map('intval', $profileIds), static fn (int $id): bool => $id > 0)));
+        $applicationIds = array_values(array_unique(array_filter(array_map('intval', $applicationIds), static fn (int $id): bool => $id > 0)));
 
         if ($username === '' || $password === '') {
             throw new \InvalidArgumentException('Username e password sono obbligatori');
@@ -509,16 +538,20 @@ final class DatiService
 
         try {
             $insertStmt = $pdo->prepare(
-                'INSERT INTO utenti (nome, cognome, username, password, email1, attivo, cancellato, superadmin, data_creazione_account)
-                 VALUES (:nome, :cognome, :username, :password, :email1, :attivo, 0, 0, NOW())'
+                 'INSERT INTO utenti (nome, cognome, username, password, telefono1, telefono2, email1, email2, attivo, cancellato, superadmin, data_creazione_account, data_scadenza_account)
+                  VALUES (:nome, :cognome, :username, :password, :telefono1, :telefono2, :email1, :email2, :attivo, 0, 0, NOW(), :data_scadenza_account)'
             );
             $insertStmt->execute([
                 'nome' => $nome !== '' ? $nome : null,
                 'cognome' => $cognome !== '' ? $cognome : null,
                 'username' => $username,
                 'password' => $passwordHash,
+                'telefono1' => $phone1 !== '' ? $phone1 : null,
+                'telefono2' => $phone2 !== '' ? $phone2 : null,
                 'email1' => $email !== '' ? $email : null,
+                'email2' => $email2 !== '' ? $email2 : null,
                 'attivo' => $attivo ? 1 : 0,
+                'data_scadenza_account' => $accountExpiryDateTime,
             ]);
 
             $newUserId = (int) $pdo->lastInsertId();
@@ -533,6 +566,16 @@ final class DatiService
                 }
             }
 
+            if ($applicationIds !== []) {
+                $applicationStmt = $pdo->prepare('INSERT INTO utenti_has_applicazioni (idutente, idapplicazione) VALUES (:idutente, :idapplicazione)');
+                foreach ($applicationIds as $applicationId) {
+                    $applicationStmt->execute([
+                        'idutente' => $newUserId,
+                        'idapplicazione' => $applicationId,
+                    ]);
+                }
+            }
+
             $pdo->commit();
 
             return [
@@ -540,6 +583,10 @@ final class DatiService
                 'name' => trim($nome . ' ' . $cognome),
                 'username' => $username,
                 'email' => $email,
+                'phone1' => $phone1,
+                'phone2' => $phone2,
+                'email2' => $email2,
+                'data_scadenza_account' => $accountExpiryDate,
                 'status' => $attivo ? 'Attivo' : 'Sospeso',
             ];
         } catch (\Throwable $e) {
@@ -569,17 +616,42 @@ final class DatiService
         return $stmt->rowCount() > 0;
     }
 
+    public function updateUserImage(int $id, ?string $imagePath): bool
+    {
+        if ($id <= 0) {
+            return false;
+        }
+
+        $cleanPath = $imagePath !== null ? trim($imagePath) : null;
+        if ($cleanPath === '') {
+            $cleanPath = null;
+        }
+
+        $pdo = db_connection();
+        $stmt = $pdo->prepare('UPDATE utenti SET immagine_utente = :immagine_utente WHERE idutente = :idutente AND cancellato = 0');
+        $stmt->execute([
+            'immagine_utente' => $cleanPath,
+            'idutente' => $id,
+        ]);
+
+        return $stmt->rowCount() > 0;
+    }
+
     public function updateUser(
         int $id,
         string $nome,
         string $cognome,
         string $username,
         string $email = '',
+        string $phone1 = '',
+        string $phone2 = '',
+        string $email2 = '',
         array $profileIds = [],
         bool $attivo = true,
         ?string $imagePath = null,
         ?string $newPassword = null,
-        ?array $applicationIds = null
+        ?array $applicationIds = null,
+        string $accountExpiryDate = ''
     ): bool {
         if ($id <= 0) {
             return false;
@@ -589,6 +661,17 @@ final class DatiService
         $cognome = trim($cognome);
         $username = trim($username);
         $email = trim($email);
+        $phone1 = trim($phone1);
+        $phone2 = trim($phone2);
+        $email2 = trim($email2);
+        $accountExpiryDate = trim($accountExpiryDate);
+        $accountExpiryDateTime = null;
+        if ($accountExpiryDate !== '') {
+            if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $accountExpiryDate)) {
+                throw new \InvalidArgumentException('Data scadenza account non valida');
+            }
+            $accountExpiryDateTime = $accountExpiryDate . ' 23:59:59';
+        }
         $profileIds = array_values(array_unique(array_filter(array_map('intval', $profileIds), static fn (int $id): bool => $id > 0)));
         $newPassword = trim((string) $newPassword);
         $applicationIds = $applicationIds !== null
@@ -625,7 +708,11 @@ final class DatiService
                 'nome = :nome',
                 'cognome = :cognome',
                 'username = :username',
+                'telefono1 = :telefono1',
+                'telefono2 = :telefono2',
                 'email1 = :email1',
+                'email2 = :email2',
+                'data_scadenza_account = :data_scadenza_account',
                 'immagine_utente = :immagine_utente',
                 'attivo = :attivo',
             ];
@@ -634,7 +721,11 @@ final class DatiService
                 'nome' => $nome !== '' ? $nome : null,
                 'cognome' => $cognome !== '' ? $cognome : null,
                 'username' => $username,
+                'telefono1' => $phone1 !== '' ? $phone1 : null,
+                'telefono2' => $phone2 !== '' ? $phone2 : null,
                 'email1' => $email !== '' ? $email : null,
+                'email2' => $email2 !== '' ? $email2 : null,
+                'data_scadenza_account' => $accountExpiryDateTime,
                 'immagine_utente' => $imagePath !== null && trim($imagePath) !== '' ? trim($imagePath) : null,
                 'attivo' => $attivo ? 1 : 0,
                 'idutente' => $id,

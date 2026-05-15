@@ -293,9 +293,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = trim((string) ($_POST['action'] ?? ''));
     $id = (int) ($_POST['id'] ?? 0);
     $errorContext = [];
+    $isAjaxPost = ((string) ($_POST['ajax'] ?? '0')) === '1'
+        || strtolower((string) ($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '')) === 'xmlhttprequest';
 
-    $redirect = static function (string $type, string $message, array $extra = []): void {
+    $redirect = static function (string $type, string $message, array $extra = []) use ($isAjaxPost): void {
         $type = $type === 'err' ? 'err' : 'ok';
+
+        if ($isAjaxPost) {
+            $ok = $type === 'ok';
+            http_response_code($ok ? 200 : 400);
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode([
+                'ok' => $ok,
+                'type' => $type,
+                'message' => $message,
+                'extra' => $extra,
+            ], JSON_UNESCAPED_UNICODE);
+            exit;
+        }
+
         $query = http_build_query(array_merge([
             'page' => 'utenti',
             $type => $message,
@@ -311,6 +327,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $username = trim((string) ($_POST['username'] ?? ''));
             $password = (string) ($_POST['password'] ?? '');
             $email = trim((string) ($_POST['email'] ?? ''));
+            $phone1 = trim((string) ($_POST['telefono1'] ?? ''));
+            $phone2 = trim((string) ($_POST['telefono2'] ?? ''));
+            $email2 = trim((string) ($_POST['email2'] ?? ''));
+            $accountExpiryDate = trim((string) ($_POST['data_scadenza_account'] ?? ''));
+            $applicationIds = array_values(array_unique(array_map('intval', (array) ($_POST['application_ids'] ?? []))));
             $profileIds = array_values(array_unique(array_filter(array_map('intval', (array) ($_POST['profile_ids'] ?? [])), static fn (int $id): bool => $id > 0)));
             if ($profileIds === [] && isset($_POST['profile_id'])) {
                 $legacyProfileId = (int) ($_POST['profile_id'] ?? 0);
@@ -326,7 +347,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'add_cognome' => $cognome,
                 'add_username' => $username,
                 'add_email' => $email,
+                'add_telefono1' => $phone1,
+                'add_telefono2' => $phone2,
+                'add_email2' => $email2,
+                'add_data_scadenza_account' => $accountExpiryDate,
                 'add_profile_ids' => implode(',', $profileIds),
+                'add_application_ids' => implode(',', $applicationIds),
                 'add_status' => $status,
             ];
 
@@ -335,7 +361,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             if ($username !== '' && $password !== '') {
-                $data->addUser($nome, $cognome, $username, $password, $email, $profileIds, $attivo);
+                $createdUser = $data->addUser($nome, $cognome, $username, $password, $email, $phone1, $phone2, $email2, $profileIds, $attivo, $accountExpiryDate, $applicationIds);
+                $createdUserId = (int) ($createdUser['id'] ?? 0);
+
+                if ($createdUserId > 0) {
+                    $cropImageBase64Add = trim((string) ($_POST['crop_image_base64_add'] ?? ''));
+                    $newImagePath = '';
+
+                    if ($cropImageBase64Add !== '') {
+                        $upload = gestisciUploadImmagineBase64Utente($cropImageBase64Add, $createdUserId, '');
+                        $newImagePath = trim((string) ($upload['path'] ?? ''));
+                    } elseif (isset($_FILES['image']) && is_array($_FILES['image'])) {
+                        $upload = gestisciUploadImmagineUtente($_FILES['image'], $createdUserId, '');
+                        $newImagePath = trim((string) ($upload['path'] ?? ''));
+                    }
+
+                    if ($newImagePath !== '') {
+                        $data->updateUserImage($createdUserId, $newImagePath);
+                    }
+                }
+
                 $redirect('ok', 'Utente creato con successo');
             }
             $redirect('err', 'Username e password sono obbligatori', $errorContext);
@@ -350,6 +395,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $cognome = trim((string) ($_POST['cognome'] ?? ''));
             $username = trim((string) ($_POST['username'] ?? ''));
             $email = trim((string) ($_POST['email'] ?? ''));
+            $phone1 = trim((string) ($_POST['telefono1'] ?? ''));
+            $phone2 = trim((string) ($_POST['telefono2'] ?? ''));
+            $email2 = trim((string) ($_POST['email2'] ?? ''));
+            $accountExpiryDate = trim((string) ($_POST['data_scadenza_account'] ?? ''));
             $newPassword = (string) ($_POST['password'] ?? '');
             $profileIds = array_values(array_unique(array_filter(array_map('intval', (array) ($_POST['profile_ids'] ?? [])), static fn (int $id): bool => $id > 0)));
             if ($profileIds === [] && isset($_POST['profile_id'])) {
@@ -378,6 +427,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'edit_cognome' => $cognome,
                 'edit_username' => $username,
                 'edit_email' => $email,
+                'edit_telefono1' => $phone1,
+                'edit_telefono2' => $phone2,
+                'edit_email2' => $email2,
+                'edit_data_scadenza_account' => $accountExpiryDate,
                 'edit_profile_ids' => implode(',', $profileIds),
                 'edit_status' => $status,
                 'edit_application_ids' => implode(',', $applicationIds),
@@ -416,11 +469,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                       $cognome,
                       $username,
                       $email,
+                                            $phone1,
+                                            $phone2,
+                                            $email2,
                                             $profileIds,
                       $attivo,
                       $newImagePath !== '' ? $newImagePath : null,
                         $newPassword,
-                        $applicationIds
+                                                $applicationIds,
+                                                $accountExpiryDate
                   );
 
                 if ($currentImagePath !== '' && $currentImagePath !== $newImagePath) {
