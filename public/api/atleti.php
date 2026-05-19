@@ -7,8 +7,11 @@ session_start();
 require_once __DIR__ . '/../../src/lib/auth.php';
 require_once __DIR__ . '/../../src/lib/data.php';
 
+use App\Requests\AddAthleteRequest;
+use App\Requests\ValidationException;
+
 $auth = aut_service();
-$data = dati_service();
+$atleti = atleti_service();
 
 if (!$auth->isLoggedIn()) {
     http_response_code(401);
@@ -19,28 +22,39 @@ if (!$auth->isLoggedIn()) {
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = trim((string) ($_POST['action'] ?? 'add'));
-    $name = trim((string) ($_POST['name'] ?? ''));
-    $id = (int) ($_POST['id'] ?? 0);
 
-    if ($action === 'status' && $id > 0) {
-        $status = trim((string) ($_POST['status'] ?? ''));
-        $data->updateClientStatus($id, $status);
-        header('Location: /seiryokukai_php/public/index.php?page=atleti');
+    if ($action === 'status') {
+        $id = (int) ($_POST['id'] ?? 0);
+        if ($id > 0) {
+            $status = trim((string) ($_POST['status'] ?? ''));
+        $atleti->updateClientStatus($id, $status);
+        }
+        header('Location: /seiryokukai_php/public/index.php?page=atleti&ok=Stato%20atleta%20aggiornato');
         exit;
     }
 
-    if ($action === 'delete' && $id > 0) {
-        $data->deleteClient($id);
-        header('Location: /seiryokukai_php/public/index.php?page=atleti');
+    if ($action === 'delete') {
+        $id = (int) ($_POST['id'] ?? 0);
+        if ($id > 0) {
+            $atleti->deleteClient($id);
+        }
+        header('Location: /seiryokukai_php/public/index.php?page=atleti&ok=Atleta%20eliminato%20con%20successo');
         exit;
     }
 
-    if ($action === 'add' && $name !== '') {
-        $data->addClient($name);
+    try {
+        $request = new AddAthleteRequest($_POST);
+        $atleti->addClient($request->getString('name'));
+        header('Location: /seiryokukai_php/public/index.php?page=atleti&ok=Atleta%20creato%20con%20successo');
+        exit;
+    } catch (ValidationException $e) {
+        handle_validation_errors(
+            $e->errors(),
+            'atleti',
+            ['add_name' => $_POST['name'] ?? '']
+        );
     }
 
-    header('Location: /seiryokukai_php/public/index.php?page=atleti');
-    exit;
 }
 
 if (isset($_GET['draw'])) {
@@ -53,7 +67,7 @@ if (isset($_GET['draw'])) {
     $orderDir = (string) ($_GET['order'][0]['dir'] ?? 'desc');
     $orderColumn = (string) ($_GET['columns'][$orderColumnIndex]['data'] ?? 'id');
 
-    $page = $data->readClientsPage($start, $length, $search, $orderColumn, $orderDir);
+    $page = $atleti->readClientsPage($start, $length, $search, $orderColumn, $orderDir);
 
     header('Content-Type: application/json; charset=utf-8');
     echo json_encode([
@@ -66,4 +80,4 @@ if (isset($_GET['draw'])) {
 }
 
 header('Content-Type: application/json; charset=utf-8');
-echo json_encode($data->readClients(), JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+echo json_encode($atleti->readClients(), JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);

@@ -8,7 +8,7 @@ require_once __DIR__ . '/../../src/lib/auth.php';
 require_once __DIR__ . '/../../src/lib/data.php';
 
 $auth = aut_service();
-$data = dati_service();
+$dashboard = dashboard_service();
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -20,5 +20,5 @@ if (!$auth->isLoggedIn()) {
 
 echo json_encode([
     'user' => $auth->currentUser(),
-    'stats' => $data->dashboardStats(),
+    'stats' => $dashboard->dashboardStats(),
 ], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);

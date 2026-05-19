@@ -8,7 +8,7 @@ require_once __DIR__ . '/../../src/lib/auth.php';
 require_once __DIR__ . '/../../src/lib/data.php';
 
 $auth = aut_service();
-$data = dati_service();
+$utenti = utenti_service();
 $currentUser = $auth->currentUser();
 $currentUserId = (int) ($currentUser['id'] ?? 0);
 
@@ -361,7 +361,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             if ($username !== '' && $password !== '') {
-                $createdUser = $data->addUser($nome, $cognome, $username, $password, $email, $phone1, $phone2, $email2, $profileIds, $attivo, $accountExpiryDate, $applicationIds);
+                $createdUser = $utenti->addUser($nome, $cognome, $username, $password, $email, $phone1, $phone2, $email2, $profileIds, $attivo, $accountExpiryDate, $applicationIds);
                 $createdUserId = (int) ($createdUser['id'] ?? 0);
 
                 if ($createdUserId > 0) {
@@ -377,7 +377,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
 
                     if ($newImagePath !== '') {
-                        $data->updateUserImage($createdUserId, $newImagePath);
+                        $utenti->updateUserImage($createdUserId, $newImagePath);
                     }
                 }
 
@@ -386,7 +386,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $redirect('err', 'Username e password sono obbligatori', $errorContext);
         } elseif ($action === 'update' && $id > 0) {
             $isSelfUpdate = $id === $currentUserId;
-            $existingUser = $data->findUserById($id);
+            $existingUser = $utenti->findUserById($id);
             if (!is_array($existingUser)) {
                 $redirect('err', 'Utente non trovato');
             }
@@ -463,7 +463,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                 }
 
-                  $data->updateUser(
+                  $utenti->updateUser(
                       $id,
                       $nome,
                       $cognome,
@@ -493,14 +493,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             $status = trim((string) ($_POST['status'] ?? ''));
-            $data->updateUserStatus($id, $status);
+            $utenti->updateUserStatus($id, $status);
             $redirect('ok', 'Stato utente aggiornato');
         } elseif ($action === 'delete' && $id > 0) {
             if ($id === $currentUserId) {
                 $redirect('err', 'Non puoi eliminare il tuo utente');
             }
 
-            $data->deleteUser($id);
+            $utenti->deleteUser($id);
             $redirect('ok', 'Utente eliminato');
         }
 
@@ -520,7 +520,7 @@ if (isset($_GET['draw'])) {
     $orderDir = (string) ($_GET['order'][0]['dir'] ?? 'desc');
     $orderColumn = (string) ($_GET['columns'][$orderColumnIndex]['data'] ?? 'id');
 
-    $page = $data->readUsersPage($start, $length, $search, $orderColumn, $orderDir);
+    $page = $utenti->readUsersPage($start, $length, $search, $orderColumn, $orderDir);
 
     header('Content-Type: application/json; charset=utf-8');
     echo json_encode([
@@ -533,4 +533,4 @@ if (isset($_GET['draw'])) {
 }
 
 header('Content-Type: application/json; charset=utf-8');
-echo json_encode($data->readUsers(), JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+echo json_encode($utenti->readUsers(), JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);

@@ -45,7 +45,9 @@ INSERT INTO `applicazioni` (`idapplicazione`, `idgruppo_applicazioni`, `applicaz
 (1, 1, 'utenti', 'utenti', 'gestione utenti', 10, 'fas fa-users'),
 (2, 3, 'atleti', 'atleti', 'gestione atleti', 10, 'fa-solid fa-people-group'),
 (3, 1, 'sedi', 'sedi', 'gestione sedi', 10, 'fa-solid fa-house-flag'),
-(4, 1, 'tipi documento', 'tipi_documento', 'gestione tipi documento', 10, 'fa-solid fa-id-card-clip');
+(4, 1, 'tipi documento', 'tipi_documento', 'gestione tipi documento', 10, 'fa-solid fa-id-card-clip'),
+(5, 1, 'discipline', 'disciplina', 'gestione discipline', 20, 'fa-solid fa-medal'),
+(6, 3, 'corsi', 'corsi', 'gestione corsi', 20, 'fa-solid fa-dumbbell');
 
 -- --------------------------------------------------------
 
@@ -543,7 +545,9 @@ INSERT INTO `utenti_has_applicazioni` (`idutente`, `idapplicazione`) VALUES
 (1, 1),
 (1, 2),
 (1, 3),
-(1, 4);
+(1, 4),
+(1, 5),
+(1, 6);
 
 -- --------------------------------------------------------
 
@@ -807,7 +811,7 @@ ALTER TABLE `utenti_has_sedi`
 -- AUTO_INCREMENT per la tabella `applicazioni`
 --
 ALTER TABLE `applicazioni`
-  MODIFY `idapplicazione` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `idapplicazione` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT per la tabella `applicazioni_atleta`
