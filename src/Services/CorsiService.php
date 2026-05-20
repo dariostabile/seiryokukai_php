@@ -166,6 +166,8 @@ final class CorsiService extends BaseService
             throw new \InvalidArgumentException('Dati corso non validi');
         }
 
+        $this->assertActiveInstructor($userId);
+
         $orariNormalizzati = $this->normalizzaOrariSettimana($orari);
 
         $pdo = db_connection();
@@ -273,6 +275,8 @@ final class CorsiService extends BaseService
             throw new \InvalidArgumentException('Dati corso non validi per aggiornamento');
         }
 
+        $this->assertActiveInstructor($userId);
+
         $orariNormalizzati = $this->normalizzaOrariSettimana($orari);
 
         $pdo = db_connection();
@@ -328,6 +332,27 @@ final class CorsiService extends BaseService
             'dom_inizio' => $orariNormalizzati['dom_inizio'],
             'dom_fine' => $orariNormalizzati['dom_fine'],
         ]);
+    }
+
+    private function assertActiveInstructor(int $userId): void
+    {
+        $pdo = db_connection();
+        $stmt = $pdo->prepare(
+            "SELECT 1
+             FROM utenti u
+             INNER JOIN utenti_has_profili up ON up.idutente = u.idutente
+             INNER JOIN profili p ON p.idprofilo = up.idprofilo
+             WHERE u.idutente = :idutente
+               AND u.cancellato = 0
+               AND u.attivo = 1
+               AND p.profilo = 'Istruttore'
+             LIMIT 1"
+        );
+        $stmt->execute(['idutente' => $userId]);
+
+        if ($stmt->fetchColumn() === false) {
+            throw new \InvalidArgumentException('Seleziona un istruttore attivo');
+        }
     }
 
     public function deleteCourse(int $id): bool

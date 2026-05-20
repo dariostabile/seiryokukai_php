@@ -7,6 +7,9 @@ declare(strict_types=1);
 /** @var array|null $user */
 /** @var array $menuGroups */
 /** @var string $currentPage */
+
+$frontendAssets = frontend_asset_urls();
+$frontendApi = frontend_api_urls();
 ?>
 <!doctype html>
 <html lang="it">
@@ -14,12 +17,12 @@ declare(strict_types=1);
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title><?= htmlspecialchars($pageTitle) ?> - Seiryokukai</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;700&display=swap" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdn.datatables.net/2.0.8/css/dataTables.bootstrap5.min.css" rel="stylesheet">
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+  <link rel="preconnect" href="<?= htmlspecialchars((string) ($frontendAssets['font_preconnect_api'] ?? 'https://fonts.googleapis.com')) ?>">
+  <link rel="preconnect" href="<?= htmlspecialchars((string) ($frontendAssets['font_preconnect_static'] ?? 'https://fonts.gstatic.com')) ?>" crossorigin>
+  <link href="<?= htmlspecialchars((string) ($frontendAssets['font_stylesheet'] ?? 'https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;700&display=swap')) ?>" rel="stylesheet">
+  <link href="<?= htmlspecialchars((string) ($frontendAssets['bootstrap_css'] ?? 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css')) ?>" rel="stylesheet">
+  <link href="<?= htmlspecialchars((string) ($frontendAssets['datatables_css_bootstrap'] ?? 'https://cdn.datatables.net/2.0.8/css/dataTables.bootstrap5.min.css')) ?>" rel="stylesheet">
+  <link href="<?= htmlspecialchars((string) ($frontendAssets['fontawesome_css'] ?? 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css')) ?>" rel="stylesheet">
   <link href="/seiryokukai_php/public/assets/app.css" rel="stylesheet">
 </head>
 <body>
@@ -70,10 +73,16 @@ declare(strict_types=1);
     </main>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-  <script src="https://cdn.datatables.net/2.0.8/js/dataTables.min.js"></script>
-  <script src="https://cdn.datatables.net/2.0.8/js/dataTables.bootstrap5.min.js"></script>
+  <script src="<?= htmlspecialchars((string) ($frontendAssets['bootstrap_js'] ?? 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js')) ?>"></script>
+  <script src="<?= htmlspecialchars((string) ($frontendAssets['jquery_js'] ?? 'https://code.jquery.com/jquery-3.7.1.min.js')) ?>"></script>
+  <script src="<?= htmlspecialchars((string) ($frontendAssets['datatables_js_core'] ?? 'https://cdn.datatables.net/2.0.8/js/dataTables.min.js')) ?>"></script>
+  <script src="<?= htmlspecialchars((string) ($frontendAssets['datatables_js_bootstrap'] ?? 'https://cdn.datatables.net/2.0.8/js/dataTables.bootstrap5.min.js')) ?>"></script>
+  <script>
+    window.SeiryokukaiConfig = Object.assign({}, window.SeiryokukaiConfig || {}, {
+      dataTableLangUrl: <?= json_encode((string) ($frontendAssets['datatables_i18n_it'] ?? ''), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>,
+      api: <?= json_encode($frontendApi, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>
+    });
+  </script>
   <script src="/seiryokukai_php/public/assets/app.js"></script>
 </body>
 </html>

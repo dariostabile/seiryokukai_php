@@ -8,17 +8,22 @@ Il sistema di validazione centralizzato utilizza un pattern simile a Laravel For
 
 ```
 src/Requests/
-├── FormRequest.php                   # Classe base per tutti i FormRequest
-├── ValidationException.php            # Eccezione per errori di validazione
-├── AddSiteRequest.php                # Validazione per aggiunta sedi
-├── UpdateSiteRequest.php             # Validazione per modifica sedi
-├── AddDisciplineRequest.php          # Validazione per aggiunta discipline
-├── UpdateDisciplineRequest.php       # Validazione per modifica discipline
-├── AddDocumentTypeRequest.php        # Validazione per aggiunta tipi documento
-├── UpdateDocumentTypeRequest.php     # Validazione per modifica tipi documento
-├── AddAthleteRequest.php             # Validazione per aggiunta atleti
-├── AddCourseRequest.php              # Validazione per aggiunta corsi
-└── UpdateCourseRequest.php           # Validazione per modifica corsi
+├── FormRequest.php                      # Classe base per tutti i FormRequest
+├── ValidationException.php              # Eccezione per errori di validazione
+├── Athletes/
+│   └── AddAthleteRequest.php            # Validazione per aggiunta atleti
+├── Courses/
+│   ├── AddCourseRequest.php             # Validazione per aggiunta corsi
+│   └── UpdateCourseRequest.php          # Validazione per modifica corsi
+├── Disciplines/
+│   ├── AddDisciplineRequest.php         # Validazione per aggiunta discipline
+│   └── UpdateDisciplineRequest.php      # Validazione per modifica discipline
+├── DocumentTypes/
+│   ├── AddDocumentTypeRequest.php       # Validazione per aggiunta tipi documento
+│   └── UpdateDocumentTypeRequest.php    # Validazione per modifica tipi documento
+└── Sites/
+    ├── AddSiteRequest.php               # Validazione per aggiunta sedi
+    └── UpdateSiteRequest.php            # Validazione per modifica sedi
 ```
 
 ## Regole di Validazione
@@ -62,7 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 #### Dopo (con FormRequest)
 ```php
-use App\Requests\AddSiteRequest;
+use App\Requests\Sites\AddSiteRequest;
 use App\Requests\ValidationException;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {

@@ -70,6 +70,11 @@ final class DatiService
         return $this->utentiService->readUsers();
     }
 
+    public function readActiveInstructors(): array
+    {
+        return $this->utentiService->readActiveInstructors();
+    }
+
     public function readUsersPage(int $start, int $length, string $search, string $orderColumn, string $orderDir): array
     {
         return $this->utentiService->readUsersPage($start, $length, $search, $orderColumn, $orderDir);

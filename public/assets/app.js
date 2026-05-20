@@ -1,4 +1,56 @@
 (function () {
+  const dataTableLangUrl =
+    (window.SeiryokukaiConfig && window.SeiryokukaiConfig.dataTableLangUrl)
+    || '';
+
+  const appUi = {
+    showAlert(container, type, message) {
+      if (!container) {
+        return;
+      }
+
+      const safeType = type === 'success' ? 'success' : 'danger';
+      container.className = 'alert alert-' + safeType;
+      container.textContent = String(message || 'Operazione completata');
+      container.classList.remove('d-none');
+    },
+
+    hideAlert(container) {
+      if (!container) {
+        return;
+      }
+
+      container.textContent = '';
+      container.classList.add('d-none');
+    },
+
+    async postForm(url, form) {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/json',
+        },
+        body: new FormData(form),
+      });
+
+      const payload = await response.json().catch(function () {
+        return {
+          ok: false,
+          message: 'Risposta non valida dal server',
+        };
+      });
+
+      if (!response.ok || payload.ok !== true) {
+        throw payload;
+      }
+
+      return payload;
+    },
+  };
+
+  window.SeiryokukaiUi = appUi;
+
   const cards = document.querySelectorAll('.metric-card');
   cards.forEach((card, i) => {
     card.animate(
@@ -21,7 +73,7 @@
       // Keeps server-rendered order unless user explicitly sorts.
       new DataTable(table, {
         language: {
-          url: 'https://cdn.datatables.net/plug-ins/2.0.8/i18n/it-IT.json',
+          url: dataTableLangUrl,
         },
         order: [],
         pageLength: 10,

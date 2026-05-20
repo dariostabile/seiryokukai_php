@@ -1,6 +1,10 @@
 <?php
 
 declare(strict_types=1);
+
+$frontendAssets = frontend_asset_urls();
+$frontendApi = frontend_api_urls();
+$loginApiUrl = (string) ($frontendApi['login'] ?? '');
 ?>
 <!doctype html>
 <html lang="it">
@@ -8,11 +12,11 @@ declare(strict_types=1);
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Login - Seiryokukai</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;700&display=swap" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+  <link rel="preconnect" href="<?= htmlspecialchars((string) ($frontendAssets['font_preconnect_api'] ?? 'https://fonts.googleapis.com')) ?>">
+  <link rel="preconnect" href="<?= htmlspecialchars((string) ($frontendAssets['font_preconnect_static'] ?? 'https://fonts.gstatic.com')) ?>" crossorigin>
+  <link href="<?= htmlspecialchars((string) ($frontendAssets['font_stylesheet'] ?? 'https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;700&display=swap')) ?>" rel="stylesheet">
+  <link href="<?= htmlspecialchars((string) ($frontendAssets['bootstrap_css'] ?? 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css')) ?>" rel="stylesheet">
+  <link href="<?= htmlspecialchars((string) ($frontendAssets['fontawesome_css'] ?? 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css')) ?>" rel="stylesheet">
   <link href="/seiryokukai_php/public/assets/app.css" rel="stylesheet">
 </head>
 <body class="login-bg">
@@ -21,7 +25,7 @@ declare(strict_types=1);
       <h1>SEIRYOKUKAI</h1>
       <p>Gestionale Client/Server PHP</p>
 
-      <form method="post" action="/seiryokukai_php/public/api/login.php" class="mt-4">
+      <form method="post" action="<?= htmlspecialchars($loginApiUrl) ?>" class="mt-4">
         <div class="mb-3">
           <label class="form-label">Username</label>
           <input name="username" class="form-control" required>

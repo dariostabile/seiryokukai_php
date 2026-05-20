@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 /** @var array $sites */
 
+$frontendApi = frontend_api_urls();
+$sediApiUrl = (string) ($frontendApi['sedi'] ?? '');
+
 $okMessage = trim((string) ($_GET['ok'] ?? ''));
 $errMessage = trim((string) ($_GET['err'] ?? ''));
 $addPrefill = [
@@ -39,6 +42,8 @@ $editPrefill = [
       </div>
     <?php endif; ?>
 
+    <div id="sediAjaxAlert" class="alert d-none" role="alert"></div>
+
     <div class="table-responsive">
       <div class="d-flex justify-content-end mb-2">
         <div class="form-check form-switch">
@@ -65,7 +70,7 @@ $editPrefill = [
         <button class="btn btn-sm btn-outline-secondary" type="button" id="closeAddSitePanelBtn">Chiudi</button>
       </div>
       <div class="card-body">
-        <form method="post" action="/seiryokukai_php/public/api/sedi.php" class="row g-3" id="addSiteForm">
+        <form method="post" action="<?= htmlspecialchars($sediApiUrl) ?>" class="row g-3" id="addSiteForm">
           <input type="hidden" name="action" value="add">
 
           <div class="col-12 col-md-6">
@@ -101,7 +106,7 @@ $editPrefill = [
         <button class="btn btn-sm btn-outline-secondary" type="button" id="closeEditSitePanelBtn">Chiudi</button>
       </div>
       <div class="card-body">
-        <form method="post" action="/seiryokukai_php/public/api/sedi.php" class="row g-3" id="editSiteForm">
+        <form method="post" action="<?= htmlspecialchars($sediApiUrl) ?>" class="row g-3" id="editSiteForm">
           <input type="hidden" name="action" value="update">
           <input type="hidden" name="id" id="editSiteId">
 
@@ -136,6 +141,7 @@ $editPrefill = [
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+  const ui = window.SeiryokukaiUi || null;
   const addPanelBtn = document.getElementById('openAddSitePanel');
   const addPanel = document.getElementById('addSitePanel');
   const closeAddPanelBtn = document.getElementById('closeAddSitePanelBtn');
@@ -149,9 +155,40 @@ document.addEventListener('DOMContentLoaded', function () {
 
   const tableEl = document.getElementById('sedi-table');
   const onlyActiveCheckbox = document.getElementById('sediOnlyActive');
+  const ajaxAlert = document.getElementById('sediAjaxAlert');
+
+  function showAlert(type, message) {
+    if (ui && typeof ui.showAlert === 'function') {
+      ui.showAlert(ajaxAlert, type, message);
+      return;
+    }
+
+    if (!ajaxAlert) {
+      return;
+    }
+
+    ajaxAlert.className = 'alert alert-' + (type === 'success' ? 'success' : 'danger');
+    ajaxAlert.textContent = String(message || 'Operazione completata');
+    ajaxAlert.classList.remove('d-none');
+  }
+
+  function hideAlert() {
+    if (ui && typeof ui.hideAlert === 'function') {
+      ui.hideAlert(ajaxAlert);
+      return;
+    }
+
+    if (!ajaxAlert) {
+      return;
+    }
+
+    ajaxAlert.textContent = '';
+    ajaxAlert.classList.add('d-none');
+  }
 
   // Apri panel aggiunta
   addPanelBtn.addEventListener('click', () => {
+    hideAlert();
     addPanel.classList.remove('d-none');
   });
 
@@ -159,6 +196,7 @@ document.addEventListener('DOMContentLoaded', function () {
   [closeAddPanelBtn, cancelAddBtn].forEach(btn => {
     btn.addEventListener('click', () => {
       addPanel.classList.add('d-none');
+      hideAlert();
     });
   });
 
@@ -166,12 +204,19 @@ document.addEventListener('DOMContentLoaded', function () {
   [closeEditPanelBtn, cancelEditBtn].forEach(btn => {
     btn.addEventListener('click', () => {
       editPanel.classList.add('d-none');
+      hideAlert();
     });
   });
 
   if (!tableEl || typeof DataTable === 'undefined') {
     return;
   }
+
+  const dataTableLangUrl =
+    (window.SeiryokukaiConfig && window.SeiryokukaiConfig.dataTableLangUrl)
+    || '';
+  const api = (window.SeiryokukaiConfig && window.SeiryokukaiConfig.api) || {};
+  const sediApiUrl = api.sedi || '';
 
   // DataTable per sedi
   if (tableEl.__dataTable) {
@@ -182,7 +227,7 @@ document.addEventListener('DOMContentLoaded', function () {
     serverSide: true,
     processing: true,
     ajax: {
-      url: '/seiryokukai_php/public/api/sedi.php',
+      url: sediApiUrl,
       type: 'GET',
       data: function (d) {
         d.active_only = onlyActiveCheckbox && onlyActiveCheckbox.checked ? 1 : 0;
@@ -216,7 +261,7 @@ document.addEventListener('DOMContentLoaded', function () {
     order: [[0, 'asc']],
     pageLength: 10,
     language: {
-      url: 'https://cdn.datatables.net/plug-ins/2.0.8/i18n/it-IT.json'
+      url: dataTableLangUrl
     }
   });
 
@@ -236,6 +281,7 @@ document.addEventListener('DOMContentLoaded', function () {
   tableEl.addEventListener('click', (e) => {
     const editBtn = e.target.closest('.edit-site-btn');
     if (editBtn) {
+      hideAlert();
       const id = parseInt(editBtn.dataset.id);
       const name = editBtn.dataset.name;
       const code = editBtn.dataset.code;
@@ -252,11 +298,20 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const deleteBtn = e.target.closest('.delete-site-btn');
     if (deleteBtn) {
+      if (!ui || typeof ui.postForm !== 'function') {
+        return;
+      }
+
       if (confirm('Sei sicuro di voler eliminare questa sede?')) {
-        const id = parseInt(deleteBtn.dataset.id);
+        const id = parseInt(deleteBtn.dataset.id, 10);
+        if (!id || id <= 0) {
+          showAlert('danger', 'ID sede non valido');
+          return;
+        }
+
         const form = document.createElement('form');
         form.method = 'POST';
-        form.action = '/seiryokukai_php/public/api/sedi.php';
+        form.action = sediApiUrl;
 
         const actionInput = document.createElement('input');
         actionInput.type = 'hidden';
@@ -270,11 +325,89 @@ document.addEventListener('DOMContentLoaded', function () {
 
         form.appendChild(actionInput);
         form.appendChild(idInput);
-        document.body.appendChild(form);
-        form.submit();
+
+        ui.postForm(form.action, form)
+          .then(function (payload) {
+            showAlert('success', payload.message || 'Sede eliminata con successo');
+            if (tableEl.__dataTable) {
+              tableEl.__dataTable.ajax.reload(null, false);
+            }
+
+            const currentEditId = parseInt(document.getElementById('editSiteId').value || '0', 10);
+            if (currentEditId === id) {
+              editPanel.classList.add('d-none');
+            }
+          })
+          .catch(function (errorPayload) {
+            const message = (errorPayload && errorPayload.message) ? errorPayload.message : 'Errore durante eliminazione sede';
+            showAlert('danger', message);
+          });
       }
     }
   });
+
+  if (addForm && ui && typeof ui.postForm === 'function') {
+    addForm.addEventListener('submit', async function (event) {
+      event.preventDefault();
+      hideAlert();
+
+      const submitButton = addForm.querySelector('button[type="submit"]');
+      if (submitButton) {
+        submitButton.disabled = true;
+      }
+
+      try {
+        const payload = await ui.postForm(addForm.action, addForm);
+        showAlert('success', payload.message || 'Sede creata con successo');
+        addForm.reset();
+        const activeField = addForm.querySelector('[name="active"]');
+        if (activeField) {
+          activeField.value = '1';
+        }
+        addPanel.classList.add('d-none');
+        if (tableEl.__dataTable) {
+          tableEl.__dataTable.ajax.reload(null, false);
+        }
+      } catch (errorPayload) {
+        const message = (errorPayload && errorPayload.message) ? errorPayload.message : 'Errore durante salvataggio sede';
+        showAlert('danger', message);
+        addPanel.classList.remove('d-none');
+      } finally {
+        if (submitButton) {
+          submitButton.disabled = false;
+        }
+      }
+    });
+  }
+
+  if (editForm && ui && typeof ui.postForm === 'function') {
+    editForm.addEventListener('submit', async function (event) {
+      event.preventDefault();
+      hideAlert();
+
+      const submitButton = editForm.querySelector('button[type="submit"]');
+      if (submitButton) {
+        submitButton.disabled = true;
+      }
+
+      try {
+        const payload = await ui.postForm(editForm.action, editForm);
+        showAlert('success', payload.message || 'Sede modificata con successo');
+        editPanel.classList.add('d-none');
+        if (tableEl.__dataTable) {
+          tableEl.__dataTable.ajax.reload(null, false);
+        }
+      } catch (errorPayload) {
+        const message = (errorPayload && errorPayload.message) ? errorPayload.message : 'Errore durante aggiornamento sede';
+        showAlert('danger', message);
+        editPanel.classList.remove('d-none');
+      } finally {
+        if (submitButton) {
+          submitButton.disabled = false;
+        }
+      }
+    });
+  }
 
   if (onlyActiveCheckbox) {
     onlyActiveCheckbox.addEventListener('change', () => {

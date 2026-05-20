@@ -7,7 +7,7 @@ session_start();
 require_once __DIR__ . '/../../src/lib/auth.php';
 require_once __DIR__ . '/../../src/lib/data.php';
 
-use App\Requests\AddAthleteRequest;
+use App\Requests\Athletes\AddAthleteRequest;
 use App\Requests\ValidationException;
 
 $auth = aut_service();

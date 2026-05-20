@@ -63,6 +63,29 @@ final class UtentiService extends BaseService
         return is_array($rows) ? $rows : [];
     }
 
+    public function readActiveInstructors(): array
+    {
+        $pdo = db_connection();
+        $stmt = $pdo->query(
+            "SELECT DISTINCT
+                u.idutente AS id,
+                TRIM(CONCAT(COALESCE(u.nome, ''), ' ', COALESCE(u.cognome, ''))) AS name
+             FROM utenti u
+             INNER JOIN utenti_has_profili up ON up.idutente = u.idutente
+             INNER JOIN profili p ON p.idprofilo = up.idprofilo
+             WHERE u.cancellato = 0
+               AND u.attivo = 1
+               AND p.profilo = 'Istruttore'
+             ORDER BY name ASC, u.idutente ASC"
+        );
+
+        $rows = $stmt->fetchAll(
+            \PDO::FETCH_ASSOC
+        );
+
+        return is_array($rows) ? $rows : [];
+    }
+
     public function readUsersPage(int $start, int $length, string $search, string $orderColumn, string $orderDir): array
     {
         $pdo = db_connection();

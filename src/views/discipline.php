@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 /** @var array $disciplines */
 
+$frontendApi = frontend_api_urls();
+$disciplineApiUrl = (string) ($frontendApi['discipline'] ?? '');
+
 $okMessage = trim((string) ($_GET['ok'] ?? ''));
 $errMessage = trim((string) ($_GET['err'] ?? ''));
 $addPrefill = [
@@ -37,11 +40,12 @@ $editPrefill = [
       </div>
     <?php endif; ?>
 
+    <div id="disciplineAjaxAlert" class="alert d-none" role="alert"></div>
+
     <div class="table-responsive">
       <table id="discipline-table" class="table align-middle js-datatable table-hover" data-server-side="1">
         <thead>
           <tr>
-            <th>ID</th>
             <th>Disciplina</th>
             <th>Note</th>
             <th class="text-end">Azioni</th>
@@ -57,7 +61,7 @@ $editPrefill = [
         <button class="btn btn-sm btn-outline-secondary" type="button" id="closeAddDisciplinePanelBtn">Chiudi</button>
       </div>
       <div class="card-body">
-        <form method="post" action="/seiryokukai_php/public/api/disciplina.php" class="row g-3" id="addDisciplineForm">
+        <form method="post" action="<?= htmlspecialchars($disciplineApiUrl) ?>" class="row g-3" id="addDisciplineForm">
           <input type="hidden" name="action" value="add">
 
           <div class="col-12">
@@ -84,7 +88,7 @@ $editPrefill = [
         <button class="btn btn-sm btn-outline-secondary" type="button" id="closeEditDisciplinePanelBtn">Chiudi</button>
       </div>
       <div class="card-body">
-        <form method="post" action="/seiryokukai_php/public/api/disciplina.php" class="row g-3" id="editDisciplineForm">
+        <form method="post" action="<?= htmlspecialchars($disciplineApiUrl) ?>" class="row g-3" id="editDisciplineForm">
           <input type="hidden" name="action" value="update">
           <input type="hidden" name="id" id="editDisciplineId">
 
@@ -110,19 +114,53 @@ $editPrefill = [
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+  const ui = window.SeiryokukaiUi || null;
   const addPanelBtn = document.getElementById('openAddDisciplinePanel');
   const addPanel = document.getElementById('addDisciplinePanel');
+  const addForm = document.getElementById('addDisciplineForm');
   const closeAddPanelBtn = document.getElementById('closeAddDisciplinePanelBtn');
   const cancelAddBtn = document.getElementById('cancelAddDisciplineBtn');
 
   const editPanel = document.getElementById('editDisciplinePanel');
+  const editForm = document.getElementById('editDisciplineForm');
   const closeEditPanelBtn = document.getElementById('closeEditDisciplinePanelBtn');
   const cancelEditBtn = document.getElementById('cancelEditDisciplineBtn');
 
   const tableEl = document.getElementById('discipline-table');
+  const ajaxAlert = document.getElementById('disciplineAjaxAlert');
+
+  function showAlert(type, message) {
+    if (ui && typeof ui.showAlert === 'function') {
+      ui.showAlert(ajaxAlert, type, message);
+      return;
+    }
+
+    if (!ajaxAlert) {
+      return;
+    }
+
+    ajaxAlert.className = 'alert alert-' + (type === 'success' ? 'success' : 'danger');
+    ajaxAlert.textContent = String(message || 'Operazione completata');
+    ajaxAlert.classList.remove('d-none');
+  }
+
+  function hideAlert() {
+    if (ui && typeof ui.hideAlert === 'function') {
+      ui.hideAlert(ajaxAlert);
+      return;
+    }
+
+    if (!ajaxAlert) {
+      return;
+    }
+
+    ajaxAlert.textContent = '';
+    ajaxAlert.classList.add('d-none');
+  }
 
   // Apri panel aggiunta
   addPanelBtn.addEventListener('click', () => {
+    hideAlert();
     addPanel.classList.remove('d-none');
   });
 
@@ -130,6 +168,7 @@ document.addEventListener('DOMContentLoaded', function () {
   [closeAddPanelBtn, cancelAddBtn].forEach(btn => {
     btn.addEventListener('click', () => {
       addPanel.classList.add('d-none');
+      hideAlert();
     });
   });
 
@@ -137,12 +176,19 @@ document.addEventListener('DOMContentLoaded', function () {
   [closeEditPanelBtn, cancelEditBtn].forEach(btn => {
     btn.addEventListener('click', () => {
       editPanel.classList.add('d-none');
+      hideAlert();
     });
   });
 
   if (!tableEl || typeof DataTable === 'undefined') {
     return;
   }
+
+  const dataTableLangUrl =
+    (window.SeiryokukaiConfig && window.SeiryokukaiConfig.dataTableLangUrl)
+    || '';
+  const api = (window.SeiryokukaiConfig && window.SeiryokukaiConfig.api) || {};
+  const disciplineApiUrl = api.discipline || '';
 
   // DataTable per discipline
   if (tableEl.__dataTable) {
@@ -153,11 +199,11 @@ document.addEventListener('DOMContentLoaded', function () {
     serverSide: true,
     processing: true,
     ajax: {
-      url: '/seiryokukai_php/public/api/disciplina.php',
+      url: disciplineApiUrl,
       type: 'GET'
     },
     columns: [
-      { data: 'id' },
+      { data: 'id', visible: false, searchable: false },
       { data: 'name' },
       { data: 'notes' },
       {
@@ -176,7 +222,7 @@ document.addEventListener('DOMContentLoaded', function () {
     order: [[0, 'desc']],
     pageLength: 10,
     language: {
-      url: 'https://cdn.datatables.net/plug-ins/2.0.8/i18n/it-IT.json'
+      url: dataTableLangUrl
     }
   });
 
@@ -195,6 +241,7 @@ document.addEventListener('DOMContentLoaded', function () {
   tableEl.addEventListener('click', (e) => {
     const editBtn = e.target.closest('.edit-discipline-btn');
     if (editBtn) {
+      hideAlert();
       const id = parseInt(editBtn.dataset.id);
       const name = editBtn.dataset.name;
       const notes = editBtn.dataset.notes;
@@ -209,11 +256,20 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const deleteBtn = e.target.closest('.delete-discipline-btn');
     if (deleteBtn) {
+      if (!ui || typeof ui.postForm !== 'function') {
+        return;
+      }
+
       if (confirm('Sei sicuro di voler eliminare questa disciplina?')) {
-        const id = parseInt(deleteBtn.dataset.id);
+        const id = parseInt(deleteBtn.dataset.id, 10);
+        if (!id || id <= 0) {
+          showAlert('danger', 'ID disciplina non valido');
+          return;
+        }
+
         const form = document.createElement('form');
         form.method = 'POST';
-        form.action = '/seiryokukai_php/public/api/disciplina.php';
+        form.action = disciplineApiUrl;
 
         const actionInput = document.createElement('input');
         actionInput.type = 'hidden';
@@ -227,11 +283,85 @@ document.addEventListener('DOMContentLoaded', function () {
 
         form.appendChild(actionInput);
         form.appendChild(idInput);
-        document.body.appendChild(form);
-        form.submit();
+
+        ui.postForm(form.action, form)
+          .then(function (payload) {
+            showAlert('success', payload.message || 'Disciplina eliminata con successo');
+            if (tableEl.__dataTable) {
+              tableEl.__dataTable.ajax.reload(null, false);
+            }
+
+            const currentEditId = parseInt(document.getElementById('editDisciplineId').value || '0', 10);
+            if (currentEditId === id) {
+              editPanel.classList.add('d-none');
+            }
+          })
+          .catch(function (errorPayload) {
+            const message = (errorPayload && errorPayload.message) ? errorPayload.message : 'Errore durante eliminazione disciplina';
+            showAlert('danger', message);
+          });
       }
     }
   });
+
+  if (addForm && ui && typeof ui.postForm === 'function') {
+    addForm.addEventListener('submit', async function (event) {
+      event.preventDefault();
+      hideAlert();
+
+      const submitButton = addForm.querySelector('button[type="submit"]');
+      if (submitButton) {
+        submitButton.disabled = true;
+      }
+
+      try {
+        const payload = await ui.postForm(addForm.action, addForm);
+        showAlert('success', payload.message || 'Disciplina creata con successo');
+        addForm.reset();
+        addPanel.classList.add('d-none');
+        if (tableEl.__dataTable) {
+          tableEl.__dataTable.ajax.reload(null, false);
+        }
+      } catch (errorPayload) {
+        const message = (errorPayload && errorPayload.message) ? errorPayload.message : 'Errore durante salvataggio disciplina';
+        showAlert('danger', message);
+        addPanel.classList.remove('d-none');
+      } finally {
+        if (submitButton) {
+          submitButton.disabled = false;
+        }
+      }
+    });
+  }
+
+  if (editForm && ui && typeof ui.postForm === 'function') {
+    editForm.addEventListener('submit', async function (event) {
+      event.preventDefault();
+      hideAlert();
+
+      const submitButton = editForm.querySelector('button[type="submit"]');
+      if (submitButton) {
+        submitButton.disabled = true;
+      }
+
+      try {
+        const payload = await ui.postForm(editForm.action, editForm);
+        showAlert('success', payload.message || 'Disciplina modificata con successo');
+        editPanel.classList.add('d-none');
+        if (tableEl.__dataTable) {
+          tableEl.__dataTable.ajax.reload(null, false);
+        }
+      } catch (errorPayload) {
+        const message = (errorPayload && errorPayload.message) ? errorPayload.message : 'Errore durante aggiornamento disciplina';
+        showAlert('danger', message);
+        editPanel.classList.remove('d-none');
+      } finally {
+        if (submitButton) {
+          submitButton.disabled = false;
+        }
+      }
+    });
+  }
 
   <?php if ($openEdit && $editPrefill['id'] > 0): ?>
     document.getElementById('editDisciplineId').value = <?= (int) $editPrefill['id'] ?>;

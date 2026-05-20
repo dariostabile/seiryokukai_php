@@ -6,6 +6,8 @@ namespace App\Services;
 
 final class DisciplineService extends BaseService
 {
+    private const DUPLICATE_NAME_MESSAGE = 'Esiste già una disciplina con questo nome';
+
     public function readDisciplines(): array
     {
         $pdo = db_connection();
@@ -33,11 +35,20 @@ final class DisciplineService extends BaseService
         }
 
         $pdo = db_connection();
+        $this->assertUniqueName($pdo, $name);
         $stmt = $pdo->prepare('INSERT INTO discipline (disciplina, note_disciplina) VALUES (:disciplina, :note_disciplina)');
-        $stmt->execute([
-            'disciplina' => $name,
-            'note_disciplina' => $notes !== '' ? $notes : null,
-        ]);
+        try {
+            $stmt->execute([
+                'disciplina' => $name,
+                'note_disciplina' => $notes !== '' ? $notes : null,
+            ]);
+        } catch (\PDOException $e) {
+            if (($e->getCode() ?? '') === '23000') {
+                throw new \InvalidArgumentException(self::DUPLICATE_NAME_MESSAGE);
+            }
+
+            throw $e;
+        }
 
         return [
             'id' => (int) $pdo->lastInsertId(),
@@ -81,12 +92,21 @@ final class DisciplineService extends BaseService
         }
 
         $pdo = db_connection();
+        $this->assertUniqueName($pdo, $name, $id);
         $stmt = $pdo->prepare('UPDATE discipline SET disciplina = :disciplina, note_disciplina = :note_disciplina WHERE iddisciplina = :id');
-        $stmt->execute([
-            'id' => $id,
-            'disciplina' => $name,
-            'note_disciplina' => $notes !== '' ? $notes : null,
-        ]);
+        try {
+            $stmt->execute([
+                'id' => $id,
+                'disciplina' => $name,
+                'note_disciplina' => $notes !== '' ? $notes : null,
+            ]);
+        } catch (\PDOException $e) {
+            if (($e->getCode() ?? '') === '23000') {
+                throw new \InvalidArgumentException(self::DUPLICATE_NAME_MESSAGE);
+            }
+
+            throw $e;
+        }
     }
 
     public function deleteDiscipline(int $id): void
@@ -155,5 +175,25 @@ final class DisciplineService extends BaseService
             'filtered' => $filtered,
             'data' => is_array($rows) ? $rows : [],
         ];
+    }
+
+    private function assertUniqueName(\PDO $pdo, string $name, ?int $excludeId = null): void
+    {
+        $sql = 'SELECT iddisciplina FROM discipline WHERE disciplina = :disciplina';
+        $params = ['disciplina' => $name];
+
+        if ($excludeId !== null) {
+            $sql .= ' AND iddisciplina <> :id';
+            $params['id'] = $excludeId;
+        }
+
+        $sql .= ' LIMIT 1';
+
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+
+        if ($stmt->fetch(\PDO::FETCH_ASSOC)) {
+            throw new \InvalidArgumentException(self::DUPLICATE_NAME_MESSAGE);
+        }
     }
 }

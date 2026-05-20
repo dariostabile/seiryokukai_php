@@ -7,6 +7,9 @@ declare(strict_types=1);
 /** @var array $disciplines */
 /** @var array $users */
 
+$frontendApi = frontend_api_urls();
+$corsiApiUrl = (string) ($frontendApi['corsi'] ?? '');
+
 $okMessage = trim((string) ($_GET['ok'] ?? ''));
 $errMessage = trim((string) ($_GET['err'] ?? ''));
 
@@ -83,6 +86,8 @@ foreach (array_keys($dayLabels) as $dayKey) {
       </div>
     <?php endif; ?>
 
+    <div id="corsiAjaxAlert" class="alert d-none" role="alert"></div>
+
     <div class="table-responsive">
       <div class="d-flex justify-content-end mb-2">
         <div class="form-check form-switch">
@@ -112,7 +117,7 @@ foreach (array_keys($dayLabels) as $dayKey) {
         <button class="btn btn-sm btn-outline-secondary" type="button" id="closeAddCoursePanelBtn">Chiudi</button>
       </div>
       <div class="card-body">
-        <form method="post" action="/seiryokukai_php/public/api/corsi.php" class="row g-3" id="addCourseForm">
+        <form method="post" action="<?= htmlspecialchars($corsiApiUrl) ?>" class="row g-3" id="addCourseForm">
           <input type="hidden" name="action" value="add">
             <div class="col-12 col-md-4">
               <label class="form-label">Stato</label>
@@ -212,7 +217,7 @@ foreach (array_keys($dayLabels) as $dayKey) {
         <button class="btn btn-sm btn-outline-secondary" type="button" id="closeEditCoursePanelBtn">Chiudi</button>
       </div>
       <div class="card-body">
-        <form method="post" action="/seiryokukai_php/public/api/corsi.php" class="row g-3" id="editCourseForm">
+        <form method="post" action="<?= htmlspecialchars($corsiApiUrl) ?>" class="row g-3" id="editCourseForm">
           <input type="hidden" name="action" value="update">
           <input type="hidden" name="course_id" id="editCourseId">
 
@@ -304,16 +309,50 @@ foreach (array_keys($dayLabels) as $dayKey) {
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+  const ui = window.SeiryokukaiUi || null;
   const openAddCoursePanelBtn = document.getElementById('openAddCoursePanelBtn');
   const addCoursePanel = document.getElementById('addCoursePanel');
+  const addCourseForm = document.getElementById('addCourseForm');
+  const editCourseForm = document.getElementById('editCourseForm');
   const closeAddCoursePanelBtn = document.getElementById('closeAddCoursePanelBtn');
   const cancelAddCourseBtn = document.getElementById('cancelAddCourseBtn');
+  const corsiAjaxAlert = document.getElementById('corsiAjaxAlert');
 
   const editCoursePanel = document.getElementById('editCoursePanel');
   const closeEditCoursePanelBtn = document.getElementById('closeEditCoursePanelBtn');
   const cancelEditCourseBtn = document.getElementById('cancelEditCourseBtn');
 
   const coursesOnlyActiveCheckbox = document.getElementById('coursesOnlyActive');
+  let coursesTable = null;
+
+  function showAlert(type, message) {
+    if (ui && typeof ui.showAlert === 'function') {
+      ui.showAlert(corsiAjaxAlert, type, message);
+      return;
+    }
+
+    if (!corsiAjaxAlert) {
+      return;
+    }
+
+    corsiAjaxAlert.className = 'alert alert-' + (type === 'success' ? 'success' : 'danger');
+    corsiAjaxAlert.textContent = String(message || 'Operazione completata');
+    corsiAjaxAlert.classList.remove('d-none');
+  }
+
+  function hideAlert() {
+    if (ui && typeof ui.hideAlert === 'function') {
+      ui.hideAlert(corsiAjaxAlert);
+      return;
+    }
+
+    if (!corsiAjaxAlert) {
+      return;
+    }
+
+    corsiAjaxAlert.textContent = '';
+    corsiAjaxAlert.classList.add('d-none');
+  }
 
   if (openAddCoursePanelBtn && addCoursePanel) {
     openAddCoursePanelBtn.addEventListener('click', function () {
@@ -328,6 +367,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (btn && addCoursePanel) {
       btn.addEventListener('click', function () {
         addCoursePanel.classList.add('d-none');
+        hideAlert();
       });
     }
   });
@@ -343,6 +383,12 @@ document.addEventListener('DOMContentLoaded', function () {
   if (typeof DataTable === 'undefined') {
     return;
   }
+
+  const dataTableLangUrl =
+    (window.SeiryokukaiConfig && window.SeiryokukaiConfig.dataTableLangUrl)
+    || '';
+  const api = (window.SeiryokukaiConfig && window.SeiryokukaiConfig.api) || {};
+  const corsiApiUrl = api.corsi || '';
 
   const dayKeys = ['lun', 'mar', 'mer', 'gio', 'ven', 'sab', 'dom'];
   const dayLabels = {
@@ -430,20 +476,20 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
-  const coursesTable = new DataTable('#corsi-table', {
+  coursesTable = new DataTable('#corsi-table', {
     serverSide: true,
     processing: true,
     pageLength: 10,
     order: [[0, 'desc']],
     ajax: {
-      url: '/seiryokukai_php/public/api/corsi.php',
+      url: corsiApiUrl,
       type: 'GET',
       data: function (d) {
         d.active_only = coursesOnlyActiveCheckbox && coursesOnlyActiveCheckbox.checked ? 1 : 0;
       },
     },
     language: {
-      url: 'https://cdn.datatables.net/plug-ins/2.0.8/i18n/it-IT.json',
+      url: dataTableLangUrl,
     },
     columns: [
       {
@@ -510,11 +556,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
           return ''
             + '<button class="btn btn-sm btn-outline-primary edit-course-btn" type="button" data-course="' + payload + '">Modifica</button> '
-            + '<form method="post" action="/seiryokukai_php/public/api/corsi.php" style="display:inline;" onsubmit="return confirm(\'Eliminare questo corso?\');">'
-            + '<input type="hidden" name="action" value="delete">'
-            + '<input type="hidden" name="course_id" value="' + id + '">'
-            + '<button class="btn btn-sm btn-outline-danger" type="submit">Elimina</button>'
-            + '</form>';
+            + '<button class="btn btn-sm btn-outline-danger delete-course-btn" type="button" data-course-id="' + id + '">Elimina</button>';
         }
       },
     ]
@@ -525,6 +567,56 @@ document.addEventListener('DOMContentLoaded', function () {
     tableElement.addEventListener('click', function (event) {
       const button = event.target.closest('.edit-course-btn');
       if (!button) {
+        const deleteBtn = event.target.closest('.delete-course-btn');
+        if (!deleteBtn || !ui || typeof ui.postForm !== 'function') {
+          return;
+        }
+
+        if (!confirm('Eliminare questo corso?')) {
+          return;
+        }
+
+        const courseId = Number(deleteBtn.getAttribute('data-course-id') || '0');
+        if (courseId <= 0) {
+          showAlert('danger', 'ID corso non valido');
+          return;
+        }
+
+        const tempForm = document.createElement('form');
+        tempForm.action = corsiApiUrl;
+        tempForm.method = 'post';
+
+        const actionInput = document.createElement('input');
+        actionInput.type = 'hidden';
+        actionInput.name = 'action';
+        actionInput.value = 'delete';
+
+        const idInput = document.createElement('input');
+        idInput.type = 'hidden';
+        idInput.name = 'course_id';
+        idInput.value = String(courseId);
+
+        tempForm.appendChild(actionInput);
+        tempForm.appendChild(idInput);
+
+        ui.postForm(tempForm.action, tempForm)
+          .then(function (payload) {
+            showAlert('success', payload.message || 'Corso eliminato con successo');
+            if (coursesTable) {
+              coursesTable.ajax.reload(null, false);
+            }
+            if (editCoursePanel && !editCoursePanel.classList.contains('d-none')) {
+              const currentId = Number((document.getElementById('editCourseId').value || '0'));
+              if (currentId === courseId) {
+                editCoursePanel.classList.add('d-none');
+              }
+            }
+          })
+          .catch(function (errorPayload) {
+            const message = (errorPayload && errorPayload.message) ? errorPayload.message : 'Errore durante eliminazione corso';
+            showAlert('danger', message);
+          });
+
         return;
       }
 
@@ -543,6 +635,82 @@ document.addEventListener('DOMContentLoaded', function () {
   if (coursesOnlyActiveCheckbox) {
     coursesOnlyActiveCheckbox.addEventListener('change', function () {
       coursesTable.ajax.reload();
+    });
+  }
+
+  if (addCourseForm && ui && typeof ui.postForm === 'function') {
+    addCourseForm.addEventListener('submit', async function (event) {
+      event.preventDefault();
+      hideAlert();
+
+      const submitButton = addCourseForm.querySelector('button[type="submit"]');
+      if (submitButton) {
+        submitButton.disabled = true;
+      }
+
+      try {
+        const payload = await ui.postForm(addCourseForm.action, addCourseForm);
+        showAlert('success', payload.message || 'Corso creato con successo');
+
+        addCourseForm.reset();
+        const activeField = addCourseForm.querySelector('[name="active"]');
+        if (activeField) {
+          activeField.value = '1';
+        }
+
+        if (addCoursePanel) {
+          addCoursePanel.classList.add('d-none');
+        }
+
+        if (coursesTable) {
+          coursesTable.ajax.reload(null, false);
+        }
+      } catch (errorPayload) {
+        const message = (errorPayload && errorPayload.message) ? errorPayload.message : 'Errore durante il salvataggio del corso';
+        showAlert('danger', message);
+        if (addCoursePanel) {
+          addCoursePanel.classList.remove('d-none');
+        }
+      } finally {
+        if (submitButton) {
+          submitButton.disabled = false;
+        }
+      }
+    });
+  }
+
+  if (editCourseForm && ui && typeof ui.postForm === 'function') {
+    editCourseForm.addEventListener('submit', async function (event) {
+      event.preventDefault();
+      hideAlert();
+
+      const submitButton = editCourseForm.querySelector('button[type="submit"]');
+      if (submitButton) {
+        submitButton.disabled = true;
+      }
+
+      try {
+        const payload = await ui.postForm(editCourseForm.action, editCourseForm);
+        showAlert('success', payload.message || 'Corso modificato con successo');
+
+        if (editCoursePanel) {
+          editCoursePanel.classList.add('d-none');
+        }
+
+        if (coursesTable) {
+          coursesTable.ajax.reload(null, false);
+        }
+      } catch (errorPayload) {
+        const message = (errorPayload && errorPayload.message) ? errorPayload.message : 'Errore durante aggiornamento corso';
+        showAlert('danger', message);
+        if (editCoursePanel) {
+          editCoursePanel.classList.remove('d-none');
+        }
+      } finally {
+        if (submitButton) {
+          submitButton.disabled = false;
+        }
+      }
     });
   }
 

@@ -7,6 +7,9 @@ declare(strict_types=1);
 /** @var array $applicationsCatalog */
 /** @var int $currentUserId */
 
+$frontendApi = frontend_api_urls();
+$utentiApiUrl = (string) ($frontendApi['utenti'] ?? '');
+
 $okMessage = trim((string) ($_GET['ok'] ?? ''));
 $errMessage = trim((string) ($_GET['err'] ?? ''));
 $addPrefill = [
@@ -107,7 +110,7 @@ foreach ($applicationsCatalog as $app) {
           <button class="btn btn-sm btn-outline-secondary" type="button" id="closeAddUserPanelBtn">Chiudi</button>
         </div>
         <div class="card-body">
-          <form method="post" action="/seiryokukai_php/public/api/utenti.php" class="row g-3" enctype="multipart/form-data" id="addUserForm">
+          <form method="post" action="<?= htmlspecialchars($utentiApiUrl) ?>" class="row g-3" enctype="multipart/form-data" id="addUserForm">
             <input type="hidden" name="action" value="add">
             <input type="hidden" name="crop_image_base64_add" id="addUserCropImageData">
             <ul class="nav nav-tabs customtab col-12" id="addUserTabs" role="tablist">
@@ -268,7 +271,7 @@ foreach ($applicationsCatalog as $app) {
         <button class="btn btn-sm btn-outline-secondary" type="button" id="closeEditPanelBtn">Chiudi</button>
       </div>
       <div class="card-body">
-        <form method="post" action="/seiryokukai_php/public/api/utenti.php" enctype="multipart/form-data" id="editUserForm">
+        <form method="post" action="<?= htmlspecialchars($utentiApiUrl) ?>" enctype="multipart/form-data" id="editUserForm">
           <input type="hidden" name="action" value="update">
           <input type="hidden" name="id" id="editUserId">
           <input type="hidden" name="current_image_path" id="editUserCurrentImagePath">
@@ -850,6 +853,12 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
   if (typeof DataTable !== 'undefined') {
+    const dataTableLangUrl =
+      (window.SeiryokukaiConfig && window.SeiryokukaiConfig.dataTableLangUrl)
+      || '';
+    const api = (window.SeiryokukaiConfig && window.SeiryokukaiConfig.api) || {};
+    const utentiApiUrl = api.utenti || '';
+
     const escapeHtml = (value) => String(value ?? '')
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
@@ -863,11 +872,11 @@ document.addEventListener('DOMContentLoaded', function () {
       pageLength: 10,
       order: [[0, 'desc']],
       ajax: {
-        url: '/seiryokukai_php/public/api/utenti.php',
+        url: utentiApiUrl,
         type: 'GET',
       },
       language: {
-        url: 'https://cdn.datatables.net/plug-ins/2.0.8/i18n/it-IT.json',
+        url: dataTableLangUrl,
       },
       columns: [
         {
@@ -936,13 +945,13 @@ document.addEventListener('DOMContentLoaded', function () {
             return ''
               + '<div class="d-flex justify-content-end gap-2">'
                 + '<button class="btn btn-sm btn-outline-primary" type="button" onclick="loadUserData(JSON.parse(this.dataset.user));" data-user="' + editPayload + '">Modifica</button>'
-              + '<form method="post" action="/seiryokukai_php/public/api/utenti.php">'
+              + '<form method="post" action="' + escapeHtml(utentiApiUrl) + '">'
               + '<input type="hidden" name="action" value="status">'
               + '<input type="hidden" name="id" value="' + id + '">'
               + '<input type="hidden" name="status" value="' + nextStatus + '">'
                 + '<button class="btn btn-sm ' + statusClass + '" type="submit"' + restrictedActionDisabled + '>' + statusLabel + '</button>'
               + '</form>'
-              + '<form method="post" action="/seiryokukai_php/public/api/utenti.php" onsubmit="return confirm(\'Eliminare questo utente?\');">'
+              + '<form method="post" action="' + escapeHtml(utentiApiUrl) + '" onsubmit="return confirm(\'Eliminare questo utente?\');">'
               + '<input type="hidden" name="action" value="delete">'
               + '<input type="hidden" name="id" value="' + id + '">'
               + '<button class="btn btn-sm btn-outline-danger" type="submit"' + (isCurrentUser ? ' disabled title="Utente corrente non eliminabile"' : '') + '>Elimina</button>'
@@ -1165,7 +1174,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const formData = new FormData(addUserForm);
         formData.append('ajax', '1');
 
-        const response = await fetch('/seiryokukai_php/public/api/utenti.php', {
+        const response = await fetch(utentiApiUrl, {
           method: 'POST',
           body: formData,
           headers: {

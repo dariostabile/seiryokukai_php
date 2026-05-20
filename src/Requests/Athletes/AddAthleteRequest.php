@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Requests;
+namespace App\Requests\Athletes;
+
+use App\Requests\FormRequest;
 
 class AddAthleteRequest extends FormRequest
 {

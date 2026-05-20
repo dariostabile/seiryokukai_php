@@ -3,12 +3,15 @@
 declare(strict_types=1);
 
 /** @var array $clients */
+
+$frontendApi = frontend_api_urls();
+$atletiApiUrl = (string) ($frontendApi['atleti'] ?? '');
 ?>
 <div class="card shadow-sm border-0 mt-3">
   <div class="card-body">
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h5 class="m-0">Anagrafica Atleti</h5>
-      <form method="post" action="/seiryokukai_php/public/api/atleti.php" class="d-flex gap-2">
+      <form method="post" action="<?= htmlspecialchars($atletiApiUrl) ?>" class="d-flex gap-2">
         <input class="form-control" name="name" placeholder="Nome e cognome atleta" required>
         <button class="btn btn-success">Aggiungi</button>
       </form>
@@ -38,6 +41,12 @@ document.addEventListener('DOMContentLoaded', function () {
     return;
   }
 
+  const dataTableLangUrl =
+    (window.SeiryokukaiConfig && window.SeiryokukaiConfig.dataTableLangUrl)
+    || '';
+  const api = (window.SeiryokukaiConfig && window.SeiryokukaiConfig.api) || {};
+  const atletiApiUrl = api.atleti || '';
+
   const escapeHtml = (value) => String(value ?? '')
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -51,11 +60,11 @@ document.addEventListener('DOMContentLoaded', function () {
     pageLength: 10,
     order: [[0, 'desc']],
     ajax: {
-      url: '/seiryokukai_php/public/api/atleti.php',
+      url: atletiApiUrl,
       type: 'GET',
     },
     language: {
-      url: 'https://cdn.datatables.net/plug-ins/2.0.8/i18n/it-IT.json',
+      url: dataTableLangUrl,
     },
     columns: [
       { data: 'id' },
@@ -84,13 +93,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
           return ''
             + '<div class="d-flex justify-content-end gap-2">'
-            + '<form method="post" action="/seiryokukai_php/public/api/atleti.php">'
+            + '<form method="post" action="' + escapeHtml(atletiApiUrl) + '">'
             + '<input type="hidden" name="action" value="status">'
             + '<input type="hidden" name="id" value="' + id + '">'
             + '<input type="hidden" name="status" value="' + nextStatus + '">'
             + '<button class="btn btn-sm ' + statusClass + '" type="submit">' + statusLabel + '</button>'
             + '</form>'
-            + '<form method="post" action="/seiryokukai_php/public/api/atleti.php" onsubmit="return confirm(\'Eliminare questo cliente?\');">'
+            + '<form method="post" action="' + escapeHtml(atletiApiUrl) + '" onsubmit="return confirm(\'Eliminare questo cliente?\');">'
             + '<input type="hidden" name="action" value="delete">'
             + '<input type="hidden" name="id" value="' + id + '">'
             + '<button class="btn btn-sm btn-outline-danger" type="submit">Elimina</button>'

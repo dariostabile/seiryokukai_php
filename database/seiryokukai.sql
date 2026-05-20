@@ -651,7 +651,8 @@ ALTER TABLE `corsi`
 -- Indici per le tabelle `discipline`
 --
 ALTER TABLE `discipline`
-  ADD PRIMARY KEY (`iddisciplina`);
+  ADD PRIMARY KEY (`iddisciplina`),
+  ADD UNIQUE KEY `uq_discipline_disciplina` (`disciplina`);
 
 --
 -- Indici per le tabelle `documenti`

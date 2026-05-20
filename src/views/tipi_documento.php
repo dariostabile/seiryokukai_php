@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 /** @var array $documentTypes */
 
+$frontendApi = frontend_api_urls();
+$documentTypesApiUrl = (string) ($frontendApi['tipi_documento'] ?? '');
+
 $okMessage = trim((string) ($_GET['ok'] ?? ''));
 $errMessage = trim((string) ($_GET['err'] ?? ''));
 $addPrefill = [
@@ -35,6 +38,8 @@ $editPrefill = [
       </div>
     <?php endif; ?>
 
+    <div id="tipiDocumentoAjaxAlert" class="alert d-none" role="alert"></div>
+
     <div class="table-responsive">
       <table id="tipi-documento-table" class="table align-middle js-datatable table-hover" data-server-side="1">
         <thead>
@@ -53,7 +58,7 @@ $editPrefill = [
         <button class="btn btn-sm btn-outline-secondary" type="button" id="closeAddDocumentTypePanelBtn">Chiudi</button>
       </div>
       <div class="card-body">
-        <form method="post" action="/seiryokukai_php/public/api/tipi_documento.php" class="row g-3" id="addDocumentTypeForm">
+        <form method="post" action="<?= htmlspecialchars($documentTypesApiUrl) ?>" class="row g-3" id="addDocumentTypeForm">
           <input type="hidden" name="action" value="add">
 
           <div class="col-12">
@@ -75,7 +80,7 @@ $editPrefill = [
         <button class="btn btn-sm btn-outline-secondary" type="button" id="closeEditDocumentTypePanelBtn">Chiudi</button>
       </div>
       <div class="card-body">
-        <form method="post" action="/seiryokukai_php/public/api/tipi_documento.php" class="row g-3" id="editDocumentTypeForm">
+        <form method="post" action="<?= htmlspecialchars($documentTypesApiUrl) ?>" class="row g-3" id="editDocumentTypeForm">
           <input type="hidden" name="action" value="update">
           <input type="hidden" name="id" id="editDocumentTypeId">
 
@@ -96,19 +101,53 @@ $editPrefill = [
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+  const ui = window.SeiryokukaiUi || null;
   const addPanelBtn = document.getElementById('openAddDocumentTypePanel');
   const addPanel = document.getElementById('addDocumentTypePanel');
+  const addForm = document.getElementById('addDocumentTypeForm');
   const closeAddPanelBtn = document.getElementById('closeAddDocumentTypePanelBtn');
   const cancelAddBtn = document.getElementById('cancelAddDocumentTypeBtn');
 
   const editPanel = document.getElementById('editDocumentTypePanel');
+  const editForm = document.getElementById('editDocumentTypeForm');
   const closeEditPanelBtn = document.getElementById('closeEditDocumentTypePanelBtn');
   const cancelEditBtn = document.getElementById('cancelEditDocumentTypeBtn');
 
   const tableEl = document.getElementById('tipi-documento-table');
+  const ajaxAlert = document.getElementById('tipiDocumentoAjaxAlert');
+
+  function showAlert(type, message) {
+    if (ui && typeof ui.showAlert === 'function') {
+      ui.showAlert(ajaxAlert, type, message);
+      return;
+    }
+
+    if (!ajaxAlert) {
+      return;
+    }
+
+    ajaxAlert.className = 'alert alert-' + (type === 'success' ? 'success' : 'danger');
+    ajaxAlert.textContent = String(message || 'Operazione completata');
+    ajaxAlert.classList.remove('d-none');
+  }
+
+  function hideAlert() {
+    if (ui && typeof ui.hideAlert === 'function') {
+      ui.hideAlert(ajaxAlert);
+      return;
+    }
+
+    if (!ajaxAlert) {
+      return;
+    }
+
+    ajaxAlert.textContent = '';
+    ajaxAlert.classList.add('d-none');
+  }
 
   // Apri panel aggiunta
   addPanelBtn.addEventListener('click', () => {
+    hideAlert();
     addPanel.classList.remove('d-none');
   });
 
@@ -116,6 +155,7 @@ document.addEventListener('DOMContentLoaded', function () {
   [closeAddPanelBtn, cancelAddBtn].forEach(btn => {
     btn.addEventListener('click', () => {
       addPanel.classList.add('d-none');
+      hideAlert();
     });
   });
 
@@ -123,12 +163,19 @@ document.addEventListener('DOMContentLoaded', function () {
   [closeEditPanelBtn, cancelEditBtn].forEach(btn => {
     btn.addEventListener('click', () => {
       editPanel.classList.add('d-none');
+      hideAlert();
     });
   });
 
   if (!tableEl || typeof DataTable === 'undefined') {
     return;
   }
+
+  const dataTableLangUrl =
+    (window.SeiryokukaiConfig && window.SeiryokukaiConfig.dataTableLangUrl)
+    || '';
+  const api = (window.SeiryokukaiConfig && window.SeiryokukaiConfig.api) || {};
+  const documentTypesApiUrl = api.tipi_documento || '';
 
   // DataTable per tipi documento
   if (tableEl.__dataTable) {
@@ -139,7 +186,7 @@ document.addEventListener('DOMContentLoaded', function () {
     serverSide: true,
     processing: true,
     ajax: {
-      url: '/seiryokukai_php/public/api/tipi_documento.php',
+      url: documentTypesApiUrl,
       type: 'GET'
     },
     columns: [
@@ -160,7 +207,7 @@ document.addEventListener('DOMContentLoaded', function () {
     order: [[0, 'asc']],
     pageLength: 10,
     language: {
-      url: 'https://cdn.datatables.net/plug-ins/2.0.8/i18n/it-IT.json'
+      url: dataTableLangUrl
     }
   });
 
@@ -179,6 +226,7 @@ document.addEventListener('DOMContentLoaded', function () {
   tableEl.addEventListener('click', (e) => {
     const editBtn = e.target.closest('.edit-document-type-btn');
     if (editBtn) {
+      hideAlert();
       const id = parseInt(editBtn.dataset.id);
       const type = editBtn.dataset.type;
 
@@ -191,11 +239,20 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const deleteBtn = e.target.closest('.delete-document-type-btn');
     if (deleteBtn) {
+      if (!ui || typeof ui.postForm !== 'function') {
+        return;
+      }
+
       if (confirm('Sei sicuro di voler eliminare questo tipo documento?')) {
-        const id = parseInt(deleteBtn.dataset.id);
+        const id = parseInt(deleteBtn.dataset.id, 10);
+        if (!id || id <= 0) {
+          showAlert('danger', 'ID tipo documento non valido');
+          return;
+        }
+
         const form = document.createElement('form');
         form.method = 'POST';
-        form.action = '/seiryokukai_php/public/api/tipi_documento.php';
+        form.action = documentTypesApiUrl;
 
         const actionInput = document.createElement('input');
         actionInput.type = 'hidden';
@@ -209,11 +266,85 @@ document.addEventListener('DOMContentLoaded', function () {
 
         form.appendChild(actionInput);
         form.appendChild(idInput);
-        document.body.appendChild(form);
-        form.submit();
+
+        ui.postForm(form.action, form)
+          .then(function (payload) {
+            showAlert('success', payload.message || 'Tipo documento eliminato con successo');
+            if (tableEl.__dataTable) {
+              tableEl.__dataTable.ajax.reload(null, false);
+            }
+
+            const currentEditId = parseInt(document.getElementById('editDocumentTypeId').value || '0', 10);
+            if (currentEditId === id) {
+              editPanel.classList.add('d-none');
+            }
+          })
+          .catch(function (errorPayload) {
+            const message = (errorPayload && errorPayload.message) ? errorPayload.message : 'Errore durante eliminazione tipo documento';
+            showAlert('danger', message);
+          });
       }
     }
   });
+
+  if (addForm && ui && typeof ui.postForm === 'function') {
+    addForm.addEventListener('submit', async function (event) {
+      event.preventDefault();
+      hideAlert();
+
+      const submitButton = addForm.querySelector('button[type="submit"]');
+      if (submitButton) {
+        submitButton.disabled = true;
+      }
+
+      try {
+        const payload = await ui.postForm(addForm.action, addForm);
+        showAlert('success', payload.message || 'Tipo documento creato con successo');
+        addForm.reset();
+        addPanel.classList.add('d-none');
+        if (tableEl.__dataTable) {
+          tableEl.__dataTable.ajax.reload(null, false);
+        }
+      } catch (errorPayload) {
+        const message = (errorPayload && errorPayload.message) ? errorPayload.message : 'Errore durante salvataggio tipo documento';
+        showAlert('danger', message);
+        addPanel.classList.remove('d-none');
+      } finally {
+        if (submitButton) {
+          submitButton.disabled = false;
+        }
+      }
+    });
+  }
+
+  if (editForm && ui && typeof ui.postForm === 'function') {
+    editForm.addEventListener('submit', async function (event) {
+      event.preventDefault();
+      hideAlert();
+
+      const submitButton = editForm.querySelector('button[type="submit"]');
+      if (submitButton) {
+        submitButton.disabled = true;
+      }
+
+      try {
+        const payload = await ui.postForm(editForm.action, editForm);
+        showAlert('success', payload.message || 'Tipo documento modificato con successo');
+        editPanel.classList.add('d-none');
+        if (tableEl.__dataTable) {
+          tableEl.__dataTable.ajax.reload(null, false);
+        }
+      } catch (errorPayload) {
+        const message = (errorPayload && errorPayload.message) ? errorPayload.message : 'Errore durante aggiornamento tipo documento';
+        showAlert('danger', message);
+        editPanel.classList.remove('d-none');
+      } finally {
+        if (submitButton) {
+          submitButton.disabled = false;
+        }
+      }
+    });
+  }
 
   <?php if ($openEdit && $editPrefill['id'] > 0): ?>
     document.getElementById('editDocumentTypeId').value = <?= (int) $editPrefill['id'] ?>;

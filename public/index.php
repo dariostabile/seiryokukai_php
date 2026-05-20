@@ -74,7 +74,7 @@ if ($page === 'atleti') {
     $courses = [];
     $sites = $data->readSites();
     $disciplines = $data->readDisciplines();
-    $users = $data->readUsers();
+    $users = $data->readActiveInstructors();
     ob_start();
     require __DIR__ . '/../src/views/corsi.php';
     $viewContent = (string) ob_get_clean();

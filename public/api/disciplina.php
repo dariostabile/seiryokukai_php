@@ -7,12 +7,33 @@ session_start();
 require_once __DIR__ . '/../../src/lib/auth.php';
 require_once __DIR__ . '/../../src/lib/data.php';
 
-use App\Requests\AddDisciplineRequest;
-use App\Requests\UpdateDisciplineRequest;
+use App\Requests\Disciplines\AddDisciplineRequest;
+use App\Requests\Disciplines\UpdateDisciplineRequest;
 use App\Requests\ValidationException;
+
+function wants_json_response(): bool
+{
+    $accept = strtolower((string) ($_SERVER['HTTP_ACCEPT'] ?? ''));
+    $requestedWith = strtolower((string) ($_SERVER['HTTP_X_REQUESTED_WITH'] ?? ''));
+
+    return str_contains($accept, 'application/json') || $requestedWith === 'xmlhttprequest';
+}
+
+function json_success(string $message, array $data = []): void
+{
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode([
+        'ok' => true,
+        'type' => 'ok',
+        'message' => $message,
+        'data' => $data,
+    ], JSON_UNESCAPED_UNICODE);
+    exit;
+}
 
 $auth = aut_service();
 $discipline = discipline_service();
+$wantsJson = wants_json_response();
 
 if (!$auth->isLoggedIn()) {
     http_response_code(401);
@@ -29,6 +50,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($id > 0) {
             $discipline->deleteDiscipline($id);
         }
+
+        if ($wantsJson) {
+            json_success('Disciplina eliminata con successo');
+        }
+
         header('Location: /seiryokukai_php/public/index.php?page=disciplina&ok=Disciplina%20eliminata%20con%20successo');
         exit;
     }
@@ -41,15 +67,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $request->getString('name'),
                 $request->getString('notes')
             );
+
+            if ($wantsJson) {
+                json_success('Disciplina modificata con successo', [
+                    'id' => $request->getInt('id'),
+                ]);
+            }
+
             header('Location: /seiryokukai_php/public/index.php?page=disciplina&ok=Disciplina%20modificata%20con%20successo');
             exit;
         } catch (ValidationException $e) {
+            if ($wantsJson) {
+                handle_validation_errors_json($e->errors(), 422);
+            }
+
+            $validationErrors = $e->errors();
             handle_validation_errors(
-                $e->errors(),
+                $validationErrors,
                 'disciplina',
                 [
-                    'add_name' => $_POST['name'] ?? '',
-                    'add_notes' => $_POST['notes'] ?? '',
+                    'err' => reset($validationErrors) ?: 'Errore di validazione',
+                    'open_edit' => '1',
+                    'edit_id' => (string) ($_POST['id'] ?? ''),
+                    'edit_name' => $_POST['name'] ?? '',
+                    'edit_notes' => $_POST['notes'] ?? '',
+                ]
+            );
+        } catch (\InvalidArgumentException $e) {
+            if ($wantsJson) {
+                handle_validation_errors_json(['name' => $e->getMessage()], 422);
+            }
+
+            handle_validation_errors(
+                ['name' => $e->getMessage()],
+                'disciplina',
+                [
+                    'err' => $e->getMessage(),
+                    'open_edit' => '1',
+                    'edit_id' => (string) ($_POST['id'] ?? ''),
+                    'edit_name' => $_POST['name'] ?? '',
+                    'edit_notes' => $_POST['notes'] ?? '',
                 ]
             );
         }
@@ -57,17 +114,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     try {
         $request = new AddDisciplineRequest($_POST);
-        $discipline->addDiscipline(
+        $newDiscipline = $discipline->addDiscipline(
             $request->getString('name'),
             $request->getString('notes')
         );
+
+        if ($wantsJson) {
+            json_success('Disciplina creata con successo', [
+                'id' => (int) ($newDiscipline['id'] ?? 0),
+                'name' => (string) ($newDiscipline['name'] ?? ''),
+            ]);
+        }
+
         header('Location: /seiryokukai_php/public/index.php?page=disciplina&ok=Disciplina%20creata%20con%20successo');
         exit;
     } catch (ValidationException $e) {
+        if ($wantsJson) {
+            handle_validation_errors_json($e->errors(), 422);
+        }
+
         handle_validation_errors(
             $e->errors(),
             'disciplina',
             [
+                'add_name' => $_POST['name'] ?? '',
+                'add_notes' => $_POST['notes'] ?? '',
+            ]
+        );
+    } catch (\InvalidArgumentException $e) {
+        if ($wantsJson) {
+            handle_validation_errors_json(['name' => $e->getMessage()], 422);
+        }
+
+        handle_validation_errors(
+            ['name' => $e->getMessage()],
+            'disciplina',
+            [
+                'err' => $e->getMessage(),
                 'add_name' => $_POST['name'] ?? '',
                 'add_notes' => $_POST['notes'] ?? '',
             ]

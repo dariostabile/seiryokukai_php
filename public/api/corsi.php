@@ -7,12 +7,33 @@ session_start();
 require_once __DIR__ . '/../../src/lib/auth.php';
 require_once __DIR__ . '/../../src/lib/data.php';
 
-use App\Requests\AddCourseRequest;
-use App\Requests\UpdateCourseRequest;
+use App\Requests\Courses\AddCourseRequest;
+use App\Requests\Courses\UpdateCourseRequest;
 use App\Requests\ValidationException;
+
+function wants_json_response(): bool
+{
+    $accept = strtolower((string) ($_SERVER['HTTP_ACCEPT'] ?? ''));
+    $requestedWith = strtolower((string) ($_SERVER['HTTP_X_REQUESTED_WITH'] ?? ''));
+
+    return str_contains($accept, 'application/json') || $requestedWith === 'xmlhttprequest';
+}
+
+function json_success(string $message, array $data = []): void
+{
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode([
+        'ok' => true,
+        'type' => 'ok',
+        'message' => $message,
+        'data' => $data,
+    ], JSON_UNESCAPED_UNICODE);
+    exit;
+}
 
 $auth = aut_service();
 $corsi = corsi_service();
+$wantsJson = wants_json_response();
 
 if (!$auth->isLoggedIn()) {
     http_response_code(401);
@@ -47,6 +68,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($courseId > 0) {
             $corsi->deleteCourse($courseId);
         }
+
+        if ($wantsJson) {
+            json_success('Corso eliminato con successo');
+        }
+
         header('Location: /seiryokukai_php/public/index.php?page=corsi&ok=Corso%20eliminato%20con%20successo');
         exit;
     }
@@ -66,13 +92,60 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $request->getInt('active', 1),
                 $orari
             );
+
+            if ($wantsJson) {
+                json_success('Corso modificato con successo', [
+                    'id' => $request->getInt('course_id'),
+                ]);
+            }
+
             header('Location: /seiryokukai_php/public/index.php?page=corsi&ok=Corso%20modificato%20con%20successo');
             exit;
         } catch (ValidationException $e) {
+            if ($wantsJson) {
+                handle_validation_errors_json($e->errors(), 422);
+            }
+
             handle_validation_errors(
                 $e->errors(),
                 'corsi',
                 [
+                    'open_edit' => '1',
+                    'edit_id' => (string) ($_POST['course_id'] ?? ''),
+                    'edit_name' => (string) ($_POST['name'] ?? ''),
+                    'edit_site_id' => (string) ($_POST['site_id'] ?? ''),
+                    'edit_discipline_id' => (string) ($_POST['discipline_id'] ?? ''),
+                    'edit_user_id' => (string) ($_POST['user_id'] ?? ''),
+                    'edit_start_date' => (string) ($_POST['start_date'] ?? ''),
+                    'edit_end_date' => (string) ($_POST['end_date'] ?? ''),
+                    'edit_monthly_fee' => (string) ($_POST['monthly_fee'] ?? ''),
+                    'edit_active' => (string) ($_POST['active'] ?? '1'),
+                    'edit_lun_inizio' => (string) ($_POST['lun_inizio'] ?? ''),
+                    'edit_lun_fine' => (string) ($_POST['lun_fine'] ?? ''),
+                    'edit_mar_inizio' => (string) ($_POST['mar_inizio'] ?? ''),
+                    'edit_mar_fine' => (string) ($_POST['mar_fine'] ?? ''),
+                    'edit_mer_inizio' => (string) ($_POST['mer_inizio'] ?? ''),
+                    'edit_mer_fine' => (string) ($_POST['mer_fine'] ?? ''),
+                    'edit_gio_inizio' => (string) ($_POST['gio_inizio'] ?? ''),
+                    'edit_gio_fine' => (string) ($_POST['gio_fine'] ?? ''),
+                    'edit_ven_inizio' => (string) ($_POST['ven_inizio'] ?? ''),
+                    'edit_ven_fine' => (string) ($_POST['ven_fine'] ?? ''),
+                    'edit_sab_inizio' => (string) ($_POST['sab_inizio'] ?? ''),
+                    'edit_sab_fine' => (string) ($_POST['sab_fine'] ?? ''),
+                    'edit_dom_inizio' => (string) ($_POST['dom_inizio'] ?? ''),
+                    'edit_dom_fine' => (string) ($_POST['dom_fine'] ?? ''),
+                ]
+            );
+        } catch (\InvalidArgumentException $e) {
+            if ($wantsJson) {
+                handle_validation_errors_json(['user_id' => $e->getMessage()], 422);
+            }
+
+            handle_validation_errors(
+                ['user_id' => $e->getMessage()],
+                'corsi',
+                [
+                    'err' => $e->getMessage(),
                     'open_edit' => '1',
                     'edit_id' => (string) ($_POST['course_id'] ?? ''),
                     'edit_name' => (string) ($_POST['name'] ?? ''),
@@ -105,7 +178,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         // Default: add
         $request = new AddCourseRequest($_POST);
-        $corsi->addCourse(
+        $newCourse = $corsi->addCourse(
             $request->getInt('site_id'),
             $request->getInt('discipline_id'),
             $request->getInt('user_id'),
@@ -116,9 +189,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $request->getInt('active', 1),
             $orari
         );
+
+        if ($wantsJson) {
+            json_success('Corso creato con successo', [
+                'id' => (int) ($newCourse['id'] ?? 0),
+                'name' => (string) ($newCourse['name'] ?? ''),
+            ]);
+        }
+
         header('Location: /seiryokukai_php/public/index.php?page=corsi&ok=Corso%20creato%20con%20successo');
         exit;
     } catch (ValidationException $e) {
+        if ($wantsJson) {
+            handle_validation_errors_json($e->errors(), 422);
+        }
+
         handle_validation_errors(
             $e->errors(),
             'corsi',
@@ -128,6 +213,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'add_discipline_id' => $_POST['discipline_id'] ?? '',
                 'add_user_id' => $_POST['user_id'] ?? '',
                 'add_end_date' => $_POST['end_date'] ?? '',
+                'add_active' => $_POST['active'] ?? '1',
+            ]
+        );
+    } catch (\InvalidArgumentException $e) {
+        if ($wantsJson) {
+            handle_validation_errors_json(['user_id' => $e->getMessage()], 422);
+        }
+
+        handle_validation_errors(
+            ['user_id' => $e->getMessage()],
+            'corsi',
+            [
+                'err' => $e->getMessage(),
+                'add_name' => $_POST['name'] ?? '',
+                'add_site_id' => $_POST['site_id'] ?? '',
+                'add_discipline_id' => $_POST['discipline_id'] ?? '',
+                'add_user_id' => $_POST['user_id'] ?? '',
+                'add_start_date' => $_POST['start_date'] ?? '',
+                'add_end_date' => $_POST['end_date'] ?? '',
+                'add_monthly_fee' => $_POST['monthly_fee'] ?? '',
                 'add_active' => $_POST['active'] ?? '1',
             ]
         );

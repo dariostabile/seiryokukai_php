@@ -2,7 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Requests;
+namespace App\Requests\DocumentTypes;
+
+use App\Requests\FormRequest;
 
 class UpdateDocumentTypeRequest extends FormRequest
 {
