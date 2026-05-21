@@ -351,6 +351,11 @@ document.addEventListener('DOMContentLoaded', function () {
       event.preventDefault();
       hideAlert();
 
+      if (!addForm.checkValidity()) {
+        addForm.reportValidity();
+        return;
+      }
+
       const submitButton = addForm.querySelector('button[type="submit"]');
       if (submitButton) {
         submitButton.disabled = true;
@@ -384,6 +389,11 @@ document.addEventListener('DOMContentLoaded', function () {
     editForm.addEventListener('submit', async function (event) {
       event.preventDefault();
       hideAlert();
+
+      if (!editForm.checkValidity()) {
+        editForm.reportValidity();
+        return;
+      }
 
       const submitButton = editForm.querySelector('button[type="submit"]');
       if (submitButton) {

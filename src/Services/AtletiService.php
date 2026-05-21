@@ -129,6 +129,8 @@ final class AtletiService extends BaseService
                 email_1,
                 email_2,
                 pec,
+                piva,
+                codice_univoco_fatturazione,
                 data_scadenza_account,
                 immagine_atleta,
                 note_atleta,
@@ -187,6 +189,8 @@ final class AtletiService extends BaseService
                 email_1,
                 email_2,
                 pec,
+                piva,
+                codice_univoco_fatturazione,
                 attivo,
                 cancellato,
                 data_creazione_account,
@@ -217,6 +221,8 @@ final class AtletiService extends BaseService
                 :email_1,
                 :email_2,
                 :pec,
+                :piva,
+                :codice_univoco_fatturazione,
                 :attivo,
                 0,
                 NOW(),
@@ -273,6 +279,8 @@ final class AtletiService extends BaseService
                 email_1 = :email_1,
                 email_2 = :email_2,
                 pec = :pec,
+                piva = :piva,
+                codice_univoco_fatturazione = :codice_univoco_fatturazione,
                 attivo = :attivo,
                 data_scadenza_account = :data_scadenza_account,
                 note_atleta = :note_atleta,
@@ -530,6 +538,27 @@ final class AtletiService extends BaseService
         return $stmt->rowCount() > 0;
     }
 
+    public function updateAtletaImage(int $id, ?string $imagePath): bool
+    {
+        if ($id <= 0) {
+            return false;
+        }
+
+        $cleanPath = $imagePath !== null ? trim($imagePath) : null;
+        if ($cleanPath === '') {
+            $cleanPath = null;
+        }
+
+        $pdo = db_connection();
+        $stmt = $pdo->prepare('UPDATE atleti SET immagine_atleta = :immagine_atleta WHERE idatleta = :idatleta AND cancellato = 0');
+        $stmt->execute([
+            'immagine_atleta' => $cleanPath,
+            'idatleta' => $id,
+        ]);
+
+        return $stmt->rowCount() > 0;
+    }
+
     public function deleteAtleta(int $id): bool
     {
         $pdo = db_connection();
@@ -583,6 +612,8 @@ final class AtletiService extends BaseService
             'email_1' => $this->normalizeNullableString($payload['email_1'] ?? null),
             'email_2' => $this->normalizeNullableString($payload['email_2'] ?? null),
             'pec' => $this->normalizeNullableString($payload['pec'] ?? null),
+            'piva' => $this->normalizeNullableString($payload['piva'] ?? null),
+            'codice_univoco_fatturazione' => $this->normalizeNullableString($payload['codice_univoco_fatturazione'] ?? null),
             'attivo' => $this->statusToBool((string) ($payload['status'] ?? 'Attivo')),
             'data_scadenza_account' => $this->normalizeNullableDate($payload['data_scadenza_account'] ?? null),
             'note_atleta' => $this->normalizeNullableString($payload['note_atleta'] ?? null),
@@ -622,9 +653,12 @@ final class AtletiService extends BaseService
             'email' => trim((string) ($row['email_1'] ?? '')),
             'email_alt' => trim((string) ($row['email_2'] ?? '')),
             'pec' => trim((string) ($row['pec'] ?? '')),
+            'vat_number' => trim((string) ($row['piva'] ?? '')),
+            'invoice_code' => trim((string) ($row['codice_univoco_fatturazione'] ?? '')),
             'status' => trim((string) ($row['status'] ?? 'Attivo')),
             'account_expiry_date' => $this->normalizeDisplayValue($row['data_scadenza_account'] ?? null, true),
             'image_path' => trim((string) ($row['immagine_atleta'] ?? '')),
+            'image_url' => $this->toPublicUrl(trim((string) ($row['immagine_atleta'] ?? ''))),
             'notes' => trim((string) ($row['note_atleta'] ?? '')),
             'height' => $row['altezza'] !== null ? (string) $row['altezza'] : '',
             'weight' => $row['peso'] !== null ? (string) $row['peso'] : '',
@@ -685,7 +719,7 @@ final class AtletiService extends BaseService
                 i.totale_iscrizione AS total,
                 i.stato_iscrizione AS status_code,
                 COALESCE(i.note_iscrizione, \'\') AS notes,
-                COALESCE(GROUP_CONCAT(DISTINCT c.nome_corso ORDER BY c.nome_corso SEPARATOR \, \'), \'\') AS courses
+                COALESCE(GROUP_CONCAT(DISTINCT c.nome_corso ORDER BY c.nome_corso SEPARATOR \', \'), \'\') AS courses
              FROM iscrizioni i
              LEFT JOIN iscrizioni_has_corsi ihc ON ihc.idiscrizione = i.idiscrizione
              LEFT JOIN corsi c ON c.idcorso = ihc.idcorso

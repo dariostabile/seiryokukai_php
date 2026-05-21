@@ -1157,6 +1157,12 @@ document.addEventListener('DOMContentLoaded', function () {
   const addUserForm = document.getElementById('addUserForm');
   if (addUserForm) {
     addUserForm.addEventListener('submit', async function (event) {
+      if (!addUserForm.checkValidity()) {
+        event.preventDefault();
+        addUserForm.reportValidity();
+        return;
+      }
+
       const cropDataInput = document.getElementById('addUserCropImageData');
       const hasCropData = cropDataInput && String(cropDataInput.value || '').trim() !== '';
       if (!hasCropData && addUserImageCropper) {
@@ -1210,7 +1216,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
   const editUserForm = document.getElementById('editUserForm');
   if (editUserForm) {
-    editUserForm.addEventListener('submit', function () {
+    editUserForm.addEventListener('submit', function (event) {
+      if (!editUserForm.checkValidity()) {
+        event.preventDefault();
+        editUserForm.reportValidity();
+        return;
+      }
+
       const cropDataInput = document.getElementById('editUserCropImageData');
       const hasCropData = cropDataInput && String(cropDataInput.value || '').trim() !== '';
       if (!hasCropData && userImageCropper) {

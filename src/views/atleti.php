@@ -22,11 +22,18 @@ if (!in_array($activeTab, $allowedTabs, true)) {
     $activeTab = 'anagrafica';
 }
 
+$defaultAccountExpiryDate = (new \DateTimeImmutable('last day of december next year'))->format('Y-m-d');
+
 $addPrefill = [
     'nome' => trim((string) ($_GET['add_nome'] ?? '')),
     'cognome' => trim((string) ($_GET['add_cognome'] ?? '')),
+  'piva' => trim((string) ($_GET['add_piva'] ?? '')),
+  'codice_univoco_fatturazione' => trim((string) ($_GET['add_codice_univoco_fatturazione'] ?? '')),
     'email_1' => trim((string) ($_GET['add_email_1'] ?? '')),
+    'email_2' => trim((string) ($_GET['add_email_2'] ?? '')),
+    'pec' => trim((string) ($_GET['add_pec'] ?? '')),
     'telefono_1' => trim((string) ($_GET['add_telefono_1'] ?? '')),
+    'data_scadenza_account' => trim((string) ($_GET['add_data_scadenza_account'] ?? $defaultAccountExpiryDate)),
 ];
 
 if (!$openAddPanel) {
@@ -99,7 +106,7 @@ $selectedPagamenti = $hasSelectedAtleta && isset($selectedAtleta['pagamenti']) &
         <button class="btn btn-sm btn-outline-secondary" type="button" id="closeAddAtletaPanelBtn">Chiudi</button>
       </div>
       <div class="card-body">
-        <form method="post" action="<?= htmlspecialchars($atletiApiUrl) ?>" class="row g-3" id="addAthleteForm">
+        <form method="post" action="<?= htmlspecialchars($atletiApiUrl) ?>" class="row g-3" id="addAthleteForm" enctype="multipart/form-data">
           <input type="hidden" name="action" value="add">
           <input type="hidden" name="athlete_tab" id="addAthleteTabInput" value="anagrafica">
 
@@ -128,6 +135,14 @@ $selectedPagamenti = $hasSelectedAtleta && isset($selectedAtleta['pagamenti']) &
               </div>
               <div class="row g-3">
                 <div class="col-12 col-md-3">
+                  <label class="form-label">Immagine atleta</label>
+                  <input class="form-control" type="file" id="addAthleteImageInput" name="image" accept="image/jpeg,image/png,image/webp,image/gif">
+                  <small class="text-muted">Formati: JPG, PNG, WEBP, GIF. Max 5MB.</small>
+                  <div id="addAthleteImagePreviewWrap" class="mt-2 d-none">
+                    <img id="addAthleteImagePreview" src="" alt="Anteprima immagine atleta" class="img-thumbnail" style="max-width: 140px; max-height: 140px; object-fit: cover;">
+                  </div>
+                </div>
+                <div class="col-12 col-md-3">
                   <label class="form-label">Stato</label>
                   <select class="form-select" name="status">
                     <option value="Attivo">Attivo</option>
@@ -136,7 +151,7 @@ $selectedPagamenti = $hasSelectedAtleta && isset($selectedAtleta['pagamenti']) &
                 </div>
                 <div class="col-12 col-md-3">
                   <label class="form-label">Data scadenza account</label>
-                  <input type="date" class="form-control" name="data_scadenza_account">
+                  <input type="date" class="form-control" name="data_scadenza_account" value="<?= htmlspecialchars($addPrefill['data_scadenza_account']) ?>">
                 </div>
             </div>
             <div class="row g-3">
@@ -185,6 +200,14 @@ $selectedPagamenti = $hasSelectedAtleta && isset($selectedAtleta['pagamenti']) &
                     <button class="btn btn-outline-secondary js-cf-calc-btn" type="button" data-form-id="addAthleteForm">Calcola</button>
                   </div>
                 </div>
+                <div class="col-12 col-md-4">
+                  <label class="form-label">P.IVA</label>
+                  <input class="form-control" name="piva" maxlength="11" pattern="\d{11}" title="Inserisci 11 cifre" value="<?= htmlspecialchars($addPrefill['piva']) ?>">
+                </div>
+                <div class="col-12 col-md-4">
+                  <label class="form-label">Codice univoco fatturazione</label>
+                  <input class="form-control" name="codice_univoco_fatturazione" maxlength="7" pattern="[A-Za-z0-9]{6,7}" title="Inserisci 6-7 caratteri alfanumerici" value="<?= htmlspecialchars($addPrefill['codice_univoco_fatturazione']) ?>">
+                </div>
     </div>
     <div class="row g-3">
                 
@@ -193,18 +216,20 @@ $selectedPagamenti = $hasSelectedAtleta && isset($selectedAtleta['pagamenti']) &
                   <input type="number" min="0" class="form-control" name="altezza">
                 </div>
                 <div class="col-12 col-md-2">
-                  <label class="form-label">Peso</label>
+                  <label class="form-label">Peso (kg)</label>
                   <input type="number" step="0.01" min="0" class="form-control" name="peso">
                 </div>
-                <div class="col-12 col-md-2">
+                </div>
+                <div class="row g-3">
+                <div class="col-12 col-md-3">
                   <label class="form-label">Misura</label>
                   <input class="form-control" name="misura" maxlength="3">
                 </div>
-                <div class="col-12 col-md-2">
+                <div class="col-12 col-md-3">
                   <label class="form-label">Misura maglia</label>
                   <input class="form-control" name="misura_maglia" maxlength="3">
                 </div>
-                <div class="col-12 col-md-2">
+                <div class="col-12 col-md-3">
                   <label class="form-label">Misura pantaloni</label>
                   <input class="form-control" name="misura_pantaloni" maxlength="3">
                 </div>
@@ -247,17 +272,19 @@ $selectedPagamenti = $hasSelectedAtleta && isset($selectedAtleta['pagamenti']) &
                   <label class="form-label">Telefono 2</label>
                   <input class="form-control" name="telefono_2">
                 </div>
+              </div>
+              <div class="row g-3">
                 <div class="col-12 col-md-4">
-                  <label class="form-label">PEC</label>
-                  <input type="email" class="form-control" name="pec">
-                </div>
-                <div class="col-12 col-md-6">
                   <label class="form-label">Email 1</label>
                   <input type="email" class="form-control" name="email_1" value="<?= htmlspecialchars($addPrefill['email_1']) ?>">
                 </div>
-                <div class="col-12 col-md-6">
+                <div class="col-12 col-md-4">
                   <label class="form-label">Email 2</label>
-                  <input type="email" class="form-control" name="email_2">
+                  <input type="email" class="form-control" name="email_2" value="<?= htmlspecialchars($addPrefill['email_2']) ?>">
+                </div>
+                <div class="col-12 col-md-4">
+                  <label class="form-label">PEC</label>
+                  <input type="email" class="form-control" name="pec" value="<?= htmlspecialchars($addPrefill['pec']) ?>">
                 </div>
               </div>
             </div>
@@ -289,10 +316,12 @@ $selectedPagamenti = $hasSelectedAtleta && isset($selectedAtleta['pagamenti']) &
           <a class="btn btn-sm btn-outline-secondary" href="<?= htmlspecialchars($atletiPageUrl) ?>">Chiudi</a>
         </div>
         <div class="card-body">
-          <form id="editAthleteProfileForm" method="post" action="<?= htmlspecialchars($atletiApiUrl) ?>">
+          <form id="editAthleteProfileForm" method="post" action="<?= htmlspecialchars($atletiApiUrl) ?>" enctype="multipart/form-data">
             <input type="hidden" name="action" value="update">
             <input type="hidden" name="id" value="<?= (int) ($selectedAtleta['id'] ?? 0) ?>">
             <input type="hidden" name="athlete_tab" id="editAthleteTabInput" value="<?= htmlspecialchars($activeTab) ?>">
+            <input type="hidden" name="current_image_path" value="<?= htmlspecialchars((string) ($selectedAtleta['image_path'] ?? '')) ?>">
+            <input type="hidden" name="remove_image" id="editAthleteRemoveImageInput" value="0">
           </form>
 
           <ul class="nav nav-tabs customtab" role="tablist">
@@ -316,6 +345,17 @@ $selectedPagamenti = $hasSelectedAtleta && isset($selectedAtleta['pagamenti']) &
           <div class="tab-content border border-top-0 rounded-bottom p-3">
             <div class="<?= $tabPaneClass('anagrafica') ?>" id="athlete-tab-anagrafica" role="tabpanel">
               <div class="row g-3">
+                <div class="col-12 col-md-3">
+                  <label class="form-label">Immagine atleta</label>
+                  <input class="form-control" type="file" id="editAthleteImageInput" name="image" form="editAthleteProfileForm" accept="image/jpeg,image/png,image/webp,image/gif">
+                  <div id="editAthleteImagePreviewWrap" class="mt-2 <?= ((string) ($selectedAtleta['image_url'] ?? '')) !== '' ? '' : 'd-none' ?>">
+                    <img id="editAthleteImagePreview" src="<?= htmlspecialchars((string) ($selectedAtleta['image_url'] ?? '')) ?>" data-initial-src="<?= htmlspecialchars((string) ($selectedAtleta['image_url'] ?? '')) ?>" alt="Anteprima immagine atleta" class="img-thumbnail" style="max-width: 140px; max-height: 140px; object-fit: cover;">
+                  </div>
+                  <div class="form-check mt-2">
+                    <input class="form-check-input" type="checkbox" id="editAthleteRemoveImageCheckbox" form="editAthleteProfileForm">
+                    <label class="form-check-label" for="editAthleteRemoveImageCheckbox">Rimuovi immagine attuale</label>
+                  </div>
+                </div>
                 <div class="col-12 col-md-3">
                   <label class="form-label">Stato</label>
                   <select class="form-select" name="status" form="editAthleteProfileForm">
@@ -349,6 +389,14 @@ $selectedPagamenti = $hasSelectedAtleta && isset($selectedAtleta['pagamenti']) &
                     <input class="form-control" name="codice_fiscale" maxlength="16" form="editAthleteProfileForm" value="<?= htmlspecialchars((string) ($selectedAtleta['tax_code'] ?? '')) ?>">
                     <button class="btn btn-outline-secondary js-cf-calc-btn" type="button" data-form-id="editAthleteProfileForm">Calcola</button>
                   </div>
+                </div>
+                <div class="col-12 col-md-4">
+                  <label class="form-label">P.IVA</label>
+                  <input class="form-control" name="piva" maxlength="11" pattern="\d{11}" title="Inserisci 11 cifre" form="editAthleteProfileForm" value="<?= htmlspecialchars((string) ($selectedAtleta['vat_number'] ?? '')) ?>">
+                </div>
+                <div class="col-12 col-md-4">
+                  <label class="form-label">Codice univoco fatturazione</label>
+                  <input class="form-control" name="codice_univoco_fatturazione" maxlength="7" pattern="[A-Za-z0-9]{6,7}" title="Inserisci 6-7 caratteri alfanumerici" form="editAthleteProfileForm" value="<?= htmlspecialchars((string) ($selectedAtleta['invoice_code'] ?? '')) ?>">
                 </div>
                 <div class="col-12 col-md-4">
                   <label class="form-label">Data nascita</label>
@@ -1064,11 +1112,208 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   const addPanel = document.getElementById('addAtletaPanel');
+  const addAthleteForm = document.getElementById('addAthleteForm');
   const openAddBtn = document.getElementById('openAddAtletaPanelBtn');
   const closeAddBtn = document.getElementById('closeAddAtletaPanelBtn');
   const cancelAddBtn = document.getElementById('cancelAddAtletaBtn');
+  const addAthleteImageInput = document.getElementById('addAthleteImageInput');
+  const addAthleteImagePreviewWrap = document.getElementById('addAthleteImagePreviewWrap');
+  const addAthleteImagePreview = document.getElementById('addAthleteImagePreview');
   const addTabInput = document.getElementById('addAthleteTabInput');
   const editTabInput = document.getElementById('editAthleteTabInput');
+  const editAthleteImageInput = document.getElementById('editAthleteImageInput');
+  const editAthleteImagePreviewWrap = document.getElementById('editAthleteImagePreviewWrap');
+  const editAthleteImagePreview = document.getElementById('editAthleteImagePreview');
+  const editAthleteRemoveImageCheckbox = document.getElementById('editAthleteRemoveImageCheckbox');
+  const editAthleteRemoveImageInput = document.getElementById('editAthleteRemoveImageInput');
+
+  const resetAddImagePreview = function () {
+    if (addAthleteImagePreview) {
+      addAthleteImagePreview.src = '';
+    }
+    if (addAthleteImagePreviewWrap) {
+      addAthleteImagePreviewWrap.classList.add('d-none');
+    }
+  };
+
+  const restoreAddFormFromQuery = function () {
+    if (!addAthleteForm) {
+      return;
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    params.forEach(function (value, key) {
+      if (!key.startsWith('add_')) {
+        return;
+      }
+
+      const fieldName = key.substring(4);
+      if (!fieldName) {
+        return;
+      }
+
+      const field = addAthleteForm.elements.namedItem(fieldName);
+      if (!field) {
+        return;
+      }
+
+      if (field instanceof RadioNodeList) {
+        field.value = value;
+        return;
+      }
+
+      if (field instanceof HTMLSelectElement) {
+        const hasOption = Array.from(field.options).some(function (option) {
+          return option.value === value;
+        });
+
+        if (!hasOption && value !== '') {
+          field.add(new Option(value, value, true, true));
+        }
+
+        field.value = value;
+        return;
+      }
+
+      if (field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement) {
+        if (field.type === 'checkbox') {
+          field.checked = ['1', 'true', 'on', 'yes'].includes(String(value).toLowerCase());
+          return;
+        }
+        field.value = value;
+      }
+    });
+  };
+
+  restoreAddFormFromQuery();
+
+  if (addAthleteForm) {
+    addAthleteForm.addEventListener('submit', function (event) {
+      if (!addAthleteForm.checkValidity()) {
+        event.preventDefault();
+        addAthleteForm.reportValidity();
+      }
+    });
+  }
+
+  if (addAthleteImageInput) {
+    addAthleteImageInput.addEventListener('change', function () {
+      const file = addAthleteImageInput.files && addAthleteImageInput.files[0] ? addAthleteImageInput.files[0] : null;
+      if (!file) {
+        resetAddImagePreview();
+        return;
+      }
+
+      if (typeof file.type === 'string' && file.type.indexOf('image/') !== 0) {
+        addAthleteImageInput.value = '';
+        resetAddImagePreview();
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function (event) {
+        if (!addAthleteImagePreview || !addAthleteImagePreviewWrap) {
+          return;
+        }
+        addAthleteImagePreview.src = String((event.target && event.target.result) || '');
+        addAthleteImagePreviewWrap.classList.remove('d-none');
+      };
+      reader.onerror = function () {
+        addAthleteImageInput.value = '';
+        resetAddImagePreview();
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  const resetEditImagePreview = function () {
+    if (!editAthleteImagePreview || !editAthleteImagePreviewWrap) {
+      return;
+    }
+
+    const initialSrc = String(editAthleteImagePreview.dataset.initialSrc || '');
+    if (initialSrc === '') {
+      editAthleteImagePreview.src = '';
+      editAthleteImagePreviewWrap.classList.add('d-none');
+      return;
+    }
+
+    editAthleteImagePreview.src = initialSrc;
+    editAthleteImagePreviewWrap.classList.remove('d-none');
+  };
+
+  const applyEditImageRemovalState = function () {
+    if (!editAthleteRemoveImageInput || !editAthleteRemoveImageCheckbox) {
+      return;
+    }
+
+    const isRemoving = editAthleteRemoveImageCheckbox.checked;
+    editAthleteRemoveImageInput.value = isRemoving ? '1' : '0';
+
+    if (!editAthleteImagePreviewWrap || !editAthleteImagePreview) {
+      return;
+    }
+
+    if (isRemoving) {
+      editAthleteImagePreview.src = '';
+      editAthleteImagePreviewWrap.classList.add('d-none');
+      if (editAthleteImageInput) {
+        editAthleteImageInput.value = '';
+      }
+      return;
+    }
+
+    if (editAthleteImageInput && editAthleteImageInput.files && editAthleteImageInput.files[0]) {
+      return;
+    }
+
+    resetEditImagePreview();
+  };
+
+  if (editAthleteImageInput) {
+    editAthleteImageInput.addEventListener('change', function () {
+      const file = editAthleteImageInput.files && editAthleteImageInput.files[0] ? editAthleteImageInput.files[0] : null;
+      if (!file) {
+        if (editAthleteRemoveImageCheckbox && editAthleteRemoveImageCheckbox.checked) {
+          return;
+        }
+        resetEditImagePreview();
+        return;
+      }
+
+      if (typeof file.type === 'string' && file.type.indexOf('image/') !== 0) {
+        editAthleteImageInput.value = '';
+        resetEditImagePreview();
+        return;
+      }
+
+      if (editAthleteRemoveImageCheckbox) {
+        editAthleteRemoveImageCheckbox.checked = false;
+      }
+      if (editAthleteRemoveImageInput) {
+        editAthleteRemoveImageInput.value = '0';
+      }
+
+      const reader = new FileReader();
+      reader.onload = function (event) {
+        if (!editAthleteImagePreview || !editAthleteImagePreviewWrap) {
+          return;
+        }
+        editAthleteImagePreview.src = String((event.target && event.target.result) || '');
+        editAthleteImagePreviewWrap.classList.remove('d-none');
+      };
+      reader.onerror = function () {
+        editAthleteImageInput.value = '';
+        resetEditImagePreview();
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  if (editAthleteRemoveImageCheckbox) {
+    editAthleteRemoveImageCheckbox.addEventListener('change', applyEditImageRemovalState);
+    applyEditImageRemovalState();
+  }
 
   const showAddPanel = function () {
     if (!addPanel) {
@@ -1083,6 +1328,10 @@ document.addEventListener('DOMContentLoaded', function () {
       return;
     }
     addPanel.classList.add('d-none');
+    if (addAthleteImageInput) {
+      addAthleteImageInput.value = '';
+    }
+    resetAddImagePreview();
   };
 
   if (openAddBtn) {

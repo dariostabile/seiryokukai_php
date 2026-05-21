@@ -97,7 +97,186 @@ function gestisciUploadDocumentoAtleta(array $file, int $athleteId): string
     return $relativePath;
 }
 
+function gestisciUploadImmagineAtleta(array $file, int $athleteId): string
+{
+    if ($athleteId <= 0) {
+        throw new \InvalidArgumentException('Atleta non valido per upload immagine');
+    }
+
+    if (($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
+        return '';
+    }
+
+    if (($file['error'] ?? UPLOAD_ERR_OK) !== UPLOAD_ERR_OK) {
+        throw new \RuntimeException('Upload immagine non riuscito');
+    }
+
+    $tmpPath = (string) ($file['tmp_name'] ?? '');
+    $size = (int) ($file['size'] ?? 0);
+
+    if ($tmpPath === '' || !is_uploaded_file($tmpPath)) {
+        throw new \RuntimeException('File immagine non valido');
+    }
+
+    if ($size <= 0 || $size > 5 * 1024 * 1024) {
+        throw new \RuntimeException('L\'immagine deve essere minore di 5MB');
+    }
+
+    $finfo = new \finfo(FILEINFO_MIME_TYPE);
+    $mime = (string) $finfo->file($tmpPath);
+    $allowed = [
+        'image/jpeg' => 'jpg',
+        'image/png' => 'png',
+        'image/webp' => 'webp',
+        'image/gif' => 'gif',
+    ];
+
+    if (!isset($allowed[$mime])) {
+        throw new \RuntimeException('Formato immagine non supportato (usa JPG, PNG, WEBP o GIF)');
+    }
+
+    $extension = $allowed[$mime];
+    $relativeDir = 'public/atleti/' . $athleteId;
+    $absoluteDir = __DIR__ . '/../../' . $relativeDir;
+
+    if (!is_dir($absoluteDir) && !mkdir($absoluteDir, 0775, true) && !is_dir($absoluteDir)) {
+        throw new \RuntimeException('Impossibile creare la cartella immagini atleta');
+    }
+
+    $fileName = $athleteId . '_' . date('YmdHis') . '_' . bin2hex(random_bytes(4)) . '.' . $extension;
+    $relativePath = $relativeDir . '/' . $fileName;
+    $absolutePath = __DIR__ . '/../../' . $relativePath;
+
+    if (!move_uploaded_file($tmpPath, $absolutePath)) {
+        throw new \RuntimeException('Impossibile salvare l\'immagine atleta');
+    }
+
+    normalizzaAvatarQuadratoAtleta($absolutePath, $mime);
+
+    return $relativePath;
+}
+
+function normalizzaAvatarQuadratoAtleta(string $filePath, string $mime): void
+{
+    if (!is_file($filePath)) {
+        return;
+    }
+
+    if (!function_exists('imagecreatetruecolor')) {
+        return;
+    }
+
+    $source = null;
+    switch ($mime) {
+        case 'image/jpeg':
+            if (function_exists('imagecreatefromjpeg')) {
+                $source = @imagecreatefromjpeg($filePath);
+            }
+            break;
+        case 'image/png':
+            if (function_exists('imagecreatefrompng')) {
+                $source = @imagecreatefrompng($filePath);
+            }
+            break;
+        case 'image/webp':
+            if (function_exists('imagecreatefromwebp')) {
+                $source = @imagecreatefromwebp($filePath);
+            }
+            break;
+        case 'image/gif':
+            if (function_exists('imagecreatefromgif')) {
+                $source = @imagecreatefromgif($filePath);
+            }
+            break;
+    }
+
+    if (!$source) {
+        return;
+    }
+
+    $srcWidth = imagesx($source);
+    $srcHeight = imagesy($source);
+    if ($srcWidth <= 0 || $srcHeight <= 0) {
+        imagedestroy($source);
+        return;
+    }
+
+    $cropSize = min($srcWidth, $srcHeight);
+    $srcX = (int) floor(($srcWidth - $cropSize) / 2);
+    $srcY = (int) floor(($srcHeight - $cropSize) / 2);
+    $destinationSize = 512;
+
+    $destination = imagecreatetruecolor($destinationSize, $destinationSize);
+    if (!$destination) {
+        imagedestroy($source);
+        return;
+    }
+
+    if (in_array($mime, ['image/png', 'image/webp', 'image/gif'], true)) {
+        imagealphablending($destination, false);
+        imagesavealpha($destination, true);
+        $transparent = imagecolorallocatealpha($destination, 0, 0, 0, 127);
+        imagefilledrectangle($destination, 0, 0, $destinationSize, $destinationSize, $transparent);
+    }
+
+    imagecopyresampled(
+        $destination,
+        $source,
+        0,
+        0,
+        $srcX,
+        $srcY,
+        $destinationSize,
+        $destinationSize,
+        $cropSize,
+        $cropSize
+    );
+
+    switch ($mime) {
+        case 'image/jpeg':
+            if (function_exists('imagejpeg')) {
+                imagejpeg($destination, $filePath, 90);
+            }
+            break;
+        case 'image/png':
+            if (function_exists('imagepng')) {
+                imagepng($destination, $filePath, 6);
+            }
+            break;
+        case 'image/webp':
+            if (function_exists('imagewebp')) {
+                imagewebp($destination, $filePath, 90);
+            }
+            break;
+        case 'image/gif':
+            if (function_exists('imagegif')) {
+                imagegif($destination, $filePath);
+            }
+            break;
+    }
+
+    imagedestroy($destination);
+    imagedestroy($source);
+}
+
 function eliminaDocumentoAtletaDaPercorso(string $path): void
+{
+    $cleanPath = ltrim(trim($path), '/');
+    if ($cleanPath === '') {
+        return;
+    }
+
+    if (strpos($cleanPath, 'public/atleti/') !== 0) {
+        return;
+    }
+
+    $absolutePath = __DIR__ . '/../../' . $cleanPath;
+    if (is_file($absolutePath)) {
+        @unlink($absolutePath);
+    }
+}
+
+function eliminaImmagineAtletaDaPercorso(string $path): void
 {
     $cleanPath = ltrim(trim($path), '/');
     if ($cleanPath === '') {
@@ -365,7 +544,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($action === 'update') {
             $request = new UpdateAtletaRequest($_POST);
             $athleteId = $request->getInt('id');
+            $existingAthlete = $atleti->findAtletaById($athleteId);
+            if (!is_array($existingAthlete)) {
+                throw new \RuntimeException('Atleta non trovato');
+            }
+
+            $currentImagePath = trim((string) ($existingAthlete['image_path'] ?? ($_POST['current_image_path'] ?? '')));
+            $removeImage = ((string) ($_POST['remove_image'] ?? '0')) === '1';
+
             $atleti->updateAtleta($athleteId, $request->all());
+
+            $newImagePath = $currentImagePath;
+            if ($removeImage) {
+                $newImagePath = '';
+            }
+
+            if (isset($_FILES['image']) && is_array($_FILES['image'])) {
+                $uploadedPath = gestisciUploadImmagineAtleta($_FILES['image'], $athleteId);
+                if ($uploadedPath !== '') {
+                    $newImagePath = $uploadedPath;
+                }
+            }
+
+            if ($newImagePath !== $currentImagePath) {
+                $atleti->updateAtletaImage($athleteId, $newImagePath);
+                if ($currentImagePath !== '') {
+                    eliminaImmagineAtletaDaPercorso($currentImagePath);
+                }
+            }
 
             redirect_atleti([
                 'ok' => 'Scheda atleta aggiornata',
@@ -483,6 +689,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $request = new AddAtletaRequest($_POST);
         $athlete = $atleti->createAtleta($request->all());
 
+        $createdAthleteId = (int) ($athlete['id'] ?? 0);
+        if ($createdAthleteId > 0 && isset($_FILES['image']) && is_array($_FILES['image'])) {
+            $newImagePath = gestisciUploadImmagineAtleta($_FILES['image'], $createdAthleteId);
+            if ($newImagePath !== '') {
+                $atleti->updateAtletaImage($createdAthleteId, $newImagePath);
+            }
+        }
+
         redirect_atleti([
             'ok' => 'Atleta creato con successo',
             'open_edit' => '1',
@@ -537,17 +751,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             );
         }
 
+        $addErrorContext = [
+            'open_add' => '1',
+            'athlete_tab' => $_POST['athlete_tab'] ?? 'anagrafica',
+        ];
+
+        foreach ($_POST as $key => $value) {
+            if (!is_string($key) || !is_scalar($value)) {
+                continue;
+            }
+
+            if (in_array($key, ['action', 'id', 'page', 'open_add'], true)) {
+                continue;
+            }
+
+            $addErrorContext['add_' . $key] = (string) $value;
+        }
+
         handle_validation_errors(
             $e->errors(),
             'atleti',
-            [
-                'open_add' => '1',
-                'add_nome' => $_POST['nome'] ?? '',
-                'add_cognome' => $_POST['cognome'] ?? '',
-                'add_email_1' => $_POST['email_1'] ?? '',
-                'add_telefono_1' => $_POST['telefono_1'] ?? '',
-                'athlete_tab' => $_POST['athlete_tab'] ?? 'anagrafica',
-            ]
+            $addErrorContext
         );
     } catch (\Throwable $e) {
         $targetTab = match ($action) {

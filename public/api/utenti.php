@@ -342,19 +342,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $status = trim((string) ($_POST['status'] ?? 'Attivo'));
             $attivo = $status !== 'Sospeso';
 
-            $errorContext = [
-                'add_nome' => $nome,
-                'add_cognome' => $cognome,
-                'add_username' => $username,
-                'add_email' => $email,
-                'add_telefono1' => $phone1,
-                'add_telefono2' => $phone2,
-                'add_email2' => $email2,
-                'add_data_scadenza_account' => $accountExpiryDate,
-                'add_profile_ids' => implode(',', $profileIds),
-                'add_application_ids' => implode(',', $applicationIds),
-                'add_status' => $status,
-            ];
+            $errorContext = [];
+            foreach ($_POST as $key => $value) {
+                if (!is_string($key)) {
+                    continue;
+                }
+
+                if (in_array($key, ['action', 'ajax', 'page', 'open_add', 'open_edit', 'edit_id'], true)) {
+                    continue;
+                }
+
+                $contextKey = 'add_' . $key;
+
+                if (is_scalar($value) || $value === null) {
+                    $errorContext[$contextKey] = (string) $value;
+                    continue;
+                }
+
+                if (is_array($value)) {
+                    $serialized = array_map(static fn ($item): string => is_scalar($item) || $item === null ? (string) $item : '', $value);
+                    $serialized = array_values(array_filter($serialized, static fn (string $item): bool => $item !== ''));
+                    $errorContext[$contextKey] = implode(',', $serialized);
+                }
+            }
+
+            $errorContext['add_profile_ids'] = implode(',', $profileIds);
+            $errorContext['add_application_ids'] = implode(',', $applicationIds);
+            $errorContext['add_status'] = $status;
 
             if ($profileIds === []) {
                 $redirect('err', 'Seleziona almeno un profilo', $errorContext);

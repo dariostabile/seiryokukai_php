@@ -1,0 +1,2 @@
+ALTER TABLE atleti
+    MODIFY COLUMN peso DECIMAL(6,2) NULL;

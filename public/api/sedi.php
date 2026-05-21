@@ -31,6 +31,31 @@ function json_success(string $message, array $data = []): void
     exit;
 }
 
+/**
+ * @param array<string, mixed> $post
+ * @return array<string, string>
+ */
+function build_add_context_from_post(array $post): array
+{
+    $context = [];
+
+    foreach ($post as $key => $value) {
+        if (!is_string($key)) {
+            continue;
+        }
+
+        if (in_array($key, ['action', 'ajax', 'page', 'open_add', 'open_edit', 'edit_id', 'id'], true)) {
+            continue;
+        }
+
+        if (is_scalar($value) || $value === null) {
+            $context['add_' . $key] = (string) $value;
+        }
+    }
+
+    return $context;
+}
+
 $auth = aut_service();
 $sedi = sedi_service();
 $wantsJson = wants_json_response();
@@ -137,29 +162,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             handle_validation_errors_json($e->errors(), 422);
         }
 
+        $addContext = build_add_context_from_post($_POST);
         handle_validation_errors(
             $e->errors(),
             'sedi',
-            [
-                'add_name' => $_POST['name'] ?? '',
-                'add_code' => $_POST['code'] ?? '',
-                'add_active' => $_POST['active'] ?? '1',
-            ]
+            $addContext
         );
     } catch (\InvalidArgumentException $e) {
         if ($wantsJson) {
             handle_validation_errors_json(['name' => $e->getMessage()], 422);
         }
 
+        $addContext = build_add_context_from_post($_POST);
         handle_validation_errors(
             ['name' => $e->getMessage()],
             'sedi',
-            [
-                'err' => $e->getMessage(),
-                'add_name' => $_POST['name'] ?? '',
-                'add_code' => $_POST['code'] ?? '',
-                'add_active' => $_POST['active'] ?? '1',
-            ]
+            $addContext
         );
     }
 }

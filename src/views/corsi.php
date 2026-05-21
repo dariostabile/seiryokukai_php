@@ -380,6 +380,24 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   });
 
+  if (addCorsoForm) {
+    addCorsoForm.addEventListener('submit', function (event) {
+      if (!addCorsoForm.checkValidity()) {
+        event.preventDefault();
+        addCorsoForm.reportValidity();
+      }
+    });
+  }
+
+  if (editCorsoForm) {
+    editCorsoForm.addEventListener('submit', function (event) {
+      if (!editCorsoForm.checkValidity()) {
+        event.preventDefault();
+        editCorsoForm.reportValidity();
+      }
+    });
+  }
+
   if (typeof DataTable === 'undefined') {
     return;
   }

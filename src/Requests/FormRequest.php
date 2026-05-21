@@ -67,8 +67,13 @@ abstract class FormRequest
             $value = $this->data[$field] ?? null;
             $rulesArray = is_string($fieldRules) ? explode('|', $fieldRules) : $fieldRules;
 
+            // Se il campo e nullable ed e vuoto, ignora le altre regole.
+            if (in_array('nullable', $rulesArray, true) && $this->isEmpty($value)) {
+                continue;
+            }
+
             foreach ($rulesArray as $rule) {
-                $error = $this->validateRule($field, $value, $rule, $messages);
+                $error = $this->validateRule($field, $value, $rule, $messages, $rulesArray);
                 if ($error !== null) {
                     $this->errors[$field] = $error;
                     break;
@@ -84,14 +89,16 @@ abstract class FormRequest
     /**
      * Valida una singola regola.
      */
-    private function validateRule(string $field, mixed $value, string $rule, array $messages): ?string
+    private function validateRule(string $field, mixed $value, string $rule, array $messages, array $allRules = []): ?string
     {
         $messageKey = "$field.$rule";
         $customMessage = $messages[$messageKey] ?? $messages[$rule] ?? null;
 
         if (str_contains($rule, ':')) {
             [$ruleName, $ruleParam] = explode(':', $rule, 2);
-            return $this->validateRuleWithParam($field, $value, $ruleName, $ruleParam, $customMessage);
+            $messageKeyBase = "$field.$ruleName";
+            $customMessage = $messages[$messageKeyBase] ?? $messages[$messageKey] ?? $messages[$ruleName] ?? $messages[$rule] ?? null;
+            return $this->validateRuleWithParam($field, $value, $ruleName, $ruleParam, $customMessage, $allRules);
         }
 
         switch ($rule) {
@@ -147,29 +154,37 @@ abstract class FormRequest
     /**
      * Valida una regola con parametro (es. min:5, max:10).
      */
-    private function validateRuleWithParam(string $field, mixed $value, string $ruleName, string $param, ?string $customMessage): ?string
+    private function validateRuleWithParam(string $field, mixed $value, string $ruleName, string $param, ?string $customMessage, array $allRules = []): ?string
     {
         if ($this->isEmpty($value)) {
             return null;
         }
 
+        $isNumericRule = in_array('int', $allRules, true) || in_array('float', $allRules, true);
+
         switch ($ruleName) {
             case 'min':
                 $min = (int) $param;
-                if (is_string($value) && strlen($value) < $min) {
+                if ($isNumericRule && is_numeric($value) && (float) $value < $min) {
+                    return $customMessage ?? "$field deve essere almeno $min";
+                }
+                if (!$isNumericRule && is_string($value) && strlen($value) < $min) {
                     return $customMessage ?? "$field deve contenere almeno $min caratteri";
                 }
-                if (is_numeric($value) && (float) $value < $min) {
+                if (!is_string($value) && is_numeric($value) && (float) $value < $min) {
                     return $customMessage ?? "$field deve essere almeno $min";
                 }
                 break;
 
             case 'max':
                 $max = (int) $param;
-                if (is_string($value) && strlen($value) > $max) {
+                if ($isNumericRule && is_numeric($value) && (float) $value > $max) {
+                    return $customMessage ?? "$field non deve superare $max";
+                }
+                if (!$isNumericRule && is_string($value) && strlen($value) > $max) {
                     return $customMessage ?? "$field deve contenere massimo $max caratteri";
                 }
-                if (is_numeric($value) && (float) $value > $max) {
+                if (!is_string($value) && is_numeric($value) && (float) $value > $max) {
                     return $customMessage ?? "$field non deve superare $max";
                 }
                 break;

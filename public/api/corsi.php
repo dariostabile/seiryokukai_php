@@ -31,6 +31,40 @@ function json_success(string $message, array $data = []): void
     exit;
 }
 
+/**
+ * @param array<string, mixed> $post
+ * @return array<string, string>
+ */
+function build_add_context_from_post(array $post): array
+{
+    $context = [];
+
+    foreach ($post as $key => $value) {
+        if (!is_string($key)) {
+            continue;
+        }
+
+        if (in_array($key, ['action', 'ajax', 'page', 'open_add', 'open_edit', 'edit_id', 'corso_id'], true)) {
+            continue;
+        }
+
+        $contextKey = 'add_' . $key;
+
+        if (is_scalar($value) || $value === null) {
+            $context[$contextKey] = (string) $value;
+            continue;
+        }
+
+        if (is_array($value)) {
+            $serialized = array_map(static fn ($item): string => is_scalar($item) || $item === null ? (string) $item : '', $value);
+            $serialized = array_values(array_filter($serialized, static fn (string $item): bool => $item !== ''));
+            $context[$contextKey] = implode(',', $serialized);
+        }
+    }
+
+    return $context;
+}
+
 $auth = aut_service();
 $corsi = corsi_service();
 $wantsJson = wants_json_response();
@@ -204,37 +238,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             handle_validation_errors_json($e->errors(), 422);
         }
 
+        $addContext = build_add_context_from_post($_POST);
         handle_validation_errors(
             $e->errors(),
             'corsi',
-            [
-                'add_name' => $_POST['name'] ?? '',
-                'add_sede_id' => $_POST['sede_id'] ?? '',
-                'add_disciplina_id' => $_POST['disciplina_id'] ?? '',
-                'add_user_id' => $_POST['user_id'] ?? '',
-                'add_end_date' => $_POST['end_date'] ?? '',
-                'add_active' => $_POST['active'] ?? '1',
-            ]
+            $addContext
         );
     } catch (\InvalidArgumentException $e) {
         if ($wantsJson) {
             handle_validation_errors_json(['user_id' => $e->getMessage()], 422);
         }
 
+        $addContext = build_add_context_from_post($_POST);
         handle_validation_errors(
             ['user_id' => $e->getMessage()],
             'corsi',
-            [
-                'err' => $e->getMessage(),
-                'add_name' => $_POST['name'] ?? '',
-                'add_sede_id' => $_POST['sede_id'] ?? '',
-                'add_disciplina_id' => $_POST['disciplina_id'] ?? '',
-                'add_user_id' => $_POST['user_id'] ?? '',
-                'add_start_date' => $_POST['start_date'] ?? '',
-                'add_end_date' => $_POST['end_date'] ?? '',
-                'add_monthly_fee' => $_POST['monthly_fee'] ?? '',
-                'add_active' => $_POST['active'] ?? '1',
-            ]
+            $addContext
         );
     }
 }
