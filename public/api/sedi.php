@@ -7,8 +7,8 @@ session_start();
 require_once __DIR__ . '/../../src/lib/auth.php';
 require_once __DIR__ . '/../../src/lib/data.php';
 
-use App\Requests\Sites\AddSiteRequest;
-use App\Requests\Sites\UpdateSiteRequest;
+use App\Requests\Sedi\AddSedeRequest;
+use App\Requests\Sedi\UpdateSedeRequest;
 use App\Requests\ValidationException;
 
 function wants_json_response(): bool
@@ -48,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'delete') {
         $id = (int) ($_POST['id'] ?? 0);
         if ($id > 0) {
-            $sedi->deleteSite($id);
+            $sedi->deleteSede($id);
         }
 
         if ($wantsJson) {
@@ -61,8 +61,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($action === 'update') {
         try {
-            $request = new UpdateSiteRequest($_POST);
-            $sedi->updateSite(
+            $request = new UpdateSedeRequest($_POST);
+            $sedi->updateSede(
                 $request->getInt('id'),
                 $request->getString('name'),
                 $request->getString('code'),
@@ -116,8 +116,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     try {
-        $request = new AddSiteRequest($_POST);
-        $newSite = $sedi->addSite(
+        $request = new AddSedeRequest($_POST);
+        $newSede = $sedi->addSede(
             $request->getString('name'),
             $request->getString('code'),
             $request->getInt('active', 1)
@@ -125,8 +125,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($wantsJson) {
             json_success('Sede creata con successo', [
-                'id' => (int) ($newSite['id'] ?? 0),
-                'name' => (string) ($newSite['name'] ?? ''),
+                'id' => (int) ($newSede['id'] ?? 0),
+                'name' => (string) ($newSede['name'] ?? ''),
             ]);
         }
 
@@ -175,7 +175,7 @@ if (isset($_GET['draw'])) {
     $orderColumn = (string) ($_GET['columns'][$orderColumnIndex]['data'] ?? 'id');
     $activeOnly = ((int) ($_GET['active_only'] ?? 0)) === 1;
 
-    $page = $sedi->readSitesPage($start, $length, $search, $orderColumn, $orderDir, $activeOnly);
+    $page = $sedi->readSediPage($start, $length, $search, $orderColumn, $orderDir, $activeOnly);
 
     header('Content-Type: application/json; charset=utf-8');
     echo json_encode([
@@ -188,4 +188,4 @@ if (isset($_GET['draw'])) {
 }
 
 header('Content-Type: application/json; charset=utf-8');
-echo json_encode($sedi->readSites(), JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+echo json_encode($sedi->readSedi(), JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);

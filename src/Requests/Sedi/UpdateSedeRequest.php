@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Requests\Sites;
+namespace App\Requests\Sedi;
 
 use App\Requests\FormRequest;
 
-class UpdateSiteRequest extends FormRequest
+class UpdateSedeRequest extends FormRequest
 {
     protected function rules(): array
     {

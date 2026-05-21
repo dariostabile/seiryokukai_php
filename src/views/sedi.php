@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-/** @var array $sites */
+/** @var array $sedi */
 
 $frontendApi = frontend_api_urls();
 $sediApiUrl = (string) ($frontendApi['sedi'] ?? '');
@@ -64,13 +64,13 @@ $editPrefill = [
       </table>
     </div>
 
-    <div id="addSitePanel" class="card border mt-4 <?= $openAddPanel ? '' : 'd-none' ?>">
+    <div id="addSedePanel" class="card border mt-4 <?= $openAddPanel ? '' : 'd-none' ?>">
       <div class="card-header d-flex justify-content-between align-items-center">
         <h6 class="m-0">Scheda Nuova Sede</h6>
         <button class="btn btn-sm btn-outline-secondary" type="button" id="closeAddSitePanelBtn">Chiudi</button>
       </div>
       <div class="card-body">
-        <form method="post" action="<?= htmlspecialchars($sediApiUrl) ?>" class="row g-3" id="addSiteForm">
+        <form method="post" action="<?= htmlspecialchars($sediApiUrl) ?>" class="row g-3" id="addSedeForm">
           <input type="hidden" name="action" value="add">
 
           <div class="col-12 col-md-6">
@@ -143,10 +143,10 @@ $editPrefill = [
 document.addEventListener('DOMContentLoaded', function () {
   const ui = window.SeiryokukaiUi || null;
   const addPanelBtn = document.getElementById('openAddSitePanel');
-  const addPanel = document.getElementById('addSitePanel');
+  const addPanel = document.getElementById('addSedePanel');
   const closeAddPanelBtn = document.getElementById('closeAddSitePanelBtn');
   const cancelAddBtn = document.getElementById('cancelAddSiteBtn');
-  const addForm = document.getElementById('addSiteForm');
+  const addForm = document.getElementById('addSedeForm');
 
   const editPanel = document.getElementById('editSitePanel');
   const closeEditPanelBtn = document.getElementById('closeEditSitePanelBtn');

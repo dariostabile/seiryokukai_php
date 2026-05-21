@@ -19255,7 +19255,7 @@ sidebar navigation
             color: #fb9678; }
         .sidebar-nav ul li a.active {
           font-weight: 500;
-          color: #343a40; }
+          /*color: #343a40;*/ }
       .sidebar-nav ul li ul {
         padding-left: 30px; }
         .sidebar-nav ul li ul li a {

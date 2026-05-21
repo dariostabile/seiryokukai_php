@@ -1,0 +1,13 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "cleanup-remove-empty-disciplines-dir",
+			"type": "shell",
+			"command": "rmdir",
+			"args": [
+				"src/Requests/Disciplines"
+			]
+		}
+	]
+}

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-/** @var array $disciplines */
+/** @var array $discipline */
 
 $frontendApi = frontend_api_urls();
-$disciplineApiUrl = (string) ($frontendApi['discipline'] ?? '');
+$disciplinaApiUrl = (string) ($frontendApi['disciplina'] ?? '');
 
 $okMessage = trim((string) ($_GET['ok'] ?? ''));
 $errMessage = trim((string) ($_GET['err'] ?? ''));
@@ -26,7 +26,7 @@ $editPrefill = [
   <div class="card-body">
     <div class="d-flex justify-content-between align-items-center mb-3 gap-2">
       <h5 class="m-0">Gestione Discipline</h5>
-      <button class="btn btn-success" type="button" id="openAddDisciplinePanel">+ Aggiungi disciplina</button>
+      <button class="btn btn-success" type="button" id="openAddDisciplinaPanel">+ Aggiungi disciplina</button>
     </div>
 
     <?php if ($okMessage !== ''): ?>
@@ -40,10 +40,10 @@ $editPrefill = [
       </div>
     <?php endif; ?>
 
-    <div id="disciplineAjaxAlert" class="alert d-none" role="alert"></div>
+    <div id="disciplinaAjaxAlert" class="alert d-none" role="alert"></div>
 
     <div class="table-responsive">
-      <table id="discipline-table" class="table align-middle js-datatable table-hover" data-server-side="1">
+      <table id="disciplina-table" class="table align-middle js-datatable table-hover" data-server-side="1">
         <thead>
           <tr>
             <th>Disciplina</th>
@@ -55,13 +55,13 @@ $editPrefill = [
       </table>
     </div>
 
-    <div id="addDisciplinePanel" class="card border mt-4 <?= $openAddPanel ? '' : 'd-none' ?>">
+    <div id="addDisciplinaPanel" class="card border mt-4 <?= $openAddPanel ? '' : 'd-none' ?>">
       <div class="card-header d-flex justify-content-between align-items-center">
         <h6 class="m-0">Scheda Nuova Disciplina</h6>
-        <button class="btn btn-sm btn-outline-secondary" type="button" id="closeAddDisciplinePanelBtn">Chiudi</button>
+        <button class="btn btn-sm btn-outline-secondary" type="button" id="closeAddDisciplinaPanelBtn">Chiudi</button>
       </div>
       <div class="card-body">
-        <form method="post" action="<?= htmlspecialchars($disciplineApiUrl) ?>" class="row g-3" id="addDisciplineForm">
+        <form method="post" action="<?= htmlspecialchars($disciplinaApiUrl) ?>" class="row g-3" id="addDisciplinaForm">
           <input type="hidden" name="action" value="add">
 
           <div class="col-12">
@@ -75,35 +75,35 @@ $editPrefill = [
           </div>
 
           <div class="col-12 d-flex justify-content-end gap-2">
-            <button class="btn btn-secondary" type="button" id="cancelAddDisciplineBtn">Annulla</button>
+            <button class="btn btn-secondary" type="button" id="cancelAddDisciplinaBtn">Annulla</button>
             <button class="btn btn-success" type="submit">+ Aggiungi Disciplina</button>
           </div>
         </form>
       </div>
     </div>
 
-    <div id="editDisciplinePanel" class="card border mt-4 d-none">
+    <div id="editDisciplinaPanel" class="card border mt-4 d-none">
       <div class="card-header d-flex justify-content-between align-items-center">
         <h6 class="m-0">Scheda Disciplina</h6>
-        <button class="btn btn-sm btn-outline-secondary" type="button" id="closeEditDisciplinePanelBtn">Chiudi</button>
+        <button class="btn btn-sm btn-outline-secondary" type="button" id="closeEditDisciplinaPanelBtn">Chiudi</button>
       </div>
       <div class="card-body">
-        <form method="post" action="<?= htmlspecialchars($disciplineApiUrl) ?>" class="row g-3" id="editDisciplineForm">
+        <form method="post" action="<?= htmlspecialchars($disciplinaApiUrl) ?>" class="row g-3" id="editDisciplinaForm">
           <input type="hidden" name="action" value="update">
-          <input type="hidden" name="id" id="editDisciplineId">
+          <input type="hidden" name="id" id="editDisciplinaId">
 
           <div class="col-12">
             <label class="form-label">Nome Disciplina</label>
-            <input class="form-control" name="name" id="editDisciplineName" placeholder="Nome della disciplina" required>
+            <input class="form-control" name="name" id="editDisciplinaName" placeholder="Nome della disciplina" required>
           </div>
 
           <div class="col-12">
             <label class="form-label">Note</label>
-            <textarea class="form-control" name="notes" id="editDisciplineNotes" placeholder="Note (opzionale)" rows="3"></textarea>
+            <textarea class="form-control" name="notes" id="editDisciplinaNotes" placeholder="Note (opzionale)" rows="3"></textarea>
           </div>
 
           <div class="col-12 d-flex justify-content-end gap-2">
-            <button class="btn btn-secondary" type="button" id="cancelEditDisciplineBtn">Annulla</button>
+            <button class="btn btn-secondary" type="button" id="cancelEditDisciplinaBtn">Annulla</button>
             <button class="btn btn-warning" type="submit">Salva Modifiche</button>
           </div>
         </form>
@@ -115,19 +115,19 @@ $editPrefill = [
 <script>
 document.addEventListener('DOMContentLoaded', function () {
   const ui = window.SeiryokukaiUi || null;
-  const addPanelBtn = document.getElementById('openAddDisciplinePanel');
-  const addPanel = document.getElementById('addDisciplinePanel');
-  const addForm = document.getElementById('addDisciplineForm');
-  const closeAddPanelBtn = document.getElementById('closeAddDisciplinePanelBtn');
-  const cancelAddBtn = document.getElementById('cancelAddDisciplineBtn');
+  const addPanelBtn = document.getElementById('openAddDisciplinaPanel');
+  const addPanel = document.getElementById('addDisciplinaPanel');
+  const addForm = document.getElementById('addDisciplinaForm');
+  const closeAddPanelBtn = document.getElementById('closeAddDisciplinaPanelBtn');
+  const cancelAddBtn = document.getElementById('cancelAddDisciplinaBtn');
 
-  const editPanel = document.getElementById('editDisciplinePanel');
-  const editForm = document.getElementById('editDisciplineForm');
-  const closeEditPanelBtn = document.getElementById('closeEditDisciplinePanelBtn');
-  const cancelEditBtn = document.getElementById('cancelEditDisciplineBtn');
+  const editPanel = document.getElementById('editDisciplinaPanel');
+  const editForm = document.getElementById('editDisciplinaForm');
+  const closeEditPanelBtn = document.getElementById('closeEditDisciplinaPanelBtn');
+  const cancelEditBtn = document.getElementById('cancelEditDisciplinaBtn');
 
-  const tableEl = document.getElementById('discipline-table');
-  const ajaxAlert = document.getElementById('disciplineAjaxAlert');
+  const tableEl = document.getElementById('disciplina-table');
+  const ajaxAlert = document.getElementById('disciplinaAjaxAlert');
 
   function showAlert(type, message) {
     if (ui && typeof ui.showAlert === 'function') {
@@ -188,7 +188,7 @@ document.addEventListener('DOMContentLoaded', function () {
     (window.SeiryokukaiConfig && window.SeiryokukaiConfig.dataTableLangUrl)
     || '';
   const api = (window.SeiryokukaiConfig && window.SeiryokukaiConfig.api) || {};
-  const disciplineApiUrl = api.discipline || '';
+  const disciplinaApiUrl = api.disciplina || '';
 
   // DataTable per discipline
   if (tableEl.__dataTable) {
@@ -199,7 +199,7 @@ document.addEventListener('DOMContentLoaded', function () {
     serverSide: true,
     processing: true,
     ajax: {
-      url: disciplineApiUrl,
+      url: disciplinaApiUrl,
       type: 'GET'
     },
     columns: [
@@ -212,8 +212,8 @@ document.addEventListener('DOMContentLoaded', function () {
         render: function (data, type, row) {
           return `
             <div class="text-end">
-              <button class="btn btn-sm btn-primary edit-discipline-btn" data-id="${data}" data-name="${htmlEscape(row.name)}" data-notes="${htmlEscape(row.notes)}">Modifica</button>
-              <button class="btn btn-sm btn-danger delete-discipline-btn" data-id="${data}">Elimina</button>
+              <button class="btn btn-sm btn-primary edit-disciplina-btn" data-id="${data}" data-name="${htmlEscape(row.name)}" data-notes="${htmlEscape(row.notes)}">Modifica</button>
+              <button class="btn btn-sm btn-danger delete-disciplina-btn" data-id="${data}">Elimina</button>
             </div>
           `;
         }
@@ -239,22 +239,22 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Event delegation per bottoni
   tableEl.addEventListener('click', (e) => {
-    const editBtn = e.target.closest('.edit-discipline-btn');
+    const editBtn = e.target.closest('.edit-disciplina-btn');
     if (editBtn) {
       hideAlert();
       const id = parseInt(editBtn.dataset.id);
       const name = editBtn.dataset.name;
       const notes = editBtn.dataset.notes;
 
-      document.getElementById('editDisciplineId').value = id;
-      document.getElementById('editDisciplineName').value = name;
-      document.getElementById('editDisciplineNotes').value = notes;
+      document.getElementById('editDisciplinaId').value = id;
+      document.getElementById('editDisciplinaName').value = name;
+      document.getElementById('editDisciplinaNotes').value = notes;
 
       editPanel.classList.remove('d-none');
       editPanel.scrollIntoView({ behavior: 'smooth' });
     }
 
-    const deleteBtn = e.target.closest('.delete-discipline-btn');
+    const deleteBtn = e.target.closest('.delete-disciplina-btn');
     if (deleteBtn) {
       if (!ui || typeof ui.postForm !== 'function') {
         return;
@@ -269,7 +269,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const form = document.createElement('form');
         form.method = 'POST';
-        form.action = disciplineApiUrl;
+        form.action = disciplinaApiUrl;
 
         const actionInput = document.createElement('input');
         actionInput.type = 'hidden';
@@ -291,7 +291,7 @@ document.addEventListener('DOMContentLoaded', function () {
               tableEl.__dataTable.ajax.reload(null, false);
             }
 
-            const currentEditId = parseInt(document.getElementById('editDisciplineId').value || '0', 10);
+            const currentEditId = parseInt(document.getElementById('editDisciplinaId').value || '0', 10);
             if (currentEditId === id) {
               editPanel.classList.add('d-none');
             }
@@ -364,11 +364,10 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   <?php if ($openEdit && $editPrefill['id'] > 0): ?>
-    document.getElementById('editDisciplineId').value = <?= (int) $editPrefill['id'] ?>;
-    document.getElementById('editDisciplineName').value = <?= json_encode($editPrefill['name']) ?>;
-    document.getElementById('editDisciplineNotes').value = <?= json_encode($editPrefill['notes']) ?>;
+    document.getElementById('editDisciplinaId').value = <?= (int) $editPrefill['id'] ?>;
+    document.getElementById('editDisciplinaName').value = <?= json_encode($editPrefill['name']) ?>;
+    document.getElementById('editDisciplinaNotes').value = <?= json_encode($editPrefill['notes']) ?>;
     editPanel.classList.remove('d-none');
   <?php endif; ?>
 });
 </script>
-

@@ -6,15 +6,15 @@ namespace App\Services;
 
 final class CorsiService extends BaseService
 {
-    public function readCourses(): array
+    public function readCorsi(): array
     {
         $pdo = db_connection();
         $stmt = $pdo->query(
             "SELECT
                 c.idcorso AS id,
                 COALESCE(c.nome_corso, '') AS name,
-                COALESCE(s.sede, '') AS site,
-                COALESCE(d.disciplina, '') AS discipline,
+                COALESCE(s.sede, '') AS sede,
+                COALESCE(d.disciplina, '') AS disciplina,
                 TRIM(CONCAT(COALESCE(u.nome, ''), ' ', COALESCE(u.cognome, ''))) AS teacher,
                 c.data_inizio_corso AS start_date,
                  c.data_fine_corso AS end_date,
@@ -39,7 +39,7 @@ final class CorsiService extends BaseService
         return is_array($rows) ? $rows : [];
     }
 
-    public function readCoursesPage(int $start, int $length, string $search, string $orderColumn, string $orderDir, bool $activeOnly = false): array
+    public function readCorsiPage(int $start, int $length, string $search, string $orderColumn, string $orderDir, bool $activeOnly = false): array
     {
         $pdo = db_connection();
 
@@ -50,7 +50,7 @@ final class CorsiService extends BaseService
             'id' => 'c.idcorso',
             'name' => 'c.nome_corso',
             'site' => 's.sede',
-            'discipline' => 'd.disciplina',
+            'disciplina' => 'd.disciplina',
             'teacher' => "TRIM(CONCAT(COALESCE(u.nome, ''), ' ', COALESCE(u.cognome, '')))",
             'start_date' => 'c.data_inizio_corso',
             'end_date' => 'c.data_fine_corso',
@@ -105,12 +105,12 @@ final class CorsiService extends BaseService
         $sql =
             "SELECT
                 c.idcorso AS id,
-                c.idsede AS site_id,
-                c.iddisciplina AS discipline_id,
+                c.idsede AS sede_id,
+                c.iddisciplina AS disciplina_id,
                 c.idutente AS user_id,
                 COALESCE(c.nome_corso, '') AS name,
-                COALESCE(s.sede, '') AS site,
-                COALESCE(d.disciplina, '') AS discipline,
+                COALESCE(s.sede, '') AS sede,
+                COALESCE(d.disciplina, '') AS disciplina,
                 TRIM(CONCAT(COALESCE(u.nome, ''), ' ', COALESCE(u.cognome, ''))) AS teacher,
                 c.data_inizio_corso AS start_date,
                 c.data_fine_corso AS end_date,
@@ -148,9 +148,9 @@ final class CorsiService extends BaseService
         ];
     }
 
-    public function addCourse(
-        int $siteId,
-        int $disciplineId,
+    public function addCorso(
+        int $sedeId,
+        int $disciplinaId,
         int $userId,
         string $name,
         ?string $startDate = null,
@@ -162,7 +162,7 @@ final class CorsiService extends BaseService
         $name = trim($name);
         $active = $active === 0 ? 0 : 1;
 
-        if ($siteId <= 0 || $disciplineId <= 0 || $userId <= 0 || $name === '') {
+        if ($sedeId <= 0 || $disciplinaId <= 0 || $userId <= 0 || $name === '') {
             throw new \InvalidArgumentException('Dati corso non validi');
         }
 
@@ -185,8 +185,8 @@ final class CorsiService extends BaseService
              )'
         );
         $stmt->execute([
-            'idsede' => $siteId,
-            'iddisciplina' => $disciplineId,
+            'idsede' => $sedeId,
+            'iddisciplina' => $disciplinaId,
             'idutente' => $userId,
             'nome_corso' => $name,
             'data_inizio_corso' => $startDate,
@@ -215,7 +215,7 @@ final class CorsiService extends BaseService
         ];
     }
 
-    public function readCourseById(int $id): ?array
+    public function readCorsoById(int $id): ?array
     {
         if ($id <= 0) {
             return null;
@@ -225,12 +225,12 @@ final class CorsiService extends BaseService
         $stmt = $pdo->prepare(
             "SELECT
                 c.idcorso AS id,
-                c.idsede AS site_id,
-                c.iddisciplina AS discipline_id,
+                c.idsede AS sede_id,
+                c.iddisciplina AS disciplina_id,
                 c.idutente AS user_id,
                 COALESCE(c.nome_corso, '') AS name,
-                COALESCE(s.sede, '') AS site,
-                COALESCE(d.disciplina, '') AS discipline,
+                COALESCE(s.sede, '') AS sede,
+                COALESCE(d.disciplina, '') AS disciplina,
                 TRIM(CONCAT(COALESCE(u.nome, ''), ' ', COALESCE(u.cognome, ''))) AS teacher,
                 c.data_inizio_corso AS start_date,
                  c.data_fine_corso AS end_date,
@@ -256,10 +256,10 @@ final class CorsiService extends BaseService
         return is_array($row) ? $row : null;
     }
 
-    public function updateCourse(
+    public function updateCorso(
         int $id,
-        int $siteId,
-        int $disciplineId,
+        int $sedeId,
+        int $disciplinaId,
         int $userId,
         string $name,
         ?string $startDate = null,
@@ -271,7 +271,7 @@ final class CorsiService extends BaseService
         $name = trim($name);
         $active = $active === 0 ? 0 : 1;
 
-        if ($id <= 0 || $siteId <= 0 || $disciplineId <= 0 || $userId <= 0 || $name === '') {
+        if ($id <= 0 || $sedeId <= 0 || $disciplinaId <= 0 || $userId <= 0 || $name === '') {
             throw new \InvalidArgumentException('Dati corso non validi per aggiornamento');
         }
 
@@ -309,8 +309,8 @@ final class CorsiService extends BaseService
 
         return $stmt->execute([
             'id' => $id,
-            'idsede' => $siteId,
-            'iddisciplina' => $disciplineId,
+            'idsede' => $sedeId,
+            'iddisciplina' => $disciplinaId,
             'idutente' => $userId,
             'nome_corso' => $name,
             'data_inizio_corso' => $startDate,
@@ -355,7 +355,7 @@ final class CorsiService extends BaseService
         }
     }
 
-    public function deleteCourse(int $id): bool
+    public function deleteCorso(int $id): bool
     {
         if ($id <= 0) {
             throw new \InvalidArgumentException('ID corso non valido');

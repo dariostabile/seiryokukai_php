@@ -6,7 +6,7 @@ namespace App\Services;
 
 final class TipiDocumentoService extends BaseService
 {
-    public function readDocumentTypes(): array
+    public function readTipiDocumenti(): array
     {
         $pdo = db_connection();
         $stmt = $pdo->query(
@@ -22,7 +22,7 @@ final class TipiDocumentoService extends BaseService
         return is_array($rows) ? $rows : [];
     }
 
-    public function addDocumentType(string $type): array
+    public function addTipoDocumento(string $type): array
     {
         $type = trim($type);
 
@@ -40,7 +40,7 @@ final class TipiDocumentoService extends BaseService
         ];
     }
 
-    public function findDocumentTypeById(int $id): array
+    public function findTipoDocumentoById(int $id): array
     {
         if ($id <= 0) {
             throw new \InvalidArgumentException('ID tipo documento non valido');
@@ -60,7 +60,7 @@ final class TipiDocumentoService extends BaseService
         return is_array($row) ? $row : [];
     }
 
-    public function updateDocumentType(int $id, string $type): void
+    public function updateTipoDocumento(int $id, string $type): void
     {
         if ($id <= 0) {
             throw new \InvalidArgumentException('ID tipo documento non valido');
@@ -80,7 +80,7 @@ final class TipiDocumentoService extends BaseService
         ]);
     }
 
-    public function deleteDocumentType(int $id): void
+    public function deleteTipoDocumento(int $id): void
     {
         if ($id <= 0) {
             throw new \InvalidArgumentException('ID tipo documento non valido');
@@ -91,7 +91,7 @@ final class TipiDocumentoService extends BaseService
         $stmt->execute(['id' => $id]);
     }
 
-    public function readDocumentTypesPage(int $start, int $length, string $search = '', string $orderColumn = 'id', string $orderDir = 'desc'): array
+    public function readTipiDocumentiPage(int $start, int $length, string $search = '', string $orderColumn = 'id', string $orderDir = 'desc'): array
     {
         $orderColumn = in_array($orderColumn, ['id', 'type'], true) ? $orderColumn : 'id';
         $orderDir = strtolower($orderDir) === 'asc' ? 'ASC' : 'DESC';

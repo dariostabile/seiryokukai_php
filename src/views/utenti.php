@@ -9,6 +9,9 @@ declare(strict_types=1);
 
 $frontendApi = frontend_api_urls();
 $utentiApiUrl = (string) ($frontendApi['utenti'] ?? '');
+$frontendAssets = frontend_asset_urls();
+$appPaths = app_paths();
+$rootPath = (string) $appPaths['root'];
 
 $okMessage = trim((string) ($_GET['ok'] ?? ''));
 $errMessage = trim((string) ($_GET['err'] ?? ''));
@@ -56,7 +59,7 @@ $editPrefill = [
 ];
 
 $editPrefill['image_url'] = $editPrefill['image_path'] !== ''
-  ? '/seiryokukai_php/' . ltrim($editPrefill['image_path'], '/')
+  ? $rootPath . '/' . ltrim($editPrefill['image_path'], '/')
   : '';
 
 $groupedApplications = [];
@@ -440,11 +443,12 @@ foreach ($applicationsCatalog as $app) {
   </div>
 </div>
 
-<link rel="stylesheet" href="https://unpkg.com/cropperjs@1.6.2/dist/cropper.min.css">
-<script src="https://unpkg.com/cropperjs@1.6.2/dist/cropper.min.js"></script>
+<link rel="stylesheet" href="<?= htmlspecialchars((string) ($frontendAssets['cropper_css'] ?? 'https://unpkg.com/cropperjs@1.6.2/dist/cropper.min.css')) ?>">
+<script src="<?= htmlspecialchars((string) ($frontendAssets['cropper_js'] ?? 'https://unpkg.com/cropperjs@1.6.2/dist/cropper.min.js')) ?>"></script>
 
 <script>
 const currentUserId = <?= (int) $currentUserId ?>;
+const appRootPath = <?= json_encode($rootPath, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
 let userImageCropper = null;
 let addUserImageCropper = null;
 let usersDataTable = null;
@@ -857,7 +861,7 @@ document.addEventListener('DOMContentLoaded', function () {
       (window.SeiryokukaiConfig && window.SeiryokukaiConfig.dataTableLangUrl)
       || '';
     const api = (window.SeiryokukaiConfig && window.SeiryokukaiConfig.api) || {};
-    const utentiApiUrl = api.utenti || '';
+    const usersApiUrl = api.utenti || '';
 
     const escapeHtml = (value) => String(value ?? '')
       .replace(/&/g, '&amp;')
@@ -870,9 +874,9 @@ document.addEventListener('DOMContentLoaded', function () {
       serverSide: true,
       processing: true,
       pageLength: 10,
-      order: [[0, 'desc']],
+      order: [[1, 'asc']],
       ajax: {
-        url: utentiApiUrl,
+        url: usersApiUrl,
         type: 'GET',
       },
       language: {
@@ -945,13 +949,13 @@ document.addEventListener('DOMContentLoaded', function () {
             return ''
               + '<div class="d-flex justify-content-end gap-2">'
                 + '<button class="btn btn-sm btn-outline-primary" type="button" onclick="loadUserData(JSON.parse(this.dataset.user));" data-user="' + editPayload + '">Modifica</button>'
-              + '<form method="post" action="' + escapeHtml(utentiApiUrl) + '">'
+              + '<form method="post" action="' + escapeHtml(usersApiUrl) + '">'
               + '<input type="hidden" name="action" value="status">'
               + '<input type="hidden" name="id" value="' + id + '">'
               + '<input type="hidden" name="status" value="' + nextStatus + '">'
                 + '<button class="btn btn-sm ' + statusClass + '" type="submit"' + restrictedActionDisabled + '>' + statusLabel + '</button>'
               + '</form>'
-              + '<form method="post" action="' + escapeHtml(utentiApiUrl) + '" onsubmit="return confirm(\'Eliminare questo utente?\');">'
+              + '<form method="post" action="' + escapeHtml(usersApiUrl) + '" onsubmit="return confirm(\'Eliminare questo utente?\');">'
               + '<input type="hidden" name="action" value="delete">'
               + '<input type="hidden" name="id" value="' + id + '">'
               + '<button class="btn btn-sm btn-outline-danger" type="submit"' + (isCurrentUser ? ' disabled title="Utente corrente non eliminabile"' : '') + '>Elimina</button>'
@@ -989,7 +993,7 @@ document.addEventListener('DOMContentLoaded', function () {
       if (!this.files || this.files.length === 0) {
         destroyUserImageCropper();
         const currentImage = document.getElementById('editUserCurrentImagePath').value || '';
-        const currentImageUrl = currentImage !== '' ? '/seiryokukai_php/' + String(currentImage).replace(/^\/+/, '') : '';
+        const currentImageUrl = currentImage !== '' ? appRootPath + '/' + String(currentImage).replace(/^\/+/, '') : '';
         renderUserImage(currentImageUrl, currentInitials);
         return;
       }
@@ -1046,7 +1050,7 @@ document.addEventListener('DOMContentLoaded', function () {
       }
       destroyUserImageCropper();
       const currentImage = document.getElementById('editUserCurrentImagePath').value || '';
-      const currentImageUrl = currentImage !== '' ? '/seiryokukai_php/' + String(currentImage).replace(/^\/+/, '') : '';
+      const currentImageUrl = currentImage !== '' ? appRootPath + '/' + String(currentImage).replace(/^\/+/, '') : '';
       renderUserImage(currentImageUrl, getCurrentEditInitials());
     });
   }
@@ -1068,7 +1072,7 @@ document.addEventListener('DOMContentLoaded', function () {
         renderUserImage('', currentInitials);
       } else {
         const currentImage = document.getElementById('editUserCurrentImagePath').value || '';
-        const currentImageUrl = currentImage !== '' ? '/seiryokukai_php/' + String(currentImage).replace(/^\/+/, '') : '';
+        const currentImageUrl = currentImage !== '' ? appRootPath + '/' + String(currentImage).replace(/^\/+/, '') : '';
         const currentInitials = getCurrentEditInitials();
         renderUserImage(currentImageUrl, currentInitials);
       }
@@ -1174,7 +1178,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const formData = new FormData(addUserForm);
         formData.append('ajax', '1');
 
-        const response = await fetch(utentiApiUrl, {
+        const response = await fetch(usersApiUrl, {
           method: 'POST',
           body: formData,
           headers: {

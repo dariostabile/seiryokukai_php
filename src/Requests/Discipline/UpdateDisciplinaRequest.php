@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Requests\Disciplines;
+namespace App\Requests\Discipline;
 
 use App\Requests\FormRequest;
 
-class UpdateDisciplineRequest extends FormRequest
+class UpdateDisciplinaRequest extends FormRequest
 {
     protected function rules(): array
     {

@@ -11,19 +11,19 @@ src/Requests/
 ├── FormRequest.php                      # Classe base per tutti i FormRequest
 ├── ValidationException.php              # Eccezione per errori di validazione
 ├── Athletes/
-│   └── AddAthleteRequest.php            # Validazione per aggiunta atleti
-├── Courses/
-│   ├── AddCourseRequest.php             # Validazione per aggiunta corsi
-│   └── UpdateCourseRequest.php          # Validazione per modifica corsi
-├── Disciplines/
-│   ├── AddDisciplineRequest.php         # Validazione per aggiunta discipline
-│   └── UpdateDisciplineRequest.php      # Validazione per modifica discipline
-├── DocumentTypes/
-│   ├── AddDocumentTypeRequest.php       # Validazione per aggiunta tipi documento
-│   └── UpdateDocumentTypeRequest.php    # Validazione per modifica tipi documento
-└── Sites/
-    ├── AddSiteRequest.php               # Validazione per aggiunta sedi
-    └── UpdateSiteRequest.php            # Validazione per modifica sedi
+│   └── AddAtletaRequest.php             # Validazione per aggiunta atleti
+├── Corsi/
+│   ├── AddCorsoRequest.php             # Validazione per aggiunta corsi
+│   └── UpdateCorsoRequest.php          # Validazione per modifica corsi
+├── Discipline/
+│   ├── AddDisciplinaRequest.php         # Validazione per aggiunta discipline
+│   └── UpdateDisciplinaRequest.php      # Validazione per modifica discipline
+├── TipiDocumenti/
+│   ├── AddTipoDocumentoRequest.php      # Validazione per aggiunta tipi documento
+│   └── UpdateTipoDocumentoRequest.php   # Validazione per modifica tipi documento
+└── Sedi/
+    ├── AddSedeRequest.php               # Validazione per aggiunta sedi
+    └── UpdateSedeRequest.php            # Validazione per modifica sedi
 ```
 
 ## Regole di Validazione
@@ -57,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $code = trim((string) ($_POST['code'] ?? ''));
 
     if ($name !== '') {
-        $sedi->addSite($name, $code);
+        $sedi->addSede($name, $code);
     }
 
     header('Location: /seiryokukai_php/public/index.php?page=sedi');
@@ -67,14 +67,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 #### Dopo (con FormRequest)
 ```php
-use App\Requests\Sites\AddSiteRequest;
+use App\Requests\Sedi\AddSedeRequest;
 use App\Requests\ValidationException;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
-        $request = new AddSiteRequest($_POST);
+        $request = new AddSedeRequest($_POST);
         
-        $sedi->addSite(
+        $sedi->addSede(
             $request->getString('name'),
             $request->getString('code')
         );
@@ -175,7 +175,7 @@ Gestisce errori di validazione con redirect HTML:
 
 ```php
 try {
-    $request = new AddSiteRequest($_POST);
+    $request = new AddSedeRequest($_POST);
     // ...
 } catch (ValidationException $e) {
     handle_validation_errors(
@@ -192,7 +192,7 @@ Gestisce errori di validazione con risposta JSON per AJAX:
 
 ```php
 try {
-    $request = new AddSiteRequest($_POST);
+    $request = new AddSedeRequest($_POST);
     // ...
 } catch (ValidationException $e) {
     handle_validation_errors_json($e->errors(), 400);

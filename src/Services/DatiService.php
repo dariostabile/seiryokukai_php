@@ -14,7 +14,7 @@ final class DatiService
     private UtentiService $utentiService;
     private SediService $sediService;
     private TipiDocumentoService $tipiDocumentoService;
-    private DisciplineService $disciplineService;
+    private DisciplineService $disciplinaService;
     private CorsiService $corsiService;
     private ApplicazioniService $applicazioniService;
     private DashboardService $dashboardService;
@@ -25,7 +25,7 @@ final class DatiService
         $this->utentiService = new UtentiService();
         $this->sediService = new SediService();
         $this->tipiDocumentoService = new TipiDocumentoService();
-        $this->disciplineService = new DisciplineService();
+        $this->disciplinaService = new DisciplineService();
         $this->corsiService = new CorsiService();
         $this->applicazioniService = new ApplicazioniService();
         $this->dashboardService = new DashboardService();
@@ -33,34 +33,34 @@ final class DatiService
 
     // ============ ATLETI ============
 
-    public function readClients(): array
+    public function readAtleti(): array
     {
-        return $this->atletiService->readClients();
+        return $this->atletiService->readAtleti();
     }
 
-    public function readClientsPage(int $start, int $length, string $search, string $orderColumn, string $orderDir): array
+    public function readAtletiPage(int $start, int $length, string $search, string $orderColumn, string $orderDir): array
     {
-        return $this->atletiService->readClientsPage($start, $length, $search, $orderColumn, $orderDir);
+        return $this->atletiService->readAtletiPage($start, $length, $search, $orderColumn, $orderDir);
     }
 
-    public function addClient(string $name, string $plan = ''): array
+    public function addAtleta(string $name, string $plan = ''): array
     {
-        return $this->atletiService->addClient($name, $plan);
+        return $this->atletiService->addAtleta($name, $plan);
     }
 
-    public function findClientById(int $id): ?array
+    public function findAtletaById(int $id): ?array
     {
-        return $this->atletiService->findClientById($id);
+        return $this->atletiService->findAtletaById($id);
     }
 
-    public function updateClientStatus(int $id, string $status): bool
+    public function updateAtletaStatus(int $id, string $status): bool
     {
-        return $this->atletiService->updateClientStatus($id, $status);
+        return $this->atletiService->updateAtletaStatus($id, $status);
     }
 
-    public function deleteClient(int $id): bool
+    public function deleteAtleta(int $id): bool
     {
-        return $this->atletiService->deleteClient($id);
+        return $this->atletiService->deleteAtleta($id);
     }
 
     // ============ UTENTI ============
@@ -178,55 +178,55 @@ final class DatiService
 
     // ============ SEDI ============
 
-    public function readSites(): array
+    public function readSedi(): array
     {
-        return $this->sediService->readSites();
+        return $this->sediService->readSedi();
     }
 
-    public function addSite(string $name, string $code, int $active = 1): array
+    public function addSede(string $name, string $code, int $active = 1): array
     {
-        return $this->sediService->addSite($name, $code, $active);
+        return $this->sediService->addSede($name, $code, $active);
     }
 
     // ============ TIPI DOCUMENTO ============
 
-    public function readDocumentTypes(): array
+    public function readTipiDocumenti(): array
     {
-        return $this->tipiDocumentoService->readDocumentTypes();
+        return $this->tipiDocumentoService->readTipiDocumenti();
     }
 
-    public function addDocumentType(string $type): array
+    public function addTipoDocumento(string $type): array
     {
-        return $this->tipiDocumentoService->addDocumentType($type);
+        return $this->tipiDocumentoService->addTipoDocumento($type);
     }
 
     // ============ DISCIPLINE ============
 
-    public function readDisciplines(): array
+    public function readDiscipline(): array
     {
-        return $this->disciplineService->readDisciplines();
+        return $this->disciplinaService->readDiscipline();
     }
 
-    public function addDiscipline(string $name, string $notes = ''): array
+    public function addDisciplina(string $name, string $notes = ''): array
     {
-        return $this->disciplineService->addDiscipline($name, $notes);
+        return $this->disciplinaService->addDisciplina($name, $notes);
     }
 
     // ============ CORSI ============
 
-    public function readCourses(): array
+    public function readCorsi(): array
     {
-        return $this->corsiService->readCourses();
+        return $this->corsiService->readCorsi();
     }
 
-    public function readCoursesPage(int $start, int $length, string $search, string $orderColumn, string $orderDir, bool $activeOnly = false): array
+    public function readCorsiPage(int $start, int $length, string $search, string $orderColumn, string $orderDir, bool $activeOnly = false): array
     {
-        return $this->corsiService->readCoursesPage($start, $length, $search, $orderColumn, $orderDir, $activeOnly);
+        return $this->corsiService->readCorsiPage($start, $length, $search, $orderColumn, $orderDir, $activeOnly);
     }
 
-    public function addCourse(
-        int $siteId,
-        int $disciplineId,
+    public function addCorso(
+        int $sedeId,
+        int $disciplinaId,
         int $userId,
         string $name,
         ?string $startDate = null,
@@ -235,18 +235,18 @@ final class DatiService
         int $active = 1,
         array $orari = []
     ): array {
-        return $this->corsiService->addCourse($siteId, $disciplineId, $userId, $name, $startDate, $endDate, $monthlyFee, $active, $orari);
+        return $this->corsiService->addCorso($sedeId, $disciplinaId, $userId, $name, $startDate, $endDate, $monthlyFee, $active, $orari);
     }
 
-    public function readCourseById(int $id): ?array
+    public function readCorsoById(int $id): ?array
     {
-        return $this->corsiService->readCourseById($id);
+        return $this->corsiService->readCorsoById($id);
     }
 
-    public function updateCourse(
+    public function updateCorso(
         int $id,
-        int $siteId,
-        int $disciplineId,
+        int $sedeId,
+        int $disciplinaId,
         int $userId,
         string $name,
         ?string $startDate = null,
@@ -255,12 +255,12 @@ final class DatiService
         int $active = 1,
         array $orari = []
     ): bool {
-        return $this->corsiService->updateCourse($id, $siteId, $disciplineId, $userId, $name, $startDate, $endDate, $monthlyFee, $active, $orari);
+        return $this->corsiService->updateCorso($id, $sedeId, $disciplinaId, $userId, $name, $startDate, $endDate, $monthlyFee, $active, $orari);
     }
 
-    public function deleteCourse(int $id): bool
+    public function deleteCorso(int $id): bool
     {
-        return $this->corsiService->deleteCourse($id);
+        return $this->corsiService->deleteCorso($id);
     }
 
     // ============ DASHBOARD ============

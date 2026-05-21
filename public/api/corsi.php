@@ -7,8 +7,8 @@ session_start();
 require_once __DIR__ . '/../../src/lib/auth.php';
 require_once __DIR__ . '/../../src/lib/data.php';
 
-use App\Requests\Courses\AddCourseRequest;
-use App\Requests\Courses\UpdateCourseRequest;
+use App\Requests\Corsi\AddCorsoRequest;
+use App\Requests\Corsi\UpdateCorsoRequest;
 use App\Requests\ValidationException;
 
 function wants_json_response(): bool
@@ -64,9 +64,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     ];
 
     if ($action === 'delete') {
-        $courseId = (int) ($_POST['course_id'] ?? 0);
-        if ($courseId > 0) {
-            $corsi->deleteCourse($courseId);
+        $corsoId = (int) ($_POST['corso_id'] ?? 0);
+        if ($corsoId > 0) {
+            $corsi->deleteCorso($corsoId);
         }
 
         if ($wantsJson) {
@@ -79,11 +79,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($action === 'update') {
         try {
-            $request = new UpdateCourseRequest($_POST);
-            $corsi->updateCourse(
-                $request->getInt('course_id'),
-                $request->getInt('site_id'),
-                $request->getInt('discipline_id'),
+            $request = new UpdateCorsoRequest($_POST);
+            $corsi->updateCorso(
+                $request->getInt('corso_id'),
+                $request->getInt('sede_id'),
+                $request->getInt('disciplina_id'),
                 $request->getInt('user_id'),
                 $request->getString('name'),
                 $request->getString('start_date') !== '' ? $request->getString('start_date') : null,
@@ -95,7 +95,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             if ($wantsJson) {
                 json_success('Corso modificato con successo', [
-                    'id' => $request->getInt('course_id'),
+                    'id' => $request->getInt('corso_id'),
                 ]);
             }
 
@@ -111,10 +111,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'corsi',
                 [
                     'open_edit' => '1',
-                    'edit_id' => (string) ($_POST['course_id'] ?? ''),
+                    'edit_id' => (string) ($_POST['corso_id'] ?? ''),
                     'edit_name' => (string) ($_POST['name'] ?? ''),
-                    'edit_site_id' => (string) ($_POST['site_id'] ?? ''),
-                    'edit_discipline_id' => (string) ($_POST['discipline_id'] ?? ''),
+                    'edit_sede_id' => (string) ($_POST['sede_id'] ?? ''),
+                    'edit_disciplina_id' => (string) ($_POST['disciplina_id'] ?? ''),
                     'edit_user_id' => (string) ($_POST['user_id'] ?? ''),
                     'edit_start_date' => (string) ($_POST['start_date'] ?? ''),
                     'edit_end_date' => (string) ($_POST['end_date'] ?? ''),
@@ -147,10 +147,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 [
                     'err' => $e->getMessage(),
                     'open_edit' => '1',
-                    'edit_id' => (string) ($_POST['course_id'] ?? ''),
+                    'edit_id' => (string) ($_POST['corso_id'] ?? ''),
                     'edit_name' => (string) ($_POST['name'] ?? ''),
-                    'edit_site_id' => (string) ($_POST['site_id'] ?? ''),
-                    'edit_discipline_id' => (string) ($_POST['discipline_id'] ?? ''),
+                    'edit_sede_id' => (string) ($_POST['sede_id'] ?? ''),
+                    'edit_disciplina_id' => (string) ($_POST['disciplina_id'] ?? ''),
                     'edit_user_id' => (string) ($_POST['user_id'] ?? ''),
                     'edit_start_date' => (string) ($_POST['start_date'] ?? ''),
                     'edit_end_date' => (string) ($_POST['end_date'] ?? ''),
@@ -177,10 +177,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     try {
         // Default: add
-        $request = new AddCourseRequest($_POST);
-        $newCourse = $corsi->addCourse(
-            $request->getInt('site_id'),
-            $request->getInt('discipline_id'),
+        $request = new AddCorsoRequest($_POST);
+        $nuovoCorso = $corsi->addCorso(
+            $request->getInt('sede_id'),
+            $request->getInt('disciplina_id'),
             $request->getInt('user_id'),
             $request->getString('name'),
             $request->getString('start_date') !== '' ? $request->getString('start_date') : null,
@@ -192,8 +192,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($wantsJson) {
             json_success('Corso creato con successo', [
-                'id' => (int) ($newCourse['id'] ?? 0),
-                'name' => (string) ($newCourse['name'] ?? ''),
+                'id' => (int) ($nuovoCorso['id'] ?? 0),
+                'name' => (string) ($nuovoCorso['name'] ?? ''),
             ]);
         }
 
@@ -209,8 +209,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'corsi',
             [
                 'add_name' => $_POST['name'] ?? '',
-                'add_site_id' => $_POST['site_id'] ?? '',
-                'add_discipline_id' => $_POST['discipline_id'] ?? '',
+                'add_sede_id' => $_POST['sede_id'] ?? '',
+                'add_disciplina_id' => $_POST['disciplina_id'] ?? '',
                 'add_user_id' => $_POST['user_id'] ?? '',
                 'add_end_date' => $_POST['end_date'] ?? '',
                 'add_active' => $_POST['active'] ?? '1',
@@ -227,8 +227,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             [
                 'err' => $e->getMessage(),
                 'add_name' => $_POST['name'] ?? '',
-                'add_site_id' => $_POST['site_id'] ?? '',
-                'add_discipline_id' => $_POST['discipline_id'] ?? '',
+                'add_sede_id' => $_POST['sede_id'] ?? '',
+                'add_disciplina_id' => $_POST['disciplina_id'] ?? '',
                 'add_user_id' => $_POST['user_id'] ?? '',
                 'add_start_date' => $_POST['start_date'] ?? '',
                 'add_end_date' => $_POST['end_date'] ?? '',
@@ -250,7 +250,7 @@ if (isset($_GET['draw'])) {
     $orderColumn = (string) ($_GET['columns'][$orderColumnIndex]['data'] ?? 'id');
     $activeOnly = ((int) ($_GET['active_only'] ?? 0)) === 1;
 
-    $page = $corsi->readCoursesPage($start, $length, $search, $orderColumn, $orderDir, $activeOnly);
+    $page = $corsi->readCorsiPage($start, $length, $search, $orderColumn, $orderDir, $activeOnly);
 
     header('Content-Type: application/json; charset=utf-8');
     echo json_encode([
@@ -263,4 +263,4 @@ if (isset($_GET['draw'])) {
 }
 
 header('Content-Type: application/json; charset=utf-8');
-echo json_encode($corsi->readCourses(), JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+echo json_encode($corsi->readCorsi(), JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);

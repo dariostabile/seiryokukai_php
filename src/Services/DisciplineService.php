@@ -8,7 +8,7 @@ final class DisciplineService extends BaseService
 {
     private const DUPLICATE_NAME_MESSAGE = 'Esiste già una disciplina con questo nome';
 
-    public function readDisciplines(): array
+    public function readDiscipline(): array
     {
         $pdo = db_connection();
         $stmt = $pdo->query(
@@ -25,7 +25,7 @@ final class DisciplineService extends BaseService
         return is_array($rows) ? $rows : [];
     }
 
-    public function addDiscipline(string $name, string $notes = ''): array
+    public function addDisciplina(string $name, string $notes = ''): array
     {
         $name = trim($name);
         $notes = trim($notes);
@@ -57,7 +57,7 @@ final class DisciplineService extends BaseService
         ];
     }
 
-    public function findDisciplineById(int $id): array
+    public function findDisciplinaById(int $id): array
     {
         if ($id <= 0) {
             throw new \InvalidArgumentException('ID disciplina non valido');
@@ -78,7 +78,7 @@ final class DisciplineService extends BaseService
         return is_array($row) ? $row : [];
     }
 
-    public function updateDiscipline(int $id, string $name, string $notes = ''): void
+    public function updateDisciplina(int $id, string $name, string $notes = ''): void
     {
         if ($id <= 0) {
             throw new \InvalidArgumentException('ID disciplina non valido');
@@ -109,7 +109,7 @@ final class DisciplineService extends BaseService
         }
     }
 
-    public function deleteDiscipline(int $id): void
+    public function deleteDisciplina(int $id): void
     {
         if ($id <= 0) {
             throw new \InvalidArgumentException('ID disciplina non valido');
@@ -120,7 +120,7 @@ final class DisciplineService extends BaseService
         $stmt->execute(['id' => $id]);
     }
 
-    public function readDisciplinesPage(int $start, int $length, string $search = '', string $orderColumn = 'id', string $orderDir = 'desc'): array
+    public function readDisciplinePage(int $start, int $length, string $search = '', string $orderColumn = 'id', string $orderDir = 'desc'): array
     {
         $orderColumn = in_array($orderColumn, ['id', 'name', 'notes'], true) ? $orderColumn : 'id';
         $orderDir = strtolower($orderDir) === 'asc' ? 'ASC' : 'DESC';

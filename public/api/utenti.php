@@ -516,9 +516,9 @@ if (isset($_GET['draw'])) {
     $length = (int) ($_GET['length'] ?? 10);
     $search = trim((string) ($_GET['search']['value'] ?? ''));
 
-    $orderColumnIndex = (int) ($_GET['order'][0]['column'] ?? 0);
-    $orderDir = (string) ($_GET['order'][0]['dir'] ?? 'desc');
-    $orderColumn = (string) ($_GET['columns'][$orderColumnIndex]['data'] ?? 'id');
+    $orderColumnIndex = (int) ($_GET['order'][0]['column'] ?? 1);
+    $orderDir = (string) ($_GET['order'][0]['dir'] ?? 'asc');
+    $orderColumn = (string) ($_GET['columns'][$orderColumnIndex]['data'] ?? 'name');
 
     $page = $utenti->readUsersPage($start, $length, $search, $orderColumn, $orderDir);
 

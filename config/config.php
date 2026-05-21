@@ -52,6 +52,28 @@ function db_connection(): \PDO
     return $pdo;
 }
 
+function app_paths(): array
+{
+    static $paths = null;
+
+    if (is_array($paths)) {
+        return $paths;
+    }
+
+    $root = '/seiryokukai_php';
+    $public = $root . '/public';
+
+    $paths = [
+        'root' => $root,
+        'public' => $public,
+        'index' => $public . '/index.php',
+        'assets' => $public . '/assets',
+        'api' => $public . '/api',
+    ];
+
+    return $paths;
+}
+
 function frontend_asset_urls(): array
 {
     static $urls = null;
@@ -63,7 +85,8 @@ function frontend_asset_urls(): array
     $urls = [
         'font_preconnect_api' => 'https://fonts.googleapis.com',
         'font_preconnect_static' => 'https://fonts.gstatic.com',
-        'font_stylesheet' => 'https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;700&display=swap',
+        'font_stylesheet' => 'https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap',
+        'template_css' => '/seiryokukai_php/public/template/university/dist/css/style.css',
         'bootstrap_css' => 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css',
         'bootstrap_js' => 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js',
         'datatables_css_bootstrap' => 'https://cdn.datatables.net/2.0.8/css/dataTables.bootstrap5.min.css',
@@ -72,6 +95,8 @@ function frontend_asset_urls(): array
         'datatables_i18n_it' => 'https://cdn.datatables.net/plug-ins/2.0.8/i18n/it-IT.json',
         'jquery_js' => 'https://code.jquery.com/jquery-3.7.1.min.js',
         'fontawesome_css' => 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css',
+        'cropper_css' => 'https://unpkg.com/cropperjs@1.6.2/dist/cropper.min.css',
+        'cropper_js' => 'https://unpkg.com/cropperjs@1.6.2/dist/cropper.min.js',
     ];
 
     return $urls;
@@ -85,11 +110,12 @@ function frontend_api_urls(): array
         return $urls;
     }
 
-    $base = '/seiryokukai_php/public/api';
+    $paths = app_paths();
+    $base = (string) $paths['api'];
     $urls = [
         'atleti' => $base . '/atleti.php',
         'corsi' => $base . '/corsi.php',
-        'discipline' => $base . '/disciplina.php',
+        'disciplina' => $base . '/discipline.php',
         'login' => $base . '/login.php',
         'sedi' => $base . '/sedi.php',
         'tipi_documento' => $base . '/tipi_documento.php',

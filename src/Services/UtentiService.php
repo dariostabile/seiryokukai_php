@@ -95,7 +95,7 @@ final class UtentiService extends BaseService
 
         $allowedOrder = [
             'id' => 'u.idutente',
-            'name' => "TRIM(CONCAT(COALESCE(u.nome, ''), ' ', COALESCE(u.cognome, '')))",
+            'name' => "TRIM(CONCAT(COALESCE(u.cognome, ''), ' ', COALESCE(u.nome, '')))",
             'username' => 'u.username',
             'email' => 'u.email1',
             'role' => 'up1.profile_names_csv',

@@ -7,8 +7,8 @@ session_start();
 require_once __DIR__ . '/../../src/lib/auth.php';
 require_once __DIR__ . '/../../src/lib/data.php';
 
-use App\Requests\Disciplines\AddDisciplineRequest;
-use App\Requests\Disciplines\UpdateDisciplineRequest;
+use App\Requests\Discipline\AddDisciplinaRequest;
+use App\Requests\Discipline\UpdateDisciplinaRequest;
 use App\Requests\ValidationException;
 
 function wants_json_response(): bool
@@ -32,7 +32,7 @@ function json_success(string $message, array $data = []): void
 }
 
 $auth = aut_service();
-$discipline = discipline_service();
+$disciplina = disciplina_service();
 $wantsJson = wants_json_response();
 
 if (!$auth->isLoggedIn()) {
@@ -48,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'delete') {
         $id = (int) ($_POST['id'] ?? 0);
         if ($id > 0) {
-            $discipline->deleteDiscipline($id);
+            $disciplina->deleteDisciplina($id);
         }
 
         if ($wantsJson) {
@@ -61,8 +61,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($action === 'update') {
         try {
-            $request = new UpdateDisciplineRequest($_POST);
-            $discipline->updateDiscipline(
+            $request = new UpdateDisciplinaRequest($_POST);
+            $disciplina->updateDisciplina(
                 $request->getInt('id'),
                 $request->getString('name'),
                 $request->getString('notes')
@@ -113,16 +113,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     try {
-        $request = new AddDisciplineRequest($_POST);
-        $newDiscipline = $discipline->addDiscipline(
+        $request = new AddDisciplinaRequest($_POST);
+        $newDisciplina = $disciplina->addDisciplina(
             $request->getString('name'),
             $request->getString('notes')
         );
 
         if ($wantsJson) {
             json_success('Disciplina creata con successo', [
-                'id' => (int) ($newDiscipline['id'] ?? 0),
-                'name' => (string) ($newDiscipline['name'] ?? ''),
+                'id' => (int) ($newDisciplina['id'] ?? 0),
+                'name' => (string) ($newDisciplina['name'] ?? ''),
             ]);
         }
 
@@ -168,7 +168,7 @@ if (isset($_GET['draw'])) {
     $orderDir = (string) ($_GET['order'][0]['dir'] ?? 'desc');
     $orderColumn = (string) ($_GET['columns'][$orderColumnIndex]['data'] ?? 'id');
 
-    $page = $discipline->readDisciplinesPage($start, $length, $search, $orderColumn, $orderDir);
+    $page = $disciplina->readDisciplinePage($start, $length, $search, $orderColumn, $orderDir);
 
     header('Content-Type: application/json; charset=utf-8');
     echo json_encode([
@@ -181,4 +181,4 @@ if (isset($_GET['draw'])) {
 }
 
 header('Content-Type: application/json; charset=utf-8');
-echo json_encode($discipline->readDisciplines(), JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+echo json_encode($disciplina->readDiscipline(), JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);

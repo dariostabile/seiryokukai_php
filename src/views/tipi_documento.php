@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-/** @var array $documentTypes */
+/** @var array $tipiDocumenti */
 
 $frontendApi = frontend_api_urls();
-$documentTypesApiUrl = (string) ($frontendApi['tipi_documento'] ?? '');
+$tipiDocumentiApiUrl = (string) ($frontendApi['tipi_documento'] ?? '');
 
 $okMessage = trim((string) ($_GET['ok'] ?? ''));
 $errMessage = trim((string) ($_GET['err'] ?? ''));
@@ -24,7 +24,7 @@ $editPrefill = [
   <div class="card-body">
     <div class="d-flex justify-content-between align-items-center mb-3 gap-2">
       <h5 class="m-0">Gestione Tipi Documento</h5>
-      <button class="btn btn-success" type="button" id="openAddDocumentTypePanel">+ Aggiungi tipo</button>
+      <button class="btn btn-success" type="button" id="openAddTipoDocumentoPanel">+ Aggiungi tipo</button>
     </div>
 
     <?php if ($okMessage !== ''): ?>
@@ -52,13 +52,13 @@ $editPrefill = [
       </table>
     </div>
 
-    <div id="addDocumentTypePanel" class="card border mt-4 <?= $openAddPanel ? '' : 'd-none' ?>">
+    <div id="addTipoDocumentoPanel" class="card border mt-4 <?= $openAddPanel ? '' : 'd-none' ?>">
       <div class="card-header d-flex justify-content-between align-items-center">
         <h6 class="m-0">Scheda Nuovo Tipo Documento</h6>
-        <button class="btn btn-sm btn-outline-secondary" type="button" id="closeAddDocumentTypePanelBtn">Chiudi</button>
+        <button class="btn btn-sm btn-outline-secondary" type="button" id="closeAddTipoDocumentoPanelBtn">Chiudi</button>
       </div>
       <div class="card-body">
-        <form method="post" action="<?= htmlspecialchars($documentTypesApiUrl) ?>" class="row g-3" id="addDocumentTypeForm">
+        <form method="post" action="<?= htmlspecialchars($tipiDocumentiApiUrl) ?>" class="row g-3" id="addTipoDocumentoForm">
           <input type="hidden" name="action" value="add">
 
           <div class="col-12">
@@ -67,30 +67,30 @@ $editPrefill = [
           </div>
 
           <div class="col-12 d-flex justify-content-end gap-2">
-            <button class="btn btn-secondary" type="button" id="cancelAddDocumentTypeBtn">Annulla</button>
+            <button class="btn btn-secondary" type="button" id="cancelAddTipoDocumentoBtn">Annulla</button>
             <button class="btn btn-success" type="submit">+ Aggiungi Tipo</button>
           </div>
         </form>
       </div>
     </div>
 
-    <div id="editDocumentTypePanel" class="card border mt-4 d-none">
+    <div id="editTipoDocumentoPanel" class="card border mt-4 d-none">
       <div class="card-header d-flex justify-content-between align-items-center">
         <h6 class="m-0">Scheda Tipo Documento</h6>
-        <button class="btn btn-sm btn-outline-secondary" type="button" id="closeEditDocumentTypePanelBtn">Chiudi</button>
+        <button class="btn btn-sm btn-outline-secondary" type="button" id="closeEditTipoDocumentoPanelBtn">Chiudi</button>
       </div>
       <div class="card-body">
-        <form method="post" action="<?= htmlspecialchars($documentTypesApiUrl) ?>" class="row g-3" id="editDocumentTypeForm">
+        <form method="post" action="<?= htmlspecialchars($tipiDocumentiApiUrl) ?>" class="row g-3" id="editTipoDocumentoForm">
           <input type="hidden" name="action" value="update">
-          <input type="hidden" name="id" id="editDocumentTypeId">
+          <input type="hidden" name="id" id="editTipoDocumentoId">
 
           <div class="col-12">
             <label class="form-label">Tipo Documento</label>
-            <input class="form-control" name="type" id="editDocumentTypeType" placeholder="Tipo documento" required>
+            <input class="form-control" name="type" id="editTipoDocumentoType" placeholder="Tipo documento" required>
           </div>
 
           <div class="col-12 d-flex justify-content-end gap-2">
-            <button class="btn btn-secondary" type="button" id="cancelEditDocumentTypeBtn">Annulla</button>
+            <button class="btn btn-secondary" type="button" id="cancelEditTipoDocumentoBtn">Annulla</button>
             <button class="btn btn-warning" type="submit">Salva Modifiche</button>
           </div>
         </form>
@@ -102,16 +102,16 @@ $editPrefill = [
 <script>
 document.addEventListener('DOMContentLoaded', function () {
   const ui = window.SeiryokukaiUi || null;
-  const addPanelBtn = document.getElementById('openAddDocumentTypePanel');
-  const addPanel = document.getElementById('addDocumentTypePanel');
-  const addForm = document.getElementById('addDocumentTypeForm');
-  const closeAddPanelBtn = document.getElementById('closeAddDocumentTypePanelBtn');
-  const cancelAddBtn = document.getElementById('cancelAddDocumentTypeBtn');
+  const addPanelBtn = document.getElementById('openAddTipoDocumentoPanel');
+  const addPanel = document.getElementById('addTipoDocumentoPanel');
+  const addForm = document.getElementById('addTipoDocumentoForm');
+  const closeAddPanelBtn = document.getElementById('closeAddTipoDocumentoPanelBtn');
+  const cancelAddBtn = document.getElementById('cancelAddTipoDocumentoBtn');
 
-  const editPanel = document.getElementById('editDocumentTypePanel');
-  const editForm = document.getElementById('editDocumentTypeForm');
-  const closeEditPanelBtn = document.getElementById('closeEditDocumentTypePanelBtn');
-  const cancelEditBtn = document.getElementById('cancelEditDocumentTypeBtn');
+  const editPanel = document.getElementById('editTipoDocumentoPanel');
+  const editForm = document.getElementById('editTipoDocumentoForm');
+  const closeEditPanelBtn = document.getElementById('closeEditTipoDocumentoPanelBtn');
+  const cancelEditBtn = document.getElementById('cancelEditTipoDocumentoBtn');
 
   const tableEl = document.getElementById('tipi-documento-table');
   const ajaxAlert = document.getElementById('tipiDocumentoAjaxAlert');
@@ -175,7 +175,7 @@ document.addEventListener('DOMContentLoaded', function () {
     (window.SeiryokukaiConfig && window.SeiryokukaiConfig.dataTableLangUrl)
     || '';
   const api = (window.SeiryokukaiConfig && window.SeiryokukaiConfig.api) || {};
-  const documentTypesApiUrl = api.tipi_documento || '';
+  const tipiDocumentiApiUrl = api.tipi_documento || '';
 
   // DataTable per tipi documento
   if (tableEl.__dataTable) {
@@ -186,7 +186,7 @@ document.addEventListener('DOMContentLoaded', function () {
     serverSide: true,
     processing: true,
     ajax: {
-      url: documentTypesApiUrl,
+      url: tipiDocumentiApiUrl,
       type: 'GET'
     },
     columns: [
@@ -230,8 +230,8 @@ document.addEventListener('DOMContentLoaded', function () {
       const id = parseInt(editBtn.dataset.id);
       const type = editBtn.dataset.type;
 
-      document.getElementById('editDocumentTypeId').value = id;
-      document.getElementById('editDocumentTypeType').value = type;
+      document.getElementById('editTipoDocumentoId').value = id;
+      document.getElementById('editTipoDocumentoType').value = type;
 
       editPanel.classList.remove('d-none');
       editPanel.scrollIntoView({ behavior: 'smooth' });
@@ -252,7 +252,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const form = document.createElement('form');
         form.method = 'POST';
-        form.action = documentTypesApiUrl;
+        form.action = tipiDocumentiApiUrl;
 
         const actionInput = document.createElement('input');
         actionInput.type = 'hidden';
@@ -274,7 +274,7 @@ document.addEventListener('DOMContentLoaded', function () {
               tableEl.__dataTable.ajax.reload(null, false);
             }
 
-            const currentEditId = parseInt(document.getElementById('editDocumentTypeId').value || '0', 10);
+            const currentEditId = parseInt(document.getElementById('editTipoDocumentoId').value || '0', 10);
             if (currentEditId === id) {
               editPanel.classList.add('d-none');
             }
@@ -347,8 +347,8 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   <?php if ($openEdit && $editPrefill['id'] > 0): ?>
-    document.getElementById('editDocumentTypeId').value = <?= (int) $editPrefill['id'] ?>;
-    document.getElementById('editDocumentTypeType').value = <?= json_encode($editPrefill['type']) ?>;
+    document.getElementById('editTipoDocumentoId').value = <?= (int) $editPrefill['id'] ?>;
+    document.getElementById('editTipoDocumentoType').value = <?= json_encode($editPrefill['type']) ?>;
     editPanel.classList.remove('d-none');
   <?php endif; ?>
 });

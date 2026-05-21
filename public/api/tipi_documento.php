@@ -7,8 +7,8 @@ session_start();
 require_once __DIR__ . '/../../src/lib/auth.php';
 require_once __DIR__ . '/../../src/lib/data.php';
 
-use App\Requests\DocumentTypes\AddDocumentTypeRequest;
-use App\Requests\DocumentTypes\UpdateDocumentTypeRequest;
+use App\Requests\TipiDocumenti\AddTipoDocumentoRequest;
+use App\Requests\TipiDocumenti\UpdateTipoDocumentoRequest;
 use App\Requests\ValidationException;
 
 function wants_json_response(): bool
@@ -48,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'delete') {
         $id = (int) ($_POST['id'] ?? 0);
         if ($id > 0) {
-            $tipiDocumento->deleteDocumentType($id);
+            $tipiDocumento->deleteTipoDocumento($id);
         }
 
         if ($wantsJson) {
@@ -61,8 +61,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($action === 'update') {
         try {
-            $request = new UpdateDocumentTypeRequest($_POST);
-            $tipiDocumento->updateDocumentType(
+            $request = new UpdateTipoDocumentoRequest($_POST);
+            $tipiDocumento->updateTipoDocumento(
                 $request->getInt('id'),
                 $request->getString('type')
             );
@@ -110,15 +110,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     try {
-        $request = new AddDocumentTypeRequest($_POST);
-        $newDocumentType = $tipiDocumento->addDocumentType(
+        $request = new AddTipoDocumentoRequest($_POST);
+        $newTipoDocumento = $tipiDocumento->addTipoDocumento(
             $request->getString('type')
         );
 
         if ($wantsJson) {
             json_success('Tipo documento creato con successo', [
-                'id' => (int) ($newDocumentType['id'] ?? 0),
-                'type' => (string) ($newDocumentType['type'] ?? ''),
+                'id' => (int) ($newTipoDocumento['id'] ?? 0),
+                'type' => (string) ($newTipoDocumento['type'] ?? ''),
             ]);
         }
 
@@ -162,7 +162,7 @@ if (isset($_GET['draw'])) {
     $orderDir = (string) ($_GET['order'][0]['dir'] ?? 'desc');
     $orderColumn = (string) ($_GET['columns'][$orderColumnIndex]['data'] ?? 'id');
 
-    $page = $tipiDocumento->readDocumentTypesPage($start, $length, $search, $orderColumn, $orderDir);
+    $page = $tipiDocumento->readTipiDocumentiPage($start, $length, $search, $orderColumn, $orderDir);
 
     header('Content-Type: application/json; charset=utf-8');
     echo json_encode([
@@ -175,4 +175,4 @@ if (isset($_GET['draw'])) {
 }
 
 header('Content-Type: application/json; charset=utf-8');
-echo json_encode($tipiDocumento->readDocumentTypes(), JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+echo json_encode($tipiDocumento->readTipiDocumenti(), JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);

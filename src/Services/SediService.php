@@ -6,7 +6,7 @@ namespace App\Services;
 
 final class SediService extends BaseService
 {
-    public function readSites(): array
+    public function readSedi(): array
     {
         $pdo = db_connection();
         $stmt = $pdo->query(
@@ -24,7 +24,7 @@ final class SediService extends BaseService
         return is_array($rows) ? $rows : [];
     }
 
-    public function addSite(string $name, string $code, int $active = 1): array
+    public function addSede(string $name, string $code, int $active = 1): array
     {
         $name = trim($name);
         $code = strtoupper(trim($code));
@@ -54,7 +54,7 @@ final class SediService extends BaseService
         ];
     }
 
-    public function findSiteById(int $id): array
+    public function findSedeById(int $id): array
     {
         if ($id <= 0) {
             throw new \InvalidArgumentException('ID sede non valido');
@@ -76,7 +76,7 @@ final class SediService extends BaseService
         return is_array($row) ? $row : [];
     }
 
-    public function updateSite(int $id, string $name, string $code, int $active = 1): void
+    public function updateSede(int $id, string $name, string $code, int $active = 1): void
     {
         if ($id <= 0) {
             throw new \InvalidArgumentException('ID sede non valido');
@@ -104,7 +104,7 @@ final class SediService extends BaseService
         ]);
     }
 
-    public function deleteSite(int $id): void
+    public function deleteSede(int $id): void
     {
         if ($id <= 0) {
             throw new \InvalidArgumentException('ID sede non valido');
@@ -115,7 +115,7 @@ final class SediService extends BaseService
         $stmt->execute(['id' => $id]);
     }
 
-    public function readSitesPage(int $start, int $length, string $search = '', string $orderColumn = 'id', string $orderDir = 'desc', bool $activeOnly = false): array
+    public function readSediPage(int $start, int $length, string $search = '', string $orderColumn = 'id', string $orderDir = 'desc', bool $activeOnly = false): array
     {
         $orderColumn = in_array($orderColumn, ['id', 'name', 'code', 'active'], true) ? $orderColumn : 'id';
         $orderDir = strtolower($orderDir) === 'asc' ? 'ASC' : 'DESC';

@@ -72,7 +72,7 @@ function tipi_documento_service(): TipiDocumentoService
     return $service;
 }
 
-function discipline_service(): DisciplineService
+function disciplina_service(): DisciplineService
 {
     static $service = null;
 

@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace App\Requests\Courses;
+namespace App\Requests\Corsi;
 
 use App\Requests\FormRequest;
 
-class AddCourseRequest extends FormRequest
+class AddCorsoRequest extends FormRequest
 {
     protected function rules(): array
     {
         return [
             'name' => 'required|string|min:1|max:255',
-            'site_id' => 'required|int|min:1',
-            'discipline_id' => 'required|int|min:1',
+            'sede_id' => 'required|int|min:1',
+            'disciplina_id' => 'required|int|min:1',
             'user_id' => 'required|int|min:1',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date',
@@ -27,8 +27,8 @@ class AddCourseRequest extends FormRequest
         return [
             'name.required' => 'Il nome del corso è obbligatorio',
             'name.max' => 'Il nome del corso non deve superare 255 caratteri',
-            'site_id.required' => 'La sede è obbligatoria',
-            'discipline_id.required' => 'La disciplina è obbligatoria',
+            'sede_id.required' => 'La sede è obbligatoria',
+            'disciplina_id.required' => 'La disciplina è obbligatoria',
             'user_id.required' => 'L\'insegnante è obbligatorio',
             'start_date.date' => 'La data di inizio non è valida (YYYY-MM-DD)',
             'end_date.date' => 'La data di fine non è valida (YYYY-MM-DD)',
