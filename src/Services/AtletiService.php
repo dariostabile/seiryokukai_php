@@ -414,79 +414,50 @@ final class AtletiService extends BaseService
     public function addIscrizioneAtleta(int $idAtleta, array $payload): int
     {
         $pdo = db_connection();
-        $pdo->beginTransaction();
+        $courseIds = array_values(array_filter(array_map('intval', (array) ($payload['course_ids'] ?? [])), static fn (int $value): bool => $value > 0));
+        if ($courseIds === []) {
+            throw new \InvalidArgumentException('Seleziona almeno un corso per l\'iscrizione');
+        }
 
-        try {
-            $stmt = $pdo->prepare(
-                'INSERT INTO iscrizioni (
-                    idatleta,
-                    data_inizio_iscrizione,
-                    data_fine_iscrizione,
-                    totale_iscrizione,
-                    stato_iscrizione,
-                    note_iscrizione
-                ) VALUES (
-                    :idatleta,
-                    :data_inizio_iscrizione,
-                    :data_fine_iscrizione,
-                    :totale_iscrizione,
-                    :stato_iscrizione,
-                    :note_iscrizione
-                )'
-            );
+        $stmt = $pdo->prepare(
+            'INSERT INTO atleti_has_corsi (
+                idatleta,
+                idcorso,
+                data_iscrizione,
+                data_scadenza_iscrizione,
+                quota,
+                stato_iscrizione,
+                note_iscrizione
+            ) VALUES (
+                :idatleta,
+                :idcorso,
+                :data_iscrizione,
+                :data_scadenza_iscrizione,
+                :quota,
+                :stato_iscrizione,
+                :note_iscrizione
+            )
+            ON DUPLICATE KEY UPDATE
+                data_iscrizione = VALUES(data_iscrizione),
+                data_scadenza_iscrizione = VALUES(data_scadenza_iscrizione),
+                quota = VALUES(quota),
+                stato_iscrizione = VALUES(stato_iscrizione),
+                note_iscrizione = VALUES(note_iscrizione)'
+        );
+
+        foreach ($courseIds as $courseId) {
             $stmt->execute([
                 'idatleta' => $idAtleta,
-                'data_inizio_iscrizione' => $this->normalizeNullableDate($payload['data_inizio_iscrizione'] ?? null),
-                'data_fine_iscrizione' => $this->normalizeNullableDate($payload['data_fine_iscrizione'] ?? null),
-                'totale_iscrizione' => $this->normalizeNullableFloat($payload['totale_iscrizione'] ?? null),
+                'idcorso' => $courseId,
+                'data_iscrizione' => $this->normalizeNullableDate($payload['data_inizio_iscrizione'] ?? null),
+                'data_scadenza_iscrizione' => $this->normalizeNullableDate($payload['data_fine_iscrizione'] ?? null),
+                'quota' => $this->normalizeNullableFloat($payload['totale_iscrizione'] ?? null),
                 'stato_iscrizione' => $this->normalizeNullableString($payload['stato_iscrizione'] ?? null),
                 'note_iscrizione' => $this->normalizeNullableString($payload['note_iscrizione'] ?? null),
             ]);
-
-            $idIscrizione = (int) $pdo->lastInsertId();
-            $courseIds = array_values(array_filter(array_map('intval', (array) ($payload['course_ids'] ?? [])), static fn (int $value): bool => $value > 0));
-
-            if ($courseIds !== []) {
-                $courseStmt = $pdo->prepare(
-                    'INSERT INTO iscrizioni_has_corsi (
-                        idiscrizione,
-                        idcorso,
-                        data_inizio,
-                        data_fine,
-                        stato_iscrizione_corso,
-                        note_iscrizione_corso
-                    ) VALUES (
-                        :idiscrizione,
-                        :idcorso,
-                        :data_inizio,
-                        :data_fine,
-                        :stato_iscrizione_corso,
-                        :note_iscrizione_corso
-                    )'
-                );
-
-                foreach ($courseIds as $courseId) {
-                    $courseStmt->execute([
-                        'idiscrizione' => $idIscrizione,
-                        'idcorso' => $courseId,
-                        'data_inizio' => $this->normalizeNullableDate($payload['data_inizio_iscrizione'] ?? null),
-                        'data_fine' => $this->normalizeNullableDate($payload['data_fine_iscrizione'] ?? null),
-                        'stato_iscrizione_corso' => $this->normalizeNullableString($payload['stato_iscrizione'] ?? null),
-                        'note_iscrizione_corso' => $this->normalizeNullableString($payload['note_iscrizione'] ?? null),
-                    ]);
-                }
-            }
-
-            $pdo->commit();
-
-            return $idIscrizione;
-        } catch (\Throwable $e) {
-            if ($pdo->inTransaction()) {
-                $pdo->rollBack();
-            }
-
-            throw $e;
         }
+
+        return count($courseIds);
     }
 
     public function addPagamentoAtleta(int $idAtleta, array $payload): int
@@ -494,23 +465,26 @@ final class AtletiService extends BaseService
         $pdo = db_connection();
         $stmt = $pdo->prepare(
             'INSERT INTO pagamenti (
-                idiscrizione,
                 idatleta,
+                idcorso,
                 data_pagamento,
+                data_scadenza,
                 quota_pagamento,
                 note_pagamento
             ) VALUES (
-                :idiscrizione,
                 :idatleta,
+                :idcorso,
                 :data_pagamento,
+                :data_scadenza,
                 :quota_pagamento,
                 :note_pagamento
             )'
         );
         $stmt->execute([
-            'idiscrizione' => (int) ($payload['idiscrizione'] ?? 0),
             'idatleta' => $idAtleta,
+            'idcorso' => (int) ($payload['idcorso'] ?? 0),
             'data_pagamento' => $this->normalizeNullableDate($payload['data_pagamento'] ?? null),
+            'data_scadenza' => $this->normalizeNullableDate($payload['data_scadenza'] ?? null),
             'quota_pagamento' => $this->normalizeNullableFloat($payload['quota_pagamento'] ?? null),
             'note_pagamento' => $this->normalizeNullableString($payload['note_pagamento'] ?? null),
         ]);
@@ -713,19 +687,18 @@ final class AtletiService extends BaseService
         $pdo = db_connection();
         $stmt = $pdo->prepare(
             'SELECT
-                i.idiscrizione AS id,
-                i.data_inizio_iscrizione AS start_date,
-                i.data_fine_iscrizione AS end_date,
-                i.totale_iscrizione AS total,
-                i.stato_iscrizione AS status_code,
-                COALESCE(i.note_iscrizione, \'\') AS notes,
-                COALESCE(GROUP_CONCAT(DISTINCT c.nome_corso ORDER BY c.nome_corso SEPARATOR \', \'), \'\') AS courses
-             FROM iscrizioni i
-             LEFT JOIN iscrizioni_has_corsi ihc ON ihc.idiscrizione = i.idiscrizione
-             LEFT JOIN corsi c ON c.idcorso = ihc.idcorso
-             WHERE i.idatleta = :idatleta
-             GROUP BY i.idiscrizione, i.data_inizio_iscrizione, i.data_fine_iscrizione, i.totale_iscrizione, i.stato_iscrizione, i.note_iscrizione
-             ORDER BY i.data_inizio_iscrizione DESC, i.idiscrizione DESC'
+                ahc.idcorso AS id,
+                ahc.idcorso AS course_id,
+                ahc.data_iscrizione AS start_date,
+                ahc.data_scadenza_iscrizione AS end_date,
+                ahc.quota AS total,
+                ahc.stato_iscrizione AS status_code,
+                COALESCE(ahc.note_iscrizione, \'\') AS notes,
+                COALESCE(c.nome_corso, \'\') AS courses
+             FROM atleti_has_corsi ahc
+             LEFT JOIN corsi c ON c.idcorso = ahc.idcorso
+             WHERE ahc.idatleta = :idatleta
+             ORDER BY ahc.data_iscrizione DESC, ahc.idcorso DESC'
         );
         $stmt->execute(['idatleta' => $idAtleta]);
 
@@ -756,14 +729,18 @@ final class AtletiService extends BaseService
         $stmt = $pdo->prepare(
             'SELECT
                 p.idpagamento AS id,
-                p.idiscrizione AS enrollment_id,
+                p.idcorso AS course_id,
+                p.idcorso AS enrollment_id,
+                COALESCE(c.nome_corso, \'\') AS course_name,
                 p.data_pagamento AS payment_date,
+                p.data_scadenza AS expiry_date,
                 p.quota_pagamento AS amount,
                 COALESCE(p.note_pagamento, \'\') AS notes,
-                i.data_inizio_iscrizione AS enrollment_start_date,
-                i.data_fine_iscrizione AS enrollment_end_date
+                ahc.data_iscrizione AS enrollment_start_date,
+                ahc.data_scadenza_iscrizione AS enrollment_end_date
              FROM pagamenti p
-             LEFT JOIN iscrizioni i ON i.idiscrizione = p.idiscrizione
+             LEFT JOIN corsi c ON c.idcorso = p.idcorso
+             LEFT JOIN atleti_has_corsi ahc ON ahc.idatleta = p.idatleta AND ahc.idcorso = p.idcorso
              WHERE p.idatleta = :idatleta
              ORDER BY p.data_pagamento DESC, p.idpagamento DESC'
         );

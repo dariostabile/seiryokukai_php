@@ -729,17 +729,17 @@ $selectedPagamenti = $hasSelectedAtleta && isset($selectedAtleta['pagamenti']) &
                 <input type="hidden" name="action" value="add_pagamento">
                 <input type="hidden" name="idatleta" value="<?= (int) ($selectedAtleta['id'] ?? 0) ?>">
                 <div class="col-12 col-md-4">
-                  <label class="form-label">Iscrizione</label>
-                  <select class="form-select" name="idiscrizione" <?= $selectedIscrizioni === [] ? 'disabled' : 'required' ?>>
+                  <label class="form-label">Corso iscritto</label>
+                  <select class="form-select" name="idcorso" <?= $selectedIscrizioni === [] ? 'disabled' : 'required' ?>>
                     <option value="">Seleziona</option>
                     <?php foreach ($selectedIscrizioni as $iscrizione): ?>
-                      <option value="<?= (int) ($iscrizione['id'] ?? 0) ?>">
-                        #<?= (int) ($iscrizione['id'] ?? 0) ?> - <?= htmlspecialchars((string) ($iscrizione['courses'] ?? '')) ?>
+                      <option value="<?= (int) ($iscrizione['course_id'] ?? $iscrizione['id'] ?? 0) ?>">
+                        #<?= (int) ($iscrizione['course_id'] ?? $iscrizione['id'] ?? 0) ?> - <?= htmlspecialchars((string) ($iscrizione['courses'] ?? '')) ?>
                       </option>
                     <?php endforeach; ?>
                   </select>
                   <?php if ($selectedIscrizioni === []): ?>
-                    <small class="text-muted">Aggiungi prima almeno un'iscrizione.</small>
+                    <small class="text-muted">Aggiungi prima almeno un corso nel tab Iscrizioni.</small>
                   <?php endif; ?>
                 </div>
                 <div class="col-12 col-md-4">
@@ -749,6 +749,10 @@ $selectedPagamenti = $hasSelectedAtleta && isset($selectedAtleta['pagamenti']) &
                 <div class="col-12 col-md-4">
                   <label class="form-label">Importo</label>
                   <input type="number" step="0.01" min="0" class="form-control" name="quota_pagamento" required>
+                </div>
+                <div class="col-12 col-md-4">
+                  <label class="form-label">Data scadenza</label>
+                  <input type="date" class="form-control" name="data_scadenza">
                 </div>
                 <div class="col-12">
                   <label class="form-label">Note pagamento</label>
@@ -764,8 +768,9 @@ $selectedPagamenti = $hasSelectedAtleta && isset($selectedAtleta['pagamenti']) &
                   <thead>
                     <tr>
                       <th>ID</th>
-                      <th>Iscrizione</th>
+                      <th>Corso</th>
                       <th>Data pagamento</th>
+                      <th>Scadenza</th>
                       <th>Importo</th>
                       <th>Note</th>
                     </tr>
@@ -773,19 +778,20 @@ $selectedPagamenti = $hasSelectedAtleta && isset($selectedAtleta['pagamenti']) &
                   <tbody>
                     <?php if ($selectedPagamenti === []): ?>
                       <tr>
-                        <td colspan="5" class="text-center text-muted py-3">Nessun pagamento registrato.</td>
+                        <td colspan="6" class="text-center text-muted py-3">Nessun pagamento registrato.</td>
                       </tr>
                     <?php else: ?>
                       <?php foreach ($selectedPagamenti as $pagamento): ?>
                         <tr>
                           <td>#<?= (int) ($pagamento['id'] ?? 0) ?></td>
                           <td>
-                            #<?= (int) ($pagamento['enrollment_id'] ?? 0) ?>
-                            <?php if (((string) ($pagamento['enrollment_start_date'] ?? '')) !== ''): ?>
-                              (<?= htmlspecialchars((string) ($pagamento['enrollment_start_date'] ?? '')) ?>)
+                            <?= htmlspecialchars((string) ($pagamento['course_name'] ?? '')) ?>
+                            <?php if (((string) ($pagamento['course_name'] ?? '')) === ''): ?>
+                              #<?= (int) ($pagamento['course_id'] ?? 0) ?>
                             <?php endif; ?>
                           </td>
                           <td><?= htmlspecialchars((string) ($pagamento['payment_date'] ?? '')) ?></td>
+                          <td><?= htmlspecialchars((string) ($pagamento['expiry_date'] ?? '')) ?></td>
                           <td><?= htmlspecialchars((string) ($pagamento['amount'] ?? '')) ?></td>
                           <td><?= htmlspecialchars((string) ($pagamento['notes'] ?? '')) ?></td>
                         </tr>

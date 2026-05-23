@@ -12,8 +12,9 @@ final class AddPagamentoAtletaRequest extends FormRequest
     {
         return [
             'idatleta' => 'required|int|min:1',
-            'idiscrizione' => 'required|int|min:1',
+            'idcorso' => 'required|int|min:1',
             'data_pagamento' => 'required|date',
+            'data_scadenza' => 'nullable|date',
             'quota_pagamento' => 'required|float|min:0',
             'note_pagamento' => 'nullable|string',
         ];
@@ -23,7 +24,7 @@ final class AddPagamentoAtletaRequest extends FormRequest
     {
         return [
             'idatleta.required' => 'Seleziona un atleta valido',
-            'idiscrizione.required' => 'Seleziona un\'iscrizione valida',
+            'idcorso.required' => 'Seleziona un corso valido',
             'data_pagamento.required' => 'La data pagamento è obbligatoria',
             'quota_pagamento.required' => 'L\'importo pagamento è obbligatorio',
         ];

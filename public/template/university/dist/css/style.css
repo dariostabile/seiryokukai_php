@@ -22,12 +22,11 @@ File: scss
  *	12. Forms
  *	14. Component
  */
-@import url(../../../assets/icons/font-awesome/css/all.css);
-@import url(../../../assets/icons/simple-line-icons/css/simple-line-icons.css);
-@import url(../../../assets/icons/weather-icons/css/weather-icons.min.css);
-@import url(../../../assets/icons/themify-icons/themify-icons.css);
-@import url(../../../assets/icons/flag-icon-css/flag-icon.min.css);
-@import url(../../../assets/icons/material-design-iconic-font/css/materialdesignicons.min.css);
+@import url(https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css);
+@import url(https://cdnjs.cloudflare.com/ajax/libs/simple-line-icons/2.5.5/css/simple-line-icons.min.css);
+@import url(https://cdnjs.cloudflare.com/ajax/libs/weather-icons/2.0.12/css/weather-icons.min.css);
+@import url(https://cdn.jsdelivr.net/npm/flag-icon-css@4.1.7/css/flag-icons.min.css);
+@import url(https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css);
 @import url(https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700);
 @import url(https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700);
 .skin-default .topbar {
