@@ -196,6 +196,10 @@ final class UtentiService extends BaseService
                 $row['image_url'] = $this->toPublicUrl((string) ($row['image_path'] ?? ''));
                 $row['profile_ids'] = $this->parseIdCsv((string) ($row['profile_ids_csv'] ?? ''));
                 $row['application_ids'] = $this->parseIdCsv((string) ($row['application_ids_csv'] ?? ''));
+                $row['meta'] = [
+                    'id' => (int) ($row['id'] ?? 0),
+                ];
+                unset($row['id']);
                 unset($row['profile_ids_csv']);
                 unset($row['application_ids_csv']);
             }

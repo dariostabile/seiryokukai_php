@@ -23,12 +23,13 @@ $editPrefill = [
   'code' => trim((string) ($_GET['edit_code'] ?? '')),
   'active' => (int) ($_GET['edit_active'] ?? 1),
 ];
+$openSitePanel = $openAddPanel || ($openEdit && $editPrefill['id'] > 0);
 ?>
 <div class="card shadow-sm border-0 mt-3">
   <div class="card-body">
     <div class="d-flex justify-content-between align-items-center mb-3 gap-2">
       <h5 class="m-0">Gestione Sedi</h5>
-      <button class="btn btn-success" type="button" id="openAddSitePanel">+ Aggiungi sede</button>
+      <button class="btn btn-success" type="button" id="openAddSitePanel">+ Aggiungi Sede</button>
     </div>
 
     <?php if ($okMessage !== ''): ?>
@@ -64,75 +65,30 @@ $editPrefill = [
       </table>
     </div>
 
-    <div id="addSedePanel" class="card border mt-4 <?= $openAddPanel ? '' : 'd-none' ?>">
+    <div id="sitePanel" class="card border mt-4 <?= $openSitePanel ? '' : 'd-none' ?>">
       <div class="card-header d-flex justify-content-between align-items-center">
-        <h6 class="m-0">Scheda Nuova Sede</h6>
-        <button class="btn btn-sm btn-outline-secondary" type="button" id="closeAddSitePanelBtn">Chiudi</button>
+        <h6 class="m-0" id="sitePanelTitle">Scheda Nuova Sede</h6>
+        <button class="btn btn-sm btn-outline-secondary" type="button" id="closeSitePanelBtn">Chiudi</button>
       </div>
       <div class="card-body">
-        <form method="post" action="<?= htmlspecialchars($sediApiUrl) ?>" class="row g-3" id="addSedeForm">
-          <input type="hidden" name="action" value="add">
-
-          <div class="col-12 col-md-6">
-            <label class="form-label">Nome Sede</label>
-            <input class="form-control" name="name" placeholder="Nome della sede" required value="<?= htmlspecialchars($addPrefill['name']) ?>">
-          </div>
-
-          <div class="col-12 col-md-6">
-            <label class="form-label">Codice Sede</label>
-            <input class="form-control" name="code" placeholder="Codice (es. PALERMO)" value="<?= htmlspecialchars($addPrefill['code']) ?>">
-            <small class="text-muted">Se lasciato vuoto, verrà generato dal nome.</small>
-          </div>
-
-          <div class="col-12 col-md-6">
-            <label class="form-label">Stato</label>
-            <select class="form-select" name="active">
-              <option value="1" <?= (int) $addPrefill['active'] === 1 ? 'selected' : '' ?>>Attiva</option>
-              <option value="0" <?= (int) $addPrefill['active'] === 0 ? 'selected' : '' ?>>Non attiva</option>
-            </select>
-          </div>
-
-          <div class="col-12 d-flex justify-content-end gap-2">
-            <button class="btn btn-secondary" type="button" id="cancelAddSiteBtn">Annulla</button>
-            <button class="btn btn-success" type="submit">+ Aggiungi Sede</button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <div id="editSitePanel" class="card border mt-4 d-none">
-      <div class="card-header d-flex justify-content-between align-items-center">
-        <h6 class="m-0">Scheda Sede</h6>
-        <button class="btn btn-sm btn-outline-secondary" type="button" id="closeEditSitePanelBtn">Chiudi</button>
-      </div>
-      <div class="card-body">
-        <form method="post" action="<?= htmlspecialchars($sediApiUrl) ?>" class="row g-3" id="editSiteForm">
-          <input type="hidden" name="action" value="update">
-          <input type="hidden" name="id" id="editSiteId">
-
-          <div class="col-12 col-md-6">
-            <label class="form-label">Nome Sede</label>
-            <input class="form-control" name="name" id="editSiteName" placeholder="Nome della sede" required>
-          </div>
-
-          <div class="col-12 col-md-6">
-            <label class="form-label">Codice Sede</label>
-            <input class="form-control" name="code" id="editSiteCode" placeholder="Codice (es. PALERMO)">
-            <small class="text-muted">Se lasciato vuoto, verrà generato dal nome.</small>
-          </div>
-
-          <div class="col-12 col-md-6">
-            <label class="form-label">Stato</label>
-            <select class="form-select" name="active" id="editSiteActive">
-              <option value="1">Attiva</option>
-              <option value="0">Non attiva</option>
-            </select>
-          </div>
-
-          <div class="col-12 d-flex justify-content-end gap-2">
-            <button class="btn btn-secondary" type="button" id="cancelEditSiteBtn">Annulla</button>
-            <button class="btn btn-warning" type="submit">Salva Modifiche</button>
-          </div>
+        <form method="post" action="<?= htmlspecialchars($sediApiUrl) ?>" class="row g-3" id="siteForm">
+          <input type="hidden" name="action" id="siteAction" value="add">
+          <input type="hidden" name="id" id="siteId" value="">
+          <?php
+          $sedeFormValues = $openEdit && $editPrefill['id'] > 0
+              ? $editPrefill
+              : $addPrefill;
+          $sedeFormIsEdit = $openEdit && $editPrefill['id'] > 0;
+          $sedeFieldIds = [
+              'name' => 'editSiteName',
+              'code' => 'editSiteCode',
+              'active' => 'editSiteActive',
+          ];
+          $sedeCancelButtonId = 'cancelSiteBtn';
+          $sedeSubmitLabel = $sedeFormIsEdit ? 'Salva modifiche' : '+ Aggiungi Sede';
+          $sedeSubmitClass = $sedeFormIsEdit ? 'btn-warning' : 'btn-success';
+          require __DIR__ . '/partials/sede_form_fields.php';
+          ?>
         </form>
       </div>
     </div>
@@ -143,19 +99,82 @@ $editPrefill = [
 document.addEventListener('DOMContentLoaded', function () {
   const ui = window.SeiryokukaiUi || null;
   const addPanelBtn = document.getElementById('openAddSitePanel');
-  const addPanel = document.getElementById('addSedePanel');
-  const closeAddPanelBtn = document.getElementById('closeAddSitePanelBtn');
-  const cancelAddBtn = document.getElementById('cancelAddSiteBtn');
-  const addForm = document.getElementById('addSedeForm');
-
-  const editPanel = document.getElementById('editSitePanel');
-  const closeEditPanelBtn = document.getElementById('closeEditSitePanelBtn');
-  const cancelEditBtn = document.getElementById('cancelEditSiteBtn');
-  const editForm = document.getElementById('editSiteForm');
+  const panel = document.getElementById('sitePanel');
+  const closePanelBtn = document.getElementById('closeSitePanelBtn');
+  const cancelBtn = document.getElementById('cancelSiteBtn');
+  const form = document.getElementById('siteForm');
+  const panelTitle = document.getElementById('sitePanelTitle');
+  const actionInput = document.getElementById('siteAction');
+  const siteIdInput = document.getElementById('siteId');
 
   const tableEl = document.getElementById('sedi-table');
   const onlyActiveCheckbox = document.getElementById('sediOnlyActive');
   const ajaxAlert = document.getElementById('sediAjaxAlert');
+
+  function getSubmitButton() {
+    return form ? form.querySelector('button[type="submit"]') : null;
+  }
+
+  function setPanelVisible(visible) {
+    if (!panel) {
+      return;
+    }
+    panel.classList.toggle('d-none', !visible);
+  }
+
+  function setAddMode() {
+    if (!form || !panelTitle || !actionInput || !siteIdInput) {
+      return;
+    }
+
+    actionInput.value = 'add';
+    siteIdInput.value = '';
+    panelTitle.textContent = 'Scheda Nuova Sede';
+
+    form.reset();
+    const activeField = document.getElementById('editSiteActive');
+    if (activeField) {
+      activeField.value = '1';
+    }
+
+    const submitButton = getSubmitButton();
+    if (submitButton) {
+      submitButton.textContent = '+ Aggiungi Sede';
+      submitButton.classList.remove('btn-warning');
+      submitButton.classList.add('btn-success');
+    }
+  }
+
+  function setEditMode(id, name, code, active) {
+    if (!panelTitle || !actionInput || !siteIdInput) {
+      return;
+    }
+
+    actionInput.value = 'update';
+    siteIdInput.value = String(id || '');
+    panelTitle.textContent = 'Scheda Sede';
+
+    const nameInput = document.getElementById('editSiteName');
+    const codeInput = document.getElementById('editSiteCode');
+    const activeInput = document.getElementById('editSiteActive');
+
+    if (nameInput) {
+      nameInput.value = String(name || '');
+    }
+    if (codeInput) {
+      codeInput.value = String(code || '');
+    }
+    if (activeInput) {
+      activeInput.value = String(active || '1');
+    }
+
+    const submitButton = getSubmitButton();
+    if (submitButton) {
+      submitButton.textContent = 'Salva modifiche';
+      submitButton.classList.remove('btn-success');
+      submitButton.classList.add('btn-warning');
+    }
+  }
 
   function showAlert(type, message) {
     if (ui && typeof ui.showAlert === 'function') {
@@ -187,23 +206,21 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   // Apri panel aggiunta
-  addPanelBtn.addEventListener('click', () => {
-    hideAlert();
-    addPanel.classList.remove('d-none');
-  });
-
-  // Chiudi panel aggiunta
-  [closeAddPanelBtn, cancelAddBtn].forEach(btn => {
-    btn.addEventListener('click', () => {
-      addPanel.classList.add('d-none');
+  if (addPanelBtn) {
+    addPanelBtn.addEventListener('click', () => {
       hideAlert();
+      setAddMode();
+      setPanelVisible(true);
     });
-  });
+  }
 
-  // Chiudi panel modifica
-  [closeEditPanelBtn, cancelEditBtn].forEach(btn => {
+  [closePanelBtn, cancelBtn].forEach(btn => {
+    if (!btn) {
+      return;
+    }
+
     btn.addEventListener('click', () => {
-      editPanel.classList.add('d-none');
+      setPanelVisible(false);
       hideAlert();
     });
   });
@@ -287,13 +304,11 @@ document.addEventListener('DOMContentLoaded', function () {
       const code = editBtn.dataset.code;
       const active = parseInt(editBtn.dataset.active || '1', 10) === 0 ? '0' : '1';
 
-      document.getElementById('editSiteId').value = id;
-      document.getElementById('editSiteName').value = name;
-      document.getElementById('editSiteCode').value = code;
-      document.getElementById('editSiteActive').value = active;
-
-      editPanel.classList.remove('d-none');
-      editPanel.scrollIntoView({ behavior: 'smooth' });
+      setEditMode(id, name, code, active);
+      setPanelVisible(true);
+      if (panel) {
+        panel.scrollIntoView({ behavior: 'smooth' });
+      }
     }
 
     const deleteBtn = e.target.closest('.delete-site-btn');
@@ -333,9 +348,9 @@ document.addEventListener('DOMContentLoaded', function () {
               tableEl.__dataTable.ajax.reload(null, false);
             }
 
-            const currentEditId = parseInt(document.getElementById('editSiteId').value || '0', 10);
+            const currentEditId = parseInt((siteIdInput && siteIdInput.value) ? siteIdInput.value : '0', 10);
             if (currentEditId === id) {
-              editPanel.classList.add('d-none');
+              setPanelVisible(false);
             }
           })
           .catch(function (errorPayload) {
@@ -346,71 +361,38 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   });
 
-  if (addForm && ui && typeof ui.postForm === 'function') {
-    addForm.addEventListener('submit', async function (event) {
+  if (form && ui && typeof ui.postForm === 'function') {
+    form.addEventListener('submit', async function (event) {
       event.preventDefault();
       hideAlert();
 
-      if (!addForm.checkValidity()) {
-        addForm.reportValidity();
+      if (!form.checkValidity()) {
+        form.reportValidity();
         return;
       }
 
-      const submitButton = addForm.querySelector('button[type="submit"]');
+      const submitButton = getSubmitButton();
       if (submitButton) {
         submitButton.disabled = true;
       }
 
       try {
-        const payload = await ui.postForm(addForm.action, addForm);
-        showAlert('success', payload.message || 'Sede creata con successo');
-        addForm.reset();
-        const activeField = addForm.querySelector('[name="active"]');
-        if (activeField) {
-          activeField.value = '1';
-        }
-        addPanel.classList.add('d-none');
+        const currentAction = actionInput ? actionInput.value : 'add';
+        const payload = await ui.postForm(form.action, form);
+        showAlert('success', payload.message || (currentAction === 'update' ? 'Sede modificata con successo' : 'Sede creata con successo'));
+        setAddMode();
+        setPanelVisible(false);
         if (tableEl.__dataTable) {
           tableEl.__dataTable.ajax.reload(null, false);
         }
       } catch (errorPayload) {
-        const message = (errorPayload && errorPayload.message) ? errorPayload.message : 'Errore durante salvataggio sede';
+        const currentAction = actionInput ? actionInput.value : 'add';
+        const fallbackMessage = currentAction === 'update'
+          ? 'Errore durante aggiornamento sede'
+          : 'Errore durante salvataggio sede';
+        const message = (errorPayload && errorPayload.message) ? errorPayload.message : fallbackMessage;
         showAlert('danger', message);
-        addPanel.classList.remove('d-none');
-      } finally {
-        if (submitButton) {
-          submitButton.disabled = false;
-        }
-      }
-    });
-  }
-
-  if (editForm && ui && typeof ui.postForm === 'function') {
-    editForm.addEventListener('submit', async function (event) {
-      event.preventDefault();
-      hideAlert();
-
-      if (!editForm.checkValidity()) {
-        editForm.reportValidity();
-        return;
-      }
-
-      const submitButton = editForm.querySelector('button[type="submit"]');
-      if (submitButton) {
-        submitButton.disabled = true;
-      }
-
-      try {
-        const payload = await ui.postForm(editForm.action, editForm);
-        showAlert('success', payload.message || 'Sede modificata con successo');
-        editPanel.classList.add('d-none');
-        if (tableEl.__dataTable) {
-          tableEl.__dataTable.ajax.reload(null, false);
-        }
-      } catch (errorPayload) {
-        const message = (errorPayload && errorPayload.message) ? errorPayload.message : 'Errore durante aggiornamento sede';
-        showAlert('danger', message);
-        editPanel.classList.remove('d-none');
+        setPanelVisible(true);
       } finally {
         if (submitButton) {
           submitButton.disabled = false;
@@ -429,11 +411,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Gestisci il prefill da query parameters
   <?php if ($openEdit && $editPrefill['id'] > 0): ?>
-    document.getElementById('editSiteId').value = <?= (int) $editPrefill['id'] ?>;
-    document.getElementById('editSiteName').value = <?= json_encode($editPrefill['name']) ?>;
-    document.getElementById('editSiteCode').value = <?= json_encode($editPrefill['code']) ?>;
-    document.getElementById('editSiteActive').value = <?= json_encode((string) ((int) $editPrefill['active'] === 0 ? '0' : '1')) ?>;
-    editPanel.classList.remove('d-none');
+    setEditMode(
+      <?= (int) $editPrefill['id'] ?>,
+      <?= json_encode($editPrefill['name']) ?>,
+      <?= json_encode($editPrefill['code']) ?>,
+      <?= json_encode((string) ((int) $editPrefill['active'] === 0 ? '0' : '1')) ?>
+    );
+    setPanelVisible(true);
+  <?php else: ?>
+    setAddMode();
   <?php endif; ?>
 });
 </script>

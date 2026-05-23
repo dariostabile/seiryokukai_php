@@ -21,12 +21,13 @@ $editPrefill = [
   'name' => trim((string) ($_GET['edit_name'] ?? '')),
   'notes' => trim((string) ($_GET['edit_notes'] ?? '')),
 ];
+$openDisciplinaPanel = $openAddPanel || ($openEdit && $editPrefill['id'] > 0);
 ?>
 <div class="card shadow-sm border-0 mt-3">
   <div class="card-body">
     <div class="d-flex justify-content-between align-items-center mb-3 gap-2">
       <h5 class="m-0">Gestione Discipline</h5>
-      <button class="btn btn-success" type="button" id="openAddDisciplinaPanel">+ Aggiungi disciplina</button>
+      <button class="btn btn-success" type="button" id="openAddDisciplinaPanel">+ Aggiungi Disciplina</button>
     </div>
 
     <?php if ($okMessage !== ''): ?>
@@ -55,57 +56,29 @@ $editPrefill = [
       </table>
     </div>
 
-    <div id="addDisciplinaPanel" class="card border mt-4 <?= $openAddPanel ? '' : 'd-none' ?>">
+    <div id="disciplinaPanel" class="card border mt-4 <?= $openDisciplinaPanel ? '' : 'd-none' ?>">
       <div class="card-header d-flex justify-content-between align-items-center">
-        <h6 class="m-0">Scheda Nuova Disciplina</h6>
-        <button class="btn btn-sm btn-outline-secondary" type="button" id="closeAddDisciplinaPanelBtn">Chiudi</button>
+        <h6 class="m-0" id="disciplinaPanelTitle">Scheda Nuova Disciplina</h6>
+        <button class="btn btn-sm btn-outline-secondary" type="button" id="closeDisciplinaPanelBtn">Chiudi</button>
       </div>
       <div class="card-body">
-        <form method="post" action="<?= htmlspecialchars($disciplinaApiUrl) ?>" class="row g-3" id="addDisciplinaForm">
-          <input type="hidden" name="action" value="add">
-
-          <div class="col-12">
-            <label class="form-label">Nome Disciplina</label>
-            <input class="form-control" name="name" placeholder="Nome della disciplina" required value="<?= htmlspecialchars($addPrefill['name']) ?>">
-          </div>
-
-          <div class="col-12">
-            <label class="form-label">Note</label>
-            <textarea class="form-control" name="notes" placeholder="Note (opzionale)" rows="3"><?= htmlspecialchars($addPrefill['notes']) ?></textarea>
-          </div>
-
-          <div class="col-12 d-flex justify-content-end gap-2">
-            <button class="btn btn-secondary" type="button" id="cancelAddDisciplinaBtn">Annulla</button>
-            <button class="btn btn-success" type="submit">+ Aggiungi Disciplina</button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <div id="editDisciplinaPanel" class="card border mt-4 d-none">
-      <div class="card-header d-flex justify-content-between align-items-center">
-        <h6 class="m-0">Scheda Disciplina</h6>
-        <button class="btn btn-sm btn-outline-secondary" type="button" id="closeEditDisciplinaPanelBtn">Chiudi</button>
-      </div>
-      <div class="card-body">
-        <form method="post" action="<?= htmlspecialchars($disciplinaApiUrl) ?>" class="row g-3" id="editDisciplinaForm">
-          <input type="hidden" name="action" value="update">
-          <input type="hidden" name="id" id="editDisciplinaId">
-
-          <div class="col-12">
-            <label class="form-label">Nome Disciplina</label>
-            <input class="form-control" name="name" id="editDisciplinaName" placeholder="Nome della disciplina" required>
-          </div>
-
-          <div class="col-12">
-            <label class="form-label">Note</label>
-            <textarea class="form-control" name="notes" id="editDisciplinaNotes" placeholder="Note (opzionale)" rows="3"></textarea>
-          </div>
-
-          <div class="col-12 d-flex justify-content-end gap-2">
-            <button class="btn btn-secondary" type="button" id="cancelEditDisciplinaBtn">Annulla</button>
-            <button class="btn btn-warning" type="submit">Salva Modifiche</button>
-          </div>
+        <form method="post" action="<?= htmlspecialchars($disciplinaApiUrl) ?>" class="row g-3" id="disciplinaForm">
+          <input type="hidden" name="action" id="disciplinaAction" value="add">
+          <input type="hidden" name="id" id="disciplinaId" value="">
+          <?php
+          $disciplinaFormValues = $openEdit && $editPrefill['id'] > 0
+              ? $editPrefill
+              : $addPrefill;
+          $disciplinaFormIsEdit = $openEdit && $editPrefill['id'] > 0;
+          $disciplinaFieldIds = [
+              'name' => 'editDisciplinaName',
+              'notes' => 'editDisciplinaNotes',
+          ];
+          $disciplinaCancelButtonId = 'cancelDisciplinaBtn';
+          $disciplinaSubmitLabel = $disciplinaFormIsEdit ? 'Salva modifiche' : '+ Aggiungi Disciplina';
+          $disciplinaSubmitClass = $disciplinaFormIsEdit ? 'btn-warning' : 'btn-success';
+          require __DIR__ . '/partials/disciplina_form_fields.php';
+          ?>
         </form>
       </div>
     </div>
@@ -116,18 +89,71 @@ $editPrefill = [
 document.addEventListener('DOMContentLoaded', function () {
   const ui = window.SeiryokukaiUi || null;
   const addPanelBtn = document.getElementById('openAddDisciplinaPanel');
-  const addPanel = document.getElementById('addDisciplinaPanel');
-  const addForm = document.getElementById('addDisciplinaForm');
-  const closeAddPanelBtn = document.getElementById('closeAddDisciplinaPanelBtn');
-  const cancelAddBtn = document.getElementById('cancelAddDisciplinaBtn');
-
-  const editPanel = document.getElementById('editDisciplinaPanel');
-  const editForm = document.getElementById('editDisciplinaForm');
-  const closeEditPanelBtn = document.getElementById('closeEditDisciplinaPanelBtn');
-  const cancelEditBtn = document.getElementById('cancelEditDisciplinaBtn');
+  const panel = document.getElementById('disciplinaPanel');
+  const form = document.getElementById('disciplinaForm');
+  const closePanelBtn = document.getElementById('closeDisciplinaPanelBtn');
+  const cancelBtn = document.getElementById('cancelDisciplinaBtn');
+  const panelTitle = document.getElementById('disciplinaPanelTitle');
+  const actionInput = document.getElementById('disciplinaAction');
+  const idInput = document.getElementById('disciplinaId');
 
   const tableEl = document.getElementById('disciplina-table');
   const ajaxAlert = document.getElementById('disciplinaAjaxAlert');
+
+  function getSubmitButton() {
+    return form ? form.querySelector('button[type="submit"]') : null;
+  }
+
+  function setPanelVisible(visible) {
+    if (!panel) {
+      return;
+    }
+    panel.classList.toggle('d-none', !visible);
+  }
+
+  function setAddMode() {
+    if (!form || !panelTitle || !actionInput || !idInput) {
+      return;
+    }
+
+    actionInput.value = 'add';
+    idInput.value = '';
+    panelTitle.textContent = 'Scheda Nuova Disciplina';
+    form.reset();
+
+    const submitButton = getSubmitButton();
+    if (submitButton) {
+      submitButton.textContent = '+ Aggiungi Disciplina';
+      submitButton.classList.remove('btn-warning');
+      submitButton.classList.add('btn-success');
+    }
+  }
+
+  function setEditMode(id, name, notes) {
+    if (!panelTitle || !actionInput || !idInput) {
+      return;
+    }
+
+    actionInput.value = 'update';
+    idInput.value = String(id || '');
+    panelTitle.textContent = 'Scheda Disciplina';
+
+    const nameInput = document.getElementById('editDisciplinaName');
+    const notesInput = document.getElementById('editDisciplinaNotes');
+    if (nameInput) {
+      nameInput.value = String(name || '');
+    }
+    if (notesInput) {
+      notesInput.value = String(notes || '');
+    }
+
+    const submitButton = getSubmitButton();
+    if (submitButton) {
+      submitButton.textContent = 'Salva modifiche';
+      submitButton.classList.remove('btn-success');
+      submitButton.classList.add('btn-warning');
+    }
+  }
 
   function showAlert(type, message) {
     if (ui && typeof ui.showAlert === 'function') {
@@ -159,23 +185,21 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   // Apri panel aggiunta
-  addPanelBtn.addEventListener('click', () => {
-    hideAlert();
-    addPanel.classList.remove('d-none');
-  });
-
-  // Chiudi panel aggiunta
-  [closeAddPanelBtn, cancelAddBtn].forEach(btn => {
-    btn.addEventListener('click', () => {
-      addPanel.classList.add('d-none');
+  if (addPanelBtn) {
+    addPanelBtn.addEventListener('click', () => {
       hideAlert();
+      setAddMode();
+      setPanelVisible(true);
     });
-  });
+  }
 
-  // Chiudi panel modifica
-  [closeEditPanelBtn, cancelEditBtn].forEach(btn => {
+  [closePanelBtn, cancelBtn].forEach(btn => {
+    if (!btn) {
+      return;
+    }
+
     btn.addEventListener('click', () => {
-      editPanel.classList.add('d-none');
+      setPanelVisible(false);
       hideAlert();
     });
   });
@@ -246,12 +270,11 @@ document.addEventListener('DOMContentLoaded', function () {
       const name = editBtn.dataset.name;
       const notes = editBtn.dataset.notes;
 
-      document.getElementById('editDisciplinaId').value = id;
-      document.getElementById('editDisciplinaName').value = name;
-      document.getElementById('editDisciplinaNotes').value = notes;
-
-      editPanel.classList.remove('d-none');
-      editPanel.scrollIntoView({ behavior: 'smooth' });
+      setEditMode(id, name, notes);
+      setPanelVisible(true);
+      if (panel) {
+        panel.scrollIntoView({ behavior: 'smooth' });
+      }
     }
 
     const deleteBtn = e.target.closest('.delete-disciplina-btn');
@@ -291,9 +314,9 @@ document.addEventListener('DOMContentLoaded', function () {
               tableEl.__dataTable.ajax.reload(null, false);
             }
 
-            const currentEditId = parseInt(document.getElementById('editDisciplinaId').value || '0', 10);
+            const currentEditId = parseInt((idInput && idInput.value) ? idInput.value : '0', 10);
             if (currentEditId === id) {
-              editPanel.classList.add('d-none');
+              setPanelVisible(false);
             }
           })
           .catch(function (errorPayload) {
@@ -304,57 +327,33 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   });
 
-  if (addForm && ui && typeof ui.postForm === 'function') {
-    addForm.addEventListener('submit', async function (event) {
+  if (form && ui && typeof ui.postForm === 'function') {
+    form.addEventListener('submit', async function (event) {
       event.preventDefault();
       hideAlert();
 
-      const submitButton = addForm.querySelector('button[type="submit"]');
+      const submitButton = getSubmitButton();
       if (submitButton) {
         submitButton.disabled = true;
       }
 
       try {
-        const payload = await ui.postForm(addForm.action, addForm);
-        showAlert('success', payload.message || 'Disciplina creata con successo');
-        addForm.reset();
-        addPanel.classList.add('d-none');
+        const currentAction = actionInput ? actionInput.value : 'add';
+        const payload = await ui.postForm(form.action, form);
+        showAlert('success', payload.message || (currentAction === 'update' ? 'Disciplina modificata con successo' : 'Disciplina creata con successo'));
+        setAddMode();
+        setPanelVisible(false);
         if (tableEl.__dataTable) {
           tableEl.__dataTable.ajax.reload(null, false);
         }
       } catch (errorPayload) {
-        const message = (errorPayload && errorPayload.message) ? errorPayload.message : 'Errore durante salvataggio disciplina';
+        const currentAction = actionInput ? actionInput.value : 'add';
+        const fallbackMessage = currentAction === 'update'
+          ? 'Errore durante aggiornamento disciplina'
+          : 'Errore durante salvataggio disciplina';
+        const message = (errorPayload && errorPayload.message) ? errorPayload.message : fallbackMessage;
         showAlert('danger', message);
-        addPanel.classList.remove('d-none');
-      } finally {
-        if (submitButton) {
-          submitButton.disabled = false;
-        }
-      }
-    });
-  }
-
-  if (editForm && ui && typeof ui.postForm === 'function') {
-    editForm.addEventListener('submit', async function (event) {
-      event.preventDefault();
-      hideAlert();
-
-      const submitButton = editForm.querySelector('button[type="submit"]');
-      if (submitButton) {
-        submitButton.disabled = true;
-      }
-
-      try {
-        const payload = await ui.postForm(editForm.action, editForm);
-        showAlert('success', payload.message || 'Disciplina modificata con successo');
-        editPanel.classList.add('d-none');
-        if (tableEl.__dataTable) {
-          tableEl.__dataTable.ajax.reload(null, false);
-        }
-      } catch (errorPayload) {
-        const message = (errorPayload && errorPayload.message) ? errorPayload.message : 'Errore durante aggiornamento disciplina';
-        showAlert('danger', message);
-        editPanel.classList.remove('d-none');
+        setPanelVisible(true);
       } finally {
         if (submitButton) {
           submitButton.disabled = false;
@@ -364,10 +363,14 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   <?php if ($openEdit && $editPrefill['id'] > 0): ?>
-    document.getElementById('editDisciplinaId').value = <?= (int) $editPrefill['id'] ?>;
-    document.getElementById('editDisciplinaName').value = <?= json_encode($editPrefill['name']) ?>;
-    document.getElementById('editDisciplinaNotes').value = <?= json_encode($editPrefill['notes']) ?>;
-    editPanel.classList.remove('d-none');
+    setEditMode(
+      <?= (int) $editPrefill['id'] ?>,
+      <?= json_encode($editPrefill['name']) ?>,
+      <?= json_encode($editPrefill['notes']) ?>
+    );
+    setPanelVisible(true);
+  <?php else: ?>
+    setAddMode();
   <?php endif; ?>
 });
 </script>

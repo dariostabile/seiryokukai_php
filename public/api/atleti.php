@@ -156,6 +156,64 @@ function gestisciUploadImmagineAtleta(array $file, int $athleteId): string
     return $relativePath;
 }
 
+function gestisciUploadImmagineBase64Atleta(string $dataUrl, int $athleteId): string
+{
+    if ($athleteId <= 0) {
+        throw new \InvalidArgumentException('Atleta non valido per upload immagine');
+    }
+
+    $dataUrl = trim($dataUrl);
+    if ($dataUrl === '') {
+        return '';
+    }
+
+    if (!preg_match('#^data:(image/(?:jpeg|png|webp|gif));base64,([A-Za-z0-9+/=]+)$#', $dataUrl, $matches)) {
+        throw new \RuntimeException('Dati immagine ritagliata non validi');
+    }
+
+    $mime = (string) ($matches[1] ?? '');
+    $base64Data = (string) ($matches[2] ?? '');
+    $binary = base64_decode($base64Data, true);
+    if ($binary === false || $binary === '') {
+        throw new \RuntimeException('Immagine ritagliata non valida');
+    }
+
+    if (strlen($binary) > 5 * 1024 * 1024) {
+        throw new \RuntimeException('L\'immagine deve essere minore di 5MB');
+    }
+
+    $allowed = [
+        'image/jpeg' => 'jpg',
+        'image/png' => 'png',
+        'image/webp' => 'webp',
+        'image/gif' => 'gif',
+    ];
+
+    if (!isset($allowed[$mime])) {
+        throw new \RuntimeException('Formato immagine non supportato');
+    }
+
+    $extension = $allowed[$mime];
+    $relativeDir = 'public/atleti/' . $athleteId;
+    $absoluteDir = __DIR__ . '/../../' . $relativeDir;
+
+    if (!is_dir($absoluteDir) && !mkdir($absoluteDir, 0775, true) && !is_dir($absoluteDir)) {
+        throw new \RuntimeException('Impossibile creare la cartella immagini atleta');
+    }
+
+    $fileName = $athleteId . '_' . date('YmdHis') . '_' . bin2hex(random_bytes(4)) . '.' . $extension;
+    $relativePath = $relativeDir . '/' . $fileName;
+    $absolutePath = __DIR__ . '/../../' . $relativePath;
+
+    if (file_put_contents($absolutePath, $binary) === false) {
+        throw new \RuntimeException('Impossibile salvare l\'immagine ritagliata');
+    }
+
+    normalizzaAvatarQuadratoAtleta($absolutePath, $mime);
+
+    return $relativePath;
+}
+
 function normalizzaAvatarQuadratoAtleta(string $filePath, string $mime): void
 {
     if (!is_file($filePath)) {
@@ -559,7 +617,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $newImagePath = '';
             }
 
-            if (isset($_FILES['image']) && is_array($_FILES['image'])) {
+            $croppedImageData = trim((string) ($_POST['crop_image_base64'] ?? ''));
+            if ($croppedImageData !== '') {
+                $uploadedPath = gestisciUploadImmagineBase64Atleta($croppedImageData, $athleteId);
+                if ($uploadedPath !== '') {
+                    $newImagePath = $uploadedPath;
+                }
+            }
+
+            if ($croppedImageData === '' && isset($_FILES['image']) && is_array($_FILES['image'])) {
                 $uploadedPath = gestisciUploadImmagineAtleta($_FILES['image'], $athleteId);
                 if ($uploadedPath !== '') {
                     $newImagePath = $uploadedPath;
@@ -690,7 +756,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $athlete = $atleti->createAtleta($request->all());
 
         $createdAthleteId = (int) ($athlete['id'] ?? 0);
-        if ($createdAthleteId > 0 && isset($_FILES['image']) && is_array($_FILES['image'])) {
+        $addCroppedImageData = trim((string) ($_POST['crop_image_base64_add'] ?? ''));
+        if ($createdAthleteId > 0 && $addCroppedImageData !== '') {
+            $newImagePath = gestisciUploadImmagineBase64Atleta($addCroppedImageData, $createdAthleteId);
+            if ($newImagePath !== '') {
+                $atleti->updateAtletaImage($createdAthleteId, $newImagePath);
+            }
+        } elseif ($createdAthleteId > 0 && isset($_FILES['image']) && is_array($_FILES['image'])) {
             $newImagePath = gestisciUploadImmagineAtleta($_FILES['image'], $createdAthleteId);
             if ($newImagePath !== '') {
                 $atleti->updateAtletaImage($createdAthleteId, $newImagePath);

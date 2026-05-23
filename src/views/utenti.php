@@ -75,7 +75,7 @@ foreach ($applicationsCatalog as $app) {
   <div class="card-body">
       <div class="d-flex justify-content-between align-items-center mb-3 gap-2">
       <h5 class="m-0">Gestione Utenti</h5>
-        <button class="btn btn-success" type="button" id="openAddUserPanelBtn">+ Aggiungi utente</button>
+        <button class="btn btn-success" type="button" id="openAddUserPanelBtn">+ Aggiungi Utente</button>
     </div>
 
     <?php if ($okMessage !== ''): ?>
@@ -161,102 +161,47 @@ foreach ($applicationsCatalog as $app) {
                   </div>
 
                   <div class="col-12 col-lg-9">
-                    <div class="row g-3">
-                      <div class="col-12 col-md-6">
-                        <label class="form-label">Stato</label>
-                        <select class="form-select" name="status">
-                          <option value="Attivo" <?= $addPrefill['status'] === 'Attivo' ? 'selected' : '' ?>>Attivo</option>
-                          <option value="Sospeso" <?= $addPrefill['status'] === 'Sospeso' ? 'selected' : '' ?>>Sospeso</option>
-                        </select>
-                      </div>
-                      <div class="col-12 col-md-6">
-                        <label class="form-label" for="add_data_scadenza_account">Data Scadenza Account</label>
-                        <input type="date" class="form-control" id="add_data_scadenza_account" name="data_scadenza_account" value="<?= htmlspecialchars($addPrefill['data_scadenza_account'] ?? '') ?>">
-                      </div>
-                    </div>
-
-                    <div class="row mt-5">
-                      <div class="col-12 col-md-6">
-                        <label class="form-label">Nome</label>
-                        <input class="form-control" name="nome" id="addUserNome" placeholder="Nome" value="<?= htmlspecialchars($addPrefill['nome']) ?>">
-                      </div>
-                      <div class="col-12 col-md-6">
-                        <label class="form-label">Cognome</label>
-                        <input class="form-control" name="cognome" id="addUserCognome" placeholder="Cognome" value="<?= htmlspecialchars($addPrefill['cognome']) ?>">
-                      </div>
-                      <div class="col-12 col-md-6">
-                        <label class="form-label">Username</label>
-                        <input class="form-control" name="username" id="addUserUsername" placeholder="Username" required value="<?= htmlspecialchars($addPrefill['username']) ?>">
-                      </div>
-                      <div class="col-12 col-md-6">
-                        <label class="form-label">Password</label>
-                        <input class="form-control" name="password" type="password" placeholder="Password" minlength="8" required>
-                      </div>
-                      <div class="col-12 col-md-6">
-                        <label class="form-label">Email</label>
-                        <input class="form-control" name="email" type="email" placeholder="Email" value="<?= htmlspecialchars($addPrefill['email']) ?>">
-                      </div>
-                      <div class="col-12 col-md-6">
-                        <label class="form-label">Email 2</label>
-                        <input class="form-control" name="email2" type="email" placeholder="Email 2" value="<?= htmlspecialchars($addPrefill['email2']) ?>">
-                      </div>
-                      <div class="col-12 col-md-6">
-                        <label class="form-label">Telefono 1</label>
-                        <input class="form-control" name="telefono1" type="tel" placeholder="Telefono 1" value="<?= htmlspecialchars($addPrefill['telefono1']) ?>">
-                      </div>
-                      <div class="col-12 col-md-6">
-                        <label class="form-label">Telefono 2</label>
-                        <input class="form-control" name="telefono2" type="tel" placeholder="Telefono 2" value="<?= htmlspecialchars($addPrefill['telefono2']) ?>">
-                      </div>
-                    </div>
+                    <?php
+                    $utenteFormValues = [
+                        'status' => (string) ($addPrefill['status'] ?? 'Attivo'),
+                        'data_scadenza_account' => (string) ($addPrefill['data_scadenza_account'] ?? ''),
+                        'nome' => (string) ($addPrefill['nome'] ?? ''),
+                        'cognome' => (string) ($addPrefill['cognome'] ?? ''),
+                        'username' => (string) ($addPrefill['username'] ?? ''),
+                        'email' => (string) ($addPrefill['email'] ?? ''),
+                        'email2' => (string) ($addPrefill['email2'] ?? ''),
+                        'telefono1' => (string) ($addPrefill['telefono1'] ?? ''),
+                        'telefono2' => (string) ($addPrefill['telefono2'] ?? ''),
+                    ];
+                    $utenteAnagraficaFieldIds = [
+                        'status' => '',
+                        'data_scadenza_account' => 'add_data_scadenza_account',
+                        'nome' => 'addUserNome',
+                        'cognome' => 'addUserCognome',
+                        'username' => 'addUserUsername',
+                        'password' => 'addUserPassword',
+                        'email' => 'addUserEmail',
+                        'email2' => 'addUserEmail2',
+                        'telefono1' => 'addUserTelefono1',
+                        'telefono2' => 'addUserTelefono2',
+                    ];
+                    $utenteAnagraficaIsEdit = false;
+                    require __DIR__ . '/partials/utente_form_anagrafica_fields.php';
+                    ?>
                   </div>
                 </div>
               </div>
 
               <div class="tab-pane fade" id="add-tab-diritti" role="tabpanel" aria-labelledby="add-tab-diritti-tab" tabindex="0">
-                <div class="row g-2">
-                  <div class="col-12 col-md-6">
-                    <label class="form-label">Profili</label>
-                    <select class="form-select" name="profile_ids[]" id="addUserProfiles" multiple size="3" required>
-                      <?php foreach ($profiles as $p): ?>
-                        <?php $profileValue = (int) ($p['id'] ?? 0); ?>
-                        <option value="<?= $profileValue ?>" <?= in_array($profileValue, (array) ($addPrefill['profile_ids'] ?? []), true) ? 'selected' : '' ?>><?= htmlspecialchars((string) ($p['name'] ?? '')) ?></option>
-                      <?php endforeach; ?>
-                    </select>
-                    <small class="text-muted">Puoi selezionare piu profili.</small>
-                  </div>
-
-                  <div class="col-12 mt-3">
-                    <label class="form-label fw-semibold">Permessi applicativi</label>
-                    <div class="row g-3">
-                      <?php foreach ($groupedApplications as $groupName => $apps): ?>
-                        <div class="col-12 col-lg-6">
-                          <div class="border rounded p-3 h-100">
-                            <div class="fw-semibold mb-2"><?= htmlspecialchars((string) $groupName) ?></div>
-                            <div class="d-flex flex-column gap-2">
-                              <?php foreach ($apps as $app): ?>
-                                <?php $appId = (int) ($app['id'] ?? 0); ?>
-                                <div class="form-check">
-                                  <input
-                                    class="form-check-input add-user-application"
-                                    type="checkbox"
-                                    value="<?= $appId ?>"
-                                    name="application_ids[]"
-                                    id="addUserApplication<?= $appId ?>"
-                                    <?= in_array($appId, (array) ($addPrefill['application_ids'] ?? []), true) ? 'checked' : '' ?>
-                                  >
-                                  <label class="form-check-label" for="addUserApplication<?= $appId ?>">
-                                    <?= htmlspecialchars((string) ($app['name'] ?? 'Applicazione')) ?>
-                                  </label>
-                                </div>
-                              <?php endforeach; ?>
-                            </div>
-                          </div>
-                        </div>
-                      <?php endforeach; ?>
-                    </div>
-                  </div>
-                </div>
+                <?php
+                $utenteDirittiProfileIds = (array) ($addPrefill['profile_ids'] ?? []);
+                $utenteDirittiApplicationIds = (array) ($addPrefill['application_ids'] ?? []);
+                $utenteDirittiProfileSelectId = 'addUserProfiles';
+                $utenteDirittiApplicationClass = 'add-user-application';
+                $utenteDirittiApplicationIdPrefix = 'addUserApplication';
+                $utenteDirittiShowSelfEditNotice = false;
+                require __DIR__ . '/partials/utente_form_diritti_fields.php';
+                ?>
               </div>
             </div>
 
@@ -330,112 +275,53 @@ foreach ($applicationsCatalog as $app) {
                   </div>
 
                   <div class="col-12 col-lg-9">
-                    <div class="row g-3">
-                      <div class="col-12 col-md-6">
-                        <label class="form-label">Stato</label>
-                        <select class="form-select" name="status" id="editUserStatus">
-                          <option value="Attivo">Attivo</option>
-                          <option value="Sospeso">Sospeso</option>
-                        </select>
-                      </div>
-                      <div class="col-12 col-md-6">
-                        <label class="form-label" for="editUserDataScadenzaAccount">Data Scadenza Account</label>
-                        <input class="form-control" type="date" name="data_scadenza_account" id="editUserDataScadenzaAccount">
-                      </div>
-                    </div>
-                    <div class="row mt-5">
-                      <div class="col-12 col-md-6">
-                        <label class="form-label">Nome</label>
-                        <input class="form-control" name="nome" id="editUserNome">
-                      </div>
-                      <div class="col-12 col-md-6">
-                        <label class="form-label">Cognome</label>
-                        <input class="form-control" name="cognome" id="editUserCognome">
-                      </div>
-                      <div class="col-12 col-md-6">
-                        <label class="form-label">Username</label>
-                        <input class="form-control" name="username" id="editUserUsername" required>
-                      </div>
-                      <div class="col-12 col-md-6">
-                        <label class="form-label">Password</label>
-                        <input class="form-control" type="password" name="password" id="editUserPassword" minlength="8" placeholder="Lascia vuoto per non cambiare">
-                      </div>
-                      <div class="col-12 col-md-6">
-                        <label class="form-label">Email</label>
-                        <input class="form-control" type="email" name="email" id="editUserEmail">
-                      </div>
-                      <div class="col-12 col-md-6">
-                        <label class="form-label">Email 2</label>
-                        <input class="form-control" type="email" name="email2" id="editUserEmail2">
-                      </div>
-                      <div class="col-12 col-md-6">
-                        <label class="form-label">Telefono 1</label>
-                        <input class="form-control" type="tel" name="telefono1" id="editUserTelefono1">
-                      </div>
-                      <div class="col-12 col-md-6">
-                        <label class="form-label">Telefono 2</label>
-                        <input class="form-control" type="tel" name="telefono2" id="editUserTelefono2">
-                      </div>
-                    </div>
+                    <?php
+                    $utenteFormValues = [
+                        'status' => (string) ($editPrefill['status'] ?? 'Attivo'),
+                        'data_scadenza_account' => (string) ($editPrefill['data_scadenza_account'] ?? ''),
+                        'nome' => (string) ($editPrefill['first_name'] ?? ''),
+                        'cognome' => (string) ($editPrefill['last_name'] ?? ''),
+                        'username' => (string) ($editPrefill['username'] ?? ''),
+                        'email' => (string) ($editPrefill['email'] ?? ''),
+                        'email2' => (string) ($editPrefill['email2'] ?? ''),
+                        'telefono1' => (string) ($editPrefill['telefono1'] ?? ''),
+                        'telefono2' => (string) ($editPrefill['telefono2'] ?? ''),
+                    ];
+                    $utenteAnagraficaFieldIds = [
+                        'status' => 'editUserStatus',
+                        'data_scadenza_account' => 'editUserDataScadenzaAccount',
+                        'nome' => 'editUserNome',
+                        'cognome' => 'editUserCognome',
+                        'username' => 'editUserUsername',
+                        'password' => 'editUserPassword',
+                        'email' => 'editUserEmail',
+                        'email2' => 'editUserEmail2',
+                        'telefono1' => 'editUserTelefono1',
+                        'telefono2' => 'editUserTelefono2',
+                    ];
+                    $utenteAnagraficaIsEdit = true;
+                    require __DIR__ . '/partials/utente_form_anagrafica_fields.php';
+                    ?>
                   </div>
                 </div>
               </div>
 
               <div class="tab-pane fade" id="tab-diritti" role="tabpanel" aria-labelledby="tab-diritti-tab" tabindex="0">
-                <div id="selfEditNotice" class="alert alert-info py-2 px-3 d-none" role="alert">
-                  Sul tuo utente puoi modificare solo i dati anagrafici base, i recapiti e l'immagine.
-                </div>
-
-                <div class="row g-2">
-                  <div class="col-12 col-md-6">
-                    <label class="form-label">Profili</label>
-                    <select class="form-select" name="profile_ids[]" id="editUserProfiles" multiple size="3" required>
-                      <?php foreach ($profiles as $p): ?>
-                        <?php $profileValue = (int) ($p['id'] ?? 0); ?>
-                        <option value="<?= $profileValue ?>" <?= in_array($profileValue, (array) ($editPrefill['profile_ids'] ?? []), true) ? 'selected' : '' ?>><?= htmlspecialchars((string) ($p['name'] ?? '')) ?></option>
-                      <?php endforeach; ?>
-                    </select>
-                    <small class="text-muted">Puoi selezionare piu profili.</small>
-                  </div>
-                  
-
-                  <div class="col-12 mt-3">
-                    <label class="form-label fw-semibold">Permessi applicativi</label>
-                    <div class="row g-3">
-                      <?php foreach ($groupedApplications as $groupName => $apps): ?>
-                        <div class="col-12 col-lg-6">
-                          <div class="border rounded p-3 h-100">
-                            <div class="fw-semibold mb-2"><?= htmlspecialchars((string) $groupName) ?></div>
-                            <div class="d-flex flex-column gap-2">
-                              <?php foreach ($apps as $app): ?>
-                                <?php $appId = (int) ($app['id'] ?? 0); ?>
-                                <div class="form-check">
-                                  <input
-                                    class="form-check-input edit-user-application"
-                                    type="checkbox"
-                                    value="<?= $appId ?>"
-                                    name="application_ids[]"
-                                    id="editUserApplication<?= $appId ?>"
-                                    <?= in_array($appId, (array) ($editPrefill['application_ids'] ?? []), true) ? 'checked' : '' ?>
-                                  >
-                                  <label class="form-check-label" for="editUserApplication<?= $appId ?>">
-                                    <?= htmlspecialchars((string) ($app['name'] ?? 'Applicazione')) ?>
-                                  </label>
-                                </div>
-                              <?php endforeach; ?>
-                            </div>
-                          </div>
-                        </div>
-                      <?php endforeach; ?>
-                    </div>
-                  </div>
-                </div>
+                <?php
+                $utenteDirittiProfileIds = (array) ($editPrefill['profile_ids'] ?? []);
+                $utenteDirittiApplicationIds = (array) ($editPrefill['application_ids'] ?? []);
+                $utenteDirittiProfileSelectId = 'editUserProfiles';
+                $utenteDirittiApplicationClass = 'edit-user-application';
+                $utenteDirittiApplicationIdPrefix = 'editUserApplication';
+                $utenteDirittiShowSelfEditNotice = true;
+                require __DIR__ . '/partials/utente_form_diritti_fields.php';
+                ?>
               </div>
             </div>
 
           <div class="mt-3 d-flex justify-content-end gap-2">
             <button type="button" class="btn btn-secondary" id="cancelEditUserBtn">Annulla</button>
-            <button type="submit" class="btn btn-primary">Salva</button>
+            <button type="submit" class="btn btn-primary">Salva modifiche</button>
           </div>
         </form>
       </div>
@@ -762,7 +648,7 @@ function resetAddUserForm() {
 }
 
 function loadUserData(user) {
-  const selectedUserId = Number(user.id || 0);
+  const selectedUserId = Number((user && user.meta && user.meta.id) || user.id || 0);
   const isCurrentUser = selectedUserId === currentUserId;
   const profileIds = Array.isArray(user.profile_ids)
     ? user.profile_ids.map((value) => Number(value)).filter((value) => Number.isFinite(value) && value > 0)
@@ -771,7 +657,7 @@ function loadUserData(user) {
       ? user.application_ids.map((value) => Number(value)).filter((value) => Number.isFinite(value) && value > 0)
       : [];
 
-  document.getElementById('editUserId').value = user.id || '';
+  document.getElementById('editUserId').value = selectedUserId > 0 ? String(selectedUserId) : '';
   document.getElementById('editUserNome').value = user.first_name || '';
   document.getElementById('editUserCognome').value = user.last_name || '';
   document.getElementById('editUserUsername').value = user.username || '';
@@ -937,7 +823,7 @@ document.addEventListener('DOMContentLoaded', function () {
           searchable: false,
           className: 'text-end',
           render: function (data, type, row) {
-            const id = Number(row.id || 0);
+            const id = Number((row && row.meta && row.meta.id) || row.id || 0);
             const isCurrentUser = id === currentUserId;
             const isActive = row.status === 'Attivo';
             const nextStatus = isActive ? 'Sospeso' : 'Attivo';

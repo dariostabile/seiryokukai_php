@@ -19,12 +19,13 @@ $editPrefill = [
   'id' => (int) ($_GET['edit_id'] ?? 0),
   'type' => trim((string) ($_GET['edit_type'] ?? '')),
 ];
+$openTipoDocumentoPanel = $openAddPanel || ($openEdit && $editPrefill['id'] > 0);
 ?>
 <div class="card shadow-sm border-0 mt-3">
   <div class="card-body">
     <div class="d-flex justify-content-between align-items-center mb-3 gap-2">
       <h5 class="m-0">Gestione Tipi Documento</h5>
-      <button class="btn btn-success" type="button" id="openAddTipoDocumentoPanel">+ Aggiungi tipo</button>
+      <button class="btn btn-success" type="button" id="openAddTipoDocumentoPanel">+ Aggiungi Tipo</button>
     </div>
 
     <?php if ($okMessage !== ''): ?>
@@ -52,47 +53,26 @@ $editPrefill = [
       </table>
     </div>
 
-    <div id="addTipoDocumentoPanel" class="card border mt-4 <?= $openAddPanel ? '' : 'd-none' ?>">
+    <div id="tipoDocumentoPanel" class="card border mt-4 <?= $openTipoDocumentoPanel ? '' : 'd-none' ?>">
       <div class="card-header d-flex justify-content-between align-items-center">
-        <h6 class="m-0">Scheda Nuovo Tipo Documento</h6>
-        <button class="btn btn-sm btn-outline-secondary" type="button" id="closeAddTipoDocumentoPanelBtn">Chiudi</button>
+        <h6 class="m-0" id="tipoDocumentoPanelTitle">Scheda Nuovo Tipo Documento</h6>
+        <button class="btn btn-sm btn-outline-secondary" type="button" id="closeTipoDocumentoPanelBtn">Chiudi</button>
       </div>
       <div class="card-body">
-        <form method="post" action="<?= htmlspecialchars($tipiDocumentiApiUrl) ?>" class="row g-3" id="addTipoDocumentoForm">
-          <input type="hidden" name="action" value="add">
-
-          <div class="col-12">
-            <label class="form-label">Tipo Documento</label>
-            <input class="form-control" name="type" placeholder="Nuovo tipo documento" required value="<?= htmlspecialchars($addPrefill['type']) ?>">
-          </div>
-
-          <div class="col-12 d-flex justify-content-end gap-2">
-            <button class="btn btn-secondary" type="button" id="cancelAddTipoDocumentoBtn">Annulla</button>
-            <button class="btn btn-success" type="submit">+ Aggiungi Tipo</button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <div id="editTipoDocumentoPanel" class="card border mt-4 d-none">
-      <div class="card-header d-flex justify-content-between align-items-center">
-        <h6 class="m-0">Scheda Tipo Documento</h6>
-        <button class="btn btn-sm btn-outline-secondary" type="button" id="closeEditTipoDocumentoPanelBtn">Chiudi</button>
-      </div>
-      <div class="card-body">
-        <form method="post" action="<?= htmlspecialchars($tipiDocumentiApiUrl) ?>" class="row g-3" id="editTipoDocumentoForm">
-          <input type="hidden" name="action" value="update">
-          <input type="hidden" name="id" id="editTipoDocumentoId">
-
-          <div class="col-12">
-            <label class="form-label">Tipo Documento</label>
-            <input class="form-control" name="type" id="editTipoDocumentoType" placeholder="Tipo documento" required>
-          </div>
-
-          <div class="col-12 d-flex justify-content-end gap-2">
-            <button class="btn btn-secondary" type="button" id="cancelEditTipoDocumentoBtn">Annulla</button>
-            <button class="btn btn-warning" type="submit">Salva Modifiche</button>
-          </div>
+        <form method="post" action="<?= htmlspecialchars($tipiDocumentiApiUrl) ?>" class="row g-3" id="tipoDocumentoForm">
+          <input type="hidden" name="action" id="tipoDocumentoAction" value="add">
+          <input type="hidden" name="id" id="tipoDocumentoId" value="">
+          <?php
+          $tipoDocumentoFormValue = $openEdit && $editPrefill['id'] > 0
+            ? $editPrefill['type']
+            : $addPrefill['type'];
+          $tipoDocumentoFormIsEdit = $openEdit && $editPrefill['id'] > 0;
+          $tipoDocumentoFieldId = 'tipoDocumentoTypeInput';
+          $tipoDocumentoCancelButtonId = 'cancelTipoDocumentoBtn';
+          $tipoDocumentoSubmitLabel = $tipoDocumentoFormIsEdit ? 'Salva modifiche' : '+ Aggiungi Tipo';
+          $tipoDocumentoSubmitClass = $tipoDocumentoFormIsEdit ? 'btn-warning' : 'btn-success';
+          require __DIR__ . '/partials/tipo_documento_form_fields.php';
+          ?>
         </form>
       </div>
     </div>
@@ -103,18 +83,64 @@ $editPrefill = [
 document.addEventListener('DOMContentLoaded', function () {
   const ui = window.SeiryokukaiUi || null;
   const addPanelBtn = document.getElementById('openAddTipoDocumentoPanel');
-  const addPanel = document.getElementById('addTipoDocumentoPanel');
-  const addForm = document.getElementById('addTipoDocumentoForm');
-  const closeAddPanelBtn = document.getElementById('closeAddTipoDocumentoPanelBtn');
-  const cancelAddBtn = document.getElementById('cancelAddTipoDocumentoBtn');
-
-  const editPanel = document.getElementById('editTipoDocumentoPanel');
-  const editForm = document.getElementById('editTipoDocumentoForm');
-  const closeEditPanelBtn = document.getElementById('closeEditTipoDocumentoPanelBtn');
-  const cancelEditBtn = document.getElementById('cancelEditTipoDocumentoBtn');
+  const panel = document.getElementById('tipoDocumentoPanel');
+  const form = document.getElementById('tipoDocumentoForm');
+  const closePanelBtn = document.getElementById('closeTipoDocumentoPanelBtn');
+  const cancelBtn = document.getElementById('cancelTipoDocumentoBtn');
+  const panelTitle = document.getElementById('tipoDocumentoPanelTitle');
+  const actionInput = document.getElementById('tipoDocumentoAction');
+  const idInput = document.getElementById('tipoDocumentoId');
+  const typeInput = document.getElementById('tipoDocumentoTypeInput');
 
   const tableEl = document.getElementById('tipi-documento-table');
   const ajaxAlert = document.getElementById('tipiDocumentoAjaxAlert');
+
+  function getSubmitButton() {
+    return form ? form.querySelector('button[type="submit"]') : null;
+  }
+
+  function setPanelVisible(visible) {
+    if (!panel) {
+      return;
+    }
+    panel.classList.toggle('d-none', !visible);
+  }
+
+  function setAddMode() {
+    if (!actionInput || !idInput || !panelTitle || !typeInput || !form) {
+      return;
+    }
+
+    actionInput.value = 'add';
+    idInput.value = '';
+    panelTitle.textContent = 'Scheda Nuovo Tipo Documento';
+    typeInput.value = '';
+
+    const submitButton = getSubmitButton();
+    if (submitButton) {
+      submitButton.textContent = '+ Aggiungi Tipo';
+      submitButton.classList.remove('btn-warning');
+      submitButton.classList.add('btn-success');
+    }
+  }
+
+  function setEditMode(id, type) {
+    if (!actionInput || !idInput || !panelTitle || !typeInput) {
+      return;
+    }
+
+    actionInput.value = 'update';
+    idInput.value = String(id || '');
+    panelTitle.textContent = 'Scheda Tipo Documento';
+    typeInput.value = String(type || '');
+
+    const submitButton = getSubmitButton();
+    if (submitButton) {
+      submitButton.textContent = 'Salva modifiche';
+      submitButton.classList.remove('btn-success');
+      submitButton.classList.add('btn-warning');
+    }
+  }
 
   function showAlert(type, message) {
     if (ui && typeof ui.showAlert === 'function') {
@@ -146,23 +172,21 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   // Apri panel aggiunta
-  addPanelBtn.addEventListener('click', () => {
-    hideAlert();
-    addPanel.classList.remove('d-none');
-  });
-
-  // Chiudi panel aggiunta
-  [closeAddPanelBtn, cancelAddBtn].forEach(btn => {
-    btn.addEventListener('click', () => {
-      addPanel.classList.add('d-none');
+  if (addPanelBtn) {
+    addPanelBtn.addEventListener('click', () => {
       hideAlert();
+      setAddMode();
+      setPanelVisible(true);
     });
-  });
+  }
 
-  // Chiudi panel modifica
-  [closeEditPanelBtn, cancelEditBtn].forEach(btn => {
+  [closePanelBtn, cancelBtn].forEach(btn => {
+    if (!btn) {
+      return;
+    }
+
     btn.addEventListener('click', () => {
-      editPanel.classList.add('d-none');
+      setPanelVisible(false);
       hideAlert();
     });
   });
@@ -230,11 +254,11 @@ document.addEventListener('DOMContentLoaded', function () {
       const id = parseInt(editBtn.dataset.id);
       const type = editBtn.dataset.type;
 
-      document.getElementById('editTipoDocumentoId').value = id;
-      document.getElementById('editTipoDocumentoType').value = type;
-
-      editPanel.classList.remove('d-none');
-      editPanel.scrollIntoView({ behavior: 'smooth' });
+      setEditMode(id, type);
+      setPanelVisible(true);
+      if (panel) {
+        panel.scrollIntoView({ behavior: 'smooth' });
+      }
     }
 
     const deleteBtn = e.target.closest('.delete-document-type-btn');
@@ -274,9 +298,9 @@ document.addEventListener('DOMContentLoaded', function () {
               tableEl.__dataTable.ajax.reload(null, false);
             }
 
-            const currentEditId = parseInt(document.getElementById('editTipoDocumentoId').value || '0', 10);
+            const currentEditId = parseInt((idInput && idInput.value) ? idInput.value : '0', 10);
             if (currentEditId === id) {
-              editPanel.classList.add('d-none');
+              setPanelVisible(false);
             }
           })
           .catch(function (errorPayload) {
@@ -287,57 +311,33 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   });
 
-  if (addForm && ui && typeof ui.postForm === 'function') {
-    addForm.addEventListener('submit', async function (event) {
+  if (form && ui && typeof ui.postForm === 'function') {
+    form.addEventListener('submit', async function (event) {
       event.preventDefault();
       hideAlert();
 
-      const submitButton = addForm.querySelector('button[type="submit"]');
+      const submitButton = getSubmitButton();
       if (submitButton) {
         submitButton.disabled = true;
       }
 
       try {
-        const payload = await ui.postForm(addForm.action, addForm);
-        showAlert('success', payload.message || 'Tipo documento creato con successo');
-        addForm.reset();
-        addPanel.classList.add('d-none');
+        const currentAction = actionInput ? actionInput.value : 'add';
+        const payload = await ui.postForm(form.action, form);
+        showAlert('success', payload.message || (currentAction === 'update' ? 'Tipo documento modificato con successo' : 'Tipo documento creato con successo'));
+        setAddMode();
+        setPanelVisible(false);
         if (tableEl.__dataTable) {
           tableEl.__dataTable.ajax.reload(null, false);
         }
       } catch (errorPayload) {
-        const message = (errorPayload && errorPayload.message) ? errorPayload.message : 'Errore durante salvataggio tipo documento';
+        const currentAction = actionInput ? actionInput.value : 'add';
+        const fallbackMessage = currentAction === 'update'
+          ? 'Errore durante aggiornamento tipo documento'
+          : 'Errore durante salvataggio tipo documento';
+        const message = (errorPayload && errorPayload.message) ? errorPayload.message : fallbackMessage;
         showAlert('danger', message);
-        addPanel.classList.remove('d-none');
-      } finally {
-        if (submitButton) {
-          submitButton.disabled = false;
-        }
-      }
-    });
-  }
-
-  if (editForm && ui && typeof ui.postForm === 'function') {
-    editForm.addEventListener('submit', async function (event) {
-      event.preventDefault();
-      hideAlert();
-
-      const submitButton = editForm.querySelector('button[type="submit"]');
-      if (submitButton) {
-        submitButton.disabled = true;
-      }
-
-      try {
-        const payload = await ui.postForm(editForm.action, editForm);
-        showAlert('success', payload.message || 'Tipo documento modificato con successo');
-        editPanel.classList.add('d-none');
-        if (tableEl.__dataTable) {
-          tableEl.__dataTable.ajax.reload(null, false);
-        }
-      } catch (errorPayload) {
-        const message = (errorPayload && errorPayload.message) ? errorPayload.message : 'Errore durante aggiornamento tipo documento';
-        showAlert('danger', message);
-        editPanel.classList.remove('d-none');
+        setPanelVisible(true);
       } finally {
         if (submitButton) {
           submitButton.disabled = false;
@@ -347,9 +347,10 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   <?php if ($openEdit && $editPrefill['id'] > 0): ?>
-    document.getElementById('editTipoDocumentoId').value = <?= (int) $editPrefill['id'] ?>;
-    document.getElementById('editTipoDocumentoType').value = <?= json_encode($editPrefill['type']) ?>;
-    editPanel.classList.remove('d-none');
+    setEditMode(<?= (int) $editPrefill['id'] ?>, <?= json_encode($editPrefill['type']) ?>);
+    setPanelVisible(true);
+  <?php else: ?>
+    setAddMode();
   <?php endif; ?>
 });
 </script>

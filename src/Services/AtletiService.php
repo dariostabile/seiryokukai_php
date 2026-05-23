@@ -15,12 +15,20 @@ final class AtletiService extends BaseService
                 TRIM(CONCAT(COALESCE(nome, ''), ' ', COALESCE(cognome, ''))) AS name,
                 CASE WHEN attivo = 1 THEN 'Attivo' ELSE 'Sospeso' END AS status,
                 COALESCE(email_1, '') AS email,
-                COALESCE(telefono_1, '') AS phone
+                COALESCE(telefono_1, '') AS phone,
+                COALESCE(immagine_atleta, '') AS image_path
              FROM atleti
              WHERE cancellato = 0
              ORDER BY idatleta DESC"
         );
         $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+        if (is_array($rows)) {
+            foreach ($rows as &$row) {
+                $row['image_url'] = $this->toPublicUrl((string) ($row['image_path'] ?? ''));
+            }
+            unset($row);
+        }
 
         return is_array($rows) ? $rows : [];
     }
@@ -72,7 +80,8 @@ final class AtletiService extends BaseService
                 TRIM(CONCAT(COALESCE(nome, ''), ' ', COALESCE(cognome, ''))) AS name,
                 CASE WHEN attivo = 1 THEN 'Attivo' ELSE 'Sospeso' END AS status,
                 COALESCE(email_1, '') AS email,
-                COALESCE(telefono_1, '') AS phone
+                COALESCE(telefono_1, '') AS phone,
+                COALESCE(immagine_atleta, '') AS image_path
              FROM atleti
              $whereSql
              ORDER BY $orderSql $orderDirSql
@@ -87,6 +96,13 @@ final class AtletiService extends BaseService
         $stmt->execute();
 
         $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+        if (is_array($rows)) {
+            foreach ($rows as &$row) {
+                $row['image_url'] = $this->toPublicUrl((string) ($row['image_path'] ?? ''));
+            }
+            unset($row);
+        }
 
         return [
             'total' => $total,

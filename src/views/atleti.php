@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 $frontendApi = frontend_api_urls();
 $atletiApiUrl = (string) ($frontendApi['atleti'] ?? '');
+$frontendAssets = frontend_asset_urls();
 $appPaths = app_paths();
 $indexPath = (string) ($appPaths['index'] ?? '/seiryokukai_php/public/index.php');
 $atletiPageUrl = $indexPath . '?page=atleti';
@@ -36,6 +37,38 @@ $addPrefill = [
     'data_scadenza_account' => trim((string) ($_GET['add_data_scadenza_account'] ?? $defaultAccountExpiryDate)),
 ];
 
+$addAthleteFormValues = [
+  'status' => 'Attivo',
+  'sesso' => '',
+  'data_scadenza_account' => $addPrefill['data_scadenza_account'],
+  'cognome' => $addPrefill['cognome'],
+  'nome' => $addPrefill['nome'],
+  'data_nascita' => '',
+  'citta_nascita' => '',
+  'provincia_nascita' => '',
+  'stato_nascita' => '',
+  'codice_fiscale' => '',
+  'piva' => $addPrefill['piva'],
+  'codice_univoco_fatturazione' => $addPrefill['codice_univoco_fatturazione'],
+  'note_atleta' => '',
+  'indirizzo_residenza' => '',
+  'citta_residenza' => '',
+  'provincia_residenza' => '',
+  'cap_residenza' => '',
+  'stato_residenza' => '',
+  'telefono_1' => $addPrefill['telefono_1'],
+  'telefono_2' => '',
+  'email_1' => $addPrefill['email_1'],
+  'email_2' => $addPrefill['email_2'],
+  'pec' => $addPrefill['pec'],
+  'altezza' => '',
+  'peso' => '',
+  'misura' => '',
+  'misura_maglia' => '',
+  'misura_pantaloni' => '',
+  'image_url' => '',
+];
+
 if (!$openAddPanel) {
     $openAddPanel = $addPrefill['nome'] !== ''
         || $addPrefill['cognome'] !== ''
@@ -46,9 +79,6 @@ if (!$openAddPanel) {
 $hasSelectedAtleta = is_array($selectedAtleta ?? null);
 $openEditPanel = $hasSelectedAtleta && (((string) ($_GET['open_edit'] ?? '0')) === '1' || (int) ($_GET['edit_id'] ?? 0) > 0);
 
-$tabButtonClass = static function (string $tabName) use ($activeTab): string {
-    return $activeTab === $tabName ? 'nav-link active' : 'nav-link';
-};
 $tabPaneClass = static function (string $tabName) use ($activeTab): string {
     return $activeTab === $tabName ? 'tab-pane fade show active' : 'tab-pane fade';
 };
@@ -62,6 +92,72 @@ $selectedIscrizioni = $hasSelectedAtleta && isset($selectedAtleta['iscrizioni'])
 $selectedPagamenti = $hasSelectedAtleta && isset($selectedAtleta['pagamenti']) && is_array($selectedAtleta['pagamenti'])
     ? $selectedAtleta['pagamenti']
     : [];
+
+$editAthleteFormValues = [
+  'status' => 'Attivo',
+  'sesso' => '',
+  'data_scadenza_account' => '',
+  'cognome' => '',
+  'nome' => '',
+  'data_nascita' => '',
+  'citta_nascita' => '',
+  'provincia_nascita' => '',
+  'stato_nascita' => '',
+  'codice_fiscale' => '',
+  'piva' => '',
+  'codice_univoco_fatturazione' => '',
+  'note_atleta' => '',
+  'indirizzo_residenza' => '',
+  'citta_residenza' => '',
+  'provincia_residenza' => '',
+  'cap_residenza' => '',
+  'stato_residenza' => '',
+  'telefono_1' => '',
+  'telefono_2' => '',
+  'email_1' => '',
+  'email_2' => '',
+  'pec' => '',
+  'altezza' => '',
+  'peso' => '',
+  'misura' => '',
+  'misura_maglia' => '',
+  'misura_pantaloni' => '',
+  'image_url' => '',
+];
+
+if ($hasSelectedAtleta) {
+  $editAthleteFormValues = [
+    'status' => (string) ($selectedAtleta['status'] ?? 'Attivo'),
+    'sesso' => (string) ($selectedAtleta['gender'] ?? ''),
+    'data_scadenza_account' => (string) ($selectedAtleta['account_expiry_date'] ?? ''),
+    'cognome' => (string) ($selectedAtleta['last_name'] ?? ''),
+    'nome' => (string) ($selectedAtleta['first_name'] ?? ''),
+    'data_nascita' => (string) ($selectedAtleta['birth_date'] ?? ''),
+    'citta_nascita' => (string) ($selectedAtleta['birth_city'] ?? ''),
+    'provincia_nascita' => (string) ($selectedAtleta['birth_province'] ?? ''),
+    'stato_nascita' => (string) ($selectedAtleta['birth_country'] ?? ''),
+    'codice_fiscale' => (string) ($selectedAtleta['tax_code'] ?? ''),
+    'piva' => (string) ($selectedAtleta['vat_number'] ?? ''),
+    'codice_univoco_fatturazione' => (string) ($selectedAtleta['invoice_code'] ?? ''),
+    'note_atleta' => (string) ($selectedAtleta['notes'] ?? ''),
+    'indirizzo_residenza' => (string) ($selectedAtleta['address'] ?? ''),
+    'citta_residenza' => (string) ($selectedAtleta['city'] ?? ''),
+    'provincia_residenza' => (string) ($selectedAtleta['province'] ?? ''),
+    'cap_residenza' => (string) ($selectedAtleta['postal_code'] ?? ''),
+    'stato_residenza' => (string) ($selectedAtleta['country'] ?? ''),
+    'telefono_1' => (string) ($selectedAtleta['phone'] ?? ''),
+    'telefono_2' => (string) ($selectedAtleta['phone_alt'] ?? ''),
+    'email_1' => (string) ($selectedAtleta['email'] ?? ''),
+    'email_2' => (string) ($selectedAtleta['email_alt'] ?? ''),
+    'pec' => (string) ($selectedAtleta['pec'] ?? ''),
+    'altezza' => (string) ($selectedAtleta['height'] ?? ''),
+    'peso' => (string) ($selectedAtleta['weight'] ?? ''),
+    'misura' => (string) ($selectedAtleta['size'] ?? ''),
+    'misura_maglia' => (string) ($selectedAtleta['shirt_size'] ?? ''),
+    'misura_pantaloni' => (string) ($selectedAtleta['pants_size'] ?? ''),
+    'image_url' => (string) ($selectedAtleta['image_url'] ?? ''),
+  ];
+}
 ?>
 <div class="card shadow-sm border-0 mt-3">
   <div class="card-body">
@@ -88,7 +184,7 @@ $selectedPagamenti = $hasSelectedAtleta && isset($selectedAtleta['pagamenti']) &
       <table id="atleti-table" class="table align-middle js-datatable table-hover" data-server-side="1">
         <thead>
           <tr>
-            <th>ID</th>
+            <th>Foto</th>
             <th>Atleta</th>
             <th>Email</th>
             <th>Telefono</th>
@@ -109,190 +205,87 @@ $selectedPagamenti = $hasSelectedAtleta && isset($selectedAtleta['pagamenti']) &
         <form method="post" action="<?= htmlspecialchars($atletiApiUrl) ?>" class="row g-3" id="addAthleteForm" enctype="multipart/form-data">
           <input type="hidden" name="action" value="add">
           <input type="hidden" name="athlete_tab" id="addAthleteTabInput" value="anagrafica">
+          <input type="hidden" name="crop_image_base64_add" id="addAthleteCropImageData">
 
-          <ul class="nav nav-tabs customtab col-12" role="tablist">
-            <li class="nav-item" role="presentation">
-              <button class="nav-link active js-athlete-add-tab-trigger" data-bs-toggle="tab" data-bs-target="#add-athlete-anagrafica" type="button" role="tab">Anagrafica</button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button class="nav-link js-athlete-add-tab-trigger" data-bs-toggle="tab" data-bs-target="#add-athlete-contatti" type="button" role="tab">Contatti</button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button class="nav-link js-athlete-add-tab-trigger" data-bs-toggle="tab" data-bs-target="#add-athlete-misure" type="button" role="tab">Misure</button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button class="nav-link disabled" type="button" role="tab" aria-disabled="true" tabindex="-1">Documenti/Certificati</button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button class="nav-link disabled" type="button" role="tab" aria-disabled="true" tabindex="-1">Iscrizioni</button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button class="nav-link disabled" type="button" role="tab" aria-disabled="true" tabindex="-1">Pagamenti</button>
-            </li>
-          </ul>
+          <?php
+          $athleteNavTabs = [
+              [
+                  'label' => 'Anagrafica',
+                  'enabled' => true,
+                  'active' => true,
+                  'target' => '#add-athlete-anagrafica',
+                  'trigger_class' => 'js-athlete-add-tab-trigger',
+              ],
+              [
+                  'label' => 'Contatti',
+                  'enabled' => true,
+                  'active' => false,
+                  'target' => '#add-athlete-contatti',
+                  'trigger_class' => 'js-athlete-add-tab-trigger',
+              ],
+              [
+                  'label' => 'Misure',
+                  'enabled' => true,
+                  'active' => false,
+                  'target' => '#add-athlete-misure',
+                  'trigger_class' => 'js-athlete-add-tab-trigger',
+              ],
+              [
+                  'label' => 'Documenti/Certificati',
+                  'enabled' => false,
+                  'active' => false,
+              ],
+              [
+                  'label' => 'Iscrizioni',
+                  'enabled' => false,
+                  'active' => false,
+              ],
+              [
+                  'label' => 'Pagamenti',
+                  'enabled' => false,
+                  'active' => false,
+              ],
+          ];
+          $athleteNavTabsExtraClass = 'col-12';
+          require __DIR__ . '/partials/atleta_form_nav_tabs.php';
+          ?>
 
           <div class="tab-content border border-top-0 rounded-bottom p-3 col-12">
-            <div class="tab-pane fade show active" id="add-athlete-anagrafica" role="tabpanel">
-              <div class="alert alert-info py-2 mb-3" role="alert">
-                I tab Documenti/Certificati, Iscrizioni e Pagamenti diventano disponibili nella scheda atleta dopo il primo salvataggio.
-              </div>
-              <div class="row g-3">
-                <div class="col-12 col-md-3">
-                  <label class="form-label">Immagine atleta</label>
-                  <input class="form-control" type="file" id="addAthleteImageInput" name="image" accept="image/jpeg,image/png,image/webp,image/gif">
-                  <small class="text-muted">Formati: JPG, PNG, WEBP, GIF. Max 5MB.</small>
-                  <div id="addAthleteImagePreviewWrap" class="mt-2 d-none">
-                    <img id="addAthleteImagePreview" src="" alt="Anteprima immagine atleta" class="img-thumbnail" style="max-width: 140px; max-height: 140px; object-fit: cover;">
-                  </div>
-                </div>
-                <div class="col-12 col-md-3">
-                  <label class="form-label">Stato</label>
-                  <select class="form-select" name="status">
-                    <option value="Attivo">Attivo</option>
-                    <option value="Sospeso">Sospeso</option>
-                  </select>
-                </div>
-                <div class="col-12 col-md-3">
-                  <label class="form-label">Data scadenza account</label>
-                  <input type="date" class="form-control" name="data_scadenza_account" value="<?= htmlspecialchars($addPrefill['data_scadenza_account']) ?>">
-                </div>
-            </div>
-            <div class="row g-3">
-                <div class="col-12 col-md-3">
-                  <label class="form-label">Sesso</label>
-                  <select class="form-select" name="sesso">
-                    <option value="">Seleziona</option>
-                    <option value="M">Maschio</option>
-                    <option value="F">Femmina</option>
-                  </select>
-                </div>
-                <div class="col-12 col-md-3">
-                  <label class="form-label">Cognome</label>
-                  <input class="form-control" name="cognome" required value="<?= htmlspecialchars($addPrefill['cognome']) ?>">
-                </div>
-                <div class="col-12 col-md-3">
-                  <label class="form-label">Nome</label>
-                  <input class="form-control" name="nome" required value="<?= htmlspecialchars($addPrefill['nome']) ?>">
-                </div>
-                
-            </div>
-            <div class="row g-3">
-                <div class="col-12 col-md-3">
-                  <label class="form-label">Data nascita</label>
-                  <input type="date" class="form-control" name="data_nascita">
-                </div>
-                <div class="col-12 col-md-3">
-                  <label class="form-label">Città nascita</label>
-                  <select class="form-select js-comune-select" name="citta_nascita" id="add_citta_nascita" data-province-target="add_provincia_nascita" data-country-target="add_nazione_nascita">
-                    <option value=""></option>
-                  </select>
-                </div>
-                <div class="col-12 col-md-3">
-                  <label class="form-label">Provincia nascita</label>
-                  <input class="form-control" name="provincia_nascita" id="add_provincia_nascita">
-                </div>
-                <div class="col-12 col-md-3">
-                  <label class="form-label">Stato nascita</label>
-                  <input class="form-control" name="stato_nascita" id="add_nazione_nascita">
-                </div>
+            <?php
+            $athleteFormId = 'addAthleteForm';
+            $athleteFormValues = $addAthleteFormValues;
+            $athleteTabPaneClasses = [
+                'anagrafica' => 'tab-pane fade show active',
+                'contatti' => 'tab-pane fade',
+                'misure' => 'tab-pane fade',
+            ];
+            $athletePaneIds = [
+                'anagrafica' => 'add-athlete-anagrafica',
+                'contatti' => 'add-athlete-contatti',
+                'misure' => 'add-athlete-misure',
+            ];
+            $athleteShowIntroAlert = true;
+            $athleteShowTabSaveButtons = false;
+            $athleteImageInputId = 'addAthleteImageInput';
+            $athleteImagePreviewWrapId = 'addAthleteImagePreviewWrap';
+            $athleteImagePreviewId = 'addAthleteImagePreview';
+            $athleteImagePreviewWrapClass = 'd-none';
+            $athleteImageRemoveCheckboxId = '';
+            $athleteImagePlaceholderId = 'addAthleteImagePlaceholder';
+            $athleteImageCropContainerId = 'addAthleteCropContainer';
+            $athleteImageCropSourceId = 'addAthleteCropSource';
+            $athleteImageApplyCropButtonId = 'applyAddAthleteImageCropBtn';
+            $athleteImageCancelCropButtonId = 'cancelAddAthleteImageCropBtn';
+            $athleteBirthCitySelectId = 'add_citta_nascita';
+            $athleteBirthProvinceInputId = 'add_provincia_nascita';
+            $athleteBirthCountryInputId = 'add_nazione_nascita';
+            $athleteResidenceCitySelectId = 'add_citta_residenza';
+            $athleteResidenceProvinceInputId = 'add_provincia_residenza';
+            $athleteResidenceCapInputId = 'add_cap_residenza';
+            $athleteResidenceCountryInputId = 'add_stato_residenza';
 
-                <div class="col-12 col-md-4">
-                  <label class="form-label">Codice fiscale</label>
-                  <div class="input-group">
-                    <input class="form-control" name="codice_fiscale" maxlength="16">
-                    <button class="btn btn-outline-secondary js-cf-calc-btn" type="button" data-form-id="addAthleteForm">Calcola</button>
-                  </div>
-                </div>
-                <div class="col-12 col-md-4">
-                  <label class="form-label">P.IVA</label>
-                  <input class="form-control" name="piva" maxlength="11" pattern="\d{11}" title="Inserisci 11 cifre" value="<?= htmlspecialchars($addPrefill['piva']) ?>">
-                </div>
-                <div class="col-12 col-md-4">
-                  <label class="form-label">Codice univoco fatturazione</label>
-                  <input class="form-control" name="codice_univoco_fatturazione" maxlength="7" pattern="[A-Za-z0-9]{6,7}" title="Inserisci 6-7 caratteri alfanumerici" value="<?= htmlspecialchars($addPrefill['codice_univoco_fatturazione']) ?>">
-                </div>
-    </div>
-    <div class="row g-3">
-                <div class="col-12">
-                  <label class="form-label">Note atleta</label>
-                  <textarea class="form-control" name="note_atleta" rows="3"></textarea>
-                </div>
-              </div>
-            </div>
-
-            <div class="tab-pane fade" id="add-athlete-contatti" role="tabpanel">
-              <div class="row g-3">
-                <div class="col-12">
-                  <label class="form-label">Indirizzo residenza</label>
-                  <input class="form-control" name="indirizzo_residenza">
-                </div>
-                <div class="col-12 col-md-4">
-                  <label class="form-label">Città residenza</label>
-                  <select class="form-select js-comune-select" name="citta_residenza" id="add_citta_residenza" data-province-target="add_provincia_residenza" data-country-target="add_stato_residenza" data-cap-target="add_cap_residenza">
-                    <option value=""></option>
-                  </select>
-                </div>
-                <div class="col-12 col-md-2">
-                  <label class="form-label">Provincia</label>
-                  <input class="form-control" name="provincia_residenza" id="add_provincia_residenza">
-                </div>
-                <div class="col-12 col-md-2">
-                  <label class="form-label">CAP</label>
-                  <input class="form-control" name="cap_residenza" id="add_cap_residenza">
-                </div>
-                <div class="col-12 col-md-4">
-                  <label class="form-label">Stato residenza</label>
-                  <input class="form-control" name="stato_residenza" id="add_stato_residenza">
-                </div>
-                <div class="col-12 col-md-4">
-                  <label class="form-label">Telefono 1</label>
-                  <input class="form-control" name="telefono_1" value="<?= htmlspecialchars($addPrefill['telefono_1']) ?>">
-                </div>
-                <div class="col-12 col-md-4">
-                  <label class="form-label">Telefono 2</label>
-                  <input class="form-control" name="telefono_2">
-                </div>
-              </div>
-              <div class="row g-3">
-                <div class="col-12 col-md-4">
-                  <label class="form-label">Email 1</label>
-                  <input type="email" class="form-control" name="email_1" value="<?= htmlspecialchars($addPrefill['email_1']) ?>">
-                </div>
-                <div class="col-12 col-md-4">
-                  <label class="form-label">Email 2</label>
-                  <input type="email" class="form-control" name="email_2" value="<?= htmlspecialchars($addPrefill['email_2']) ?>">
-                </div>
-                <div class="col-12 col-md-4">
-                  <label class="form-label">PEC</label>
-                  <input type="email" class="form-control" name="pec" value="<?= htmlspecialchars($addPrefill['pec']) ?>">
-                </div>
-              </div>
-            </div>
-
-            <div class="tab-pane fade" id="add-athlete-misure" role="tabpanel">
-              <div class="row g-3">
-                <div class="col-12 col-md-3">
-                  <label class="form-label">Altezza (cm)</label>
-                  <input type="number" min="0" class="form-control" name="altezza">
-                </div>
-                <div class="col-12 col-md-3">
-                  <label class="form-label">Peso (kg)</label>
-                  <input type="number" step="0.01" min="0" class="form-control" name="peso">
-                </div>
-                <div class="col-12 col-md-2">
-                  <label class="form-label">Misura</label>
-                  <input class="form-control" name="misura" maxlength="3">
-                </div>
-                <div class="col-12 col-md-2">
-                  <label class="form-label">Misura maglia</label>
-                  <input class="form-control" name="misura_maglia" maxlength="3">
-                </div>
-                <div class="col-12 col-md-2">
-                  <label class="form-label">Misura pantaloni</label>
-                  <input class="form-control" name="misura_pantaloni" maxlength="3">
-                </div>
-              </div>
-            </div>
+            require __DIR__ . '/partials/atleta_form_tabs.php';
+            ?>
           </div>
 
           <div class="col-12 d-flex justify-content-end gap-2">
@@ -325,194 +318,96 @@ $selectedPagamenti = $hasSelectedAtleta && isset($selectedAtleta['pagamenti']) &
             <input type="hidden" name="action" value="update">
             <input type="hidden" name="id" value="<?= (int) ($selectedAtleta['id'] ?? 0) ?>">
             <input type="hidden" name="athlete_tab" id="editAthleteTabInput" value="<?= htmlspecialchars($activeTab) ?>">
-            <input type="hidden" name="current_image_path" value="<?= htmlspecialchars((string) ($selectedAtleta['image_path'] ?? '')) ?>">
+            <input type="hidden" name="current_image_path" id="editAthleteCurrentImagePath" value="<?= htmlspecialchars((string) ($selectedAtleta['image_path'] ?? '')) ?>">
             <input type="hidden" name="remove_image" id="editAthleteRemoveImageInput" value="0">
+            <input type="hidden" name="crop_image_base64" id="editAthleteCropImageData">
           </form>
 
-          <ul class="nav nav-tabs customtab" role="tablist">
-            <li class="nav-item" role="presentation">
-              <button class="<?= $tabButtonClass('anagrafica') ?> js-athlete-edit-tab-trigger" data-bs-toggle="tab" data-bs-target="#athlete-tab-anagrafica" type="button" role="tab">Anagrafica</button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button class="<?= $tabButtonClass('contatti') ?> js-athlete-edit-tab-trigger" data-bs-toggle="tab" data-bs-target="#athlete-tab-contatti" type="button" role="tab">Contatti</button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button class="<?= $tabButtonClass('misure') ?> js-athlete-edit-tab-trigger" data-bs-toggle="tab" data-bs-target="#athlete-tab-misure" type="button" role="tab">Misure</button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button class="<?= $tabButtonClass('documenti') ?> js-athlete-edit-tab-trigger" data-bs-toggle="tab" data-bs-target="#athlete-tab-documenti" type="button" role="tab">Documenti/Certificati</button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button class="<?= $tabButtonClass('iscrizioni') ?> js-athlete-edit-tab-trigger" data-bs-toggle="tab" data-bs-target="#athlete-tab-iscrizioni" type="button" role="tab">Iscrizioni</button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button class="<?= $tabButtonClass('pagamenti') ?> js-athlete-edit-tab-trigger" data-bs-toggle="tab" data-bs-target="#athlete-tab-pagamenti" type="button" role="tab">Pagamenti</button>
-            </li>
-          </ul>
+          <?php
+          $athleteNavTabs = [
+              [
+                  'label' => 'Anagrafica',
+                  'enabled' => true,
+                  'active' => $activeTab === 'anagrafica',
+                  'target' => '#athlete-tab-anagrafica',
+                  'trigger_class' => 'js-athlete-edit-tab-trigger',
+              ],
+              [
+                  'label' => 'Contatti',
+                  'enabled' => true,
+                  'active' => $activeTab === 'contatti',
+                  'target' => '#athlete-tab-contatti',
+                  'trigger_class' => 'js-athlete-edit-tab-trigger',
+              ],
+              [
+                  'label' => 'Misure',
+                  'enabled' => true,
+                  'active' => $activeTab === 'misure',
+                  'target' => '#athlete-tab-misure',
+                  'trigger_class' => 'js-athlete-edit-tab-trigger',
+              ],
+              [
+                  'label' => 'Documenti/Certificati',
+                  'enabled' => true,
+                  'active' => $activeTab === 'documenti',
+                  'target' => '#athlete-tab-documenti',
+                  'trigger_class' => 'js-athlete-edit-tab-trigger',
+              ],
+              [
+                  'label' => 'Iscrizioni',
+                  'enabled' => true,
+                  'active' => $activeTab === 'iscrizioni',
+                  'target' => '#athlete-tab-iscrizioni',
+                  'trigger_class' => 'js-athlete-edit-tab-trigger',
+              ],
+              [
+                  'label' => 'Pagamenti',
+                  'enabled' => true,
+                  'active' => $activeTab === 'pagamenti',
+                  'target' => '#athlete-tab-pagamenti',
+                  'trigger_class' => 'js-athlete-edit-tab-trigger',
+              ],
+          ];
+          $athleteNavTabsExtraClass = '';
+          require __DIR__ . '/partials/atleta_form_nav_tabs.php';
+          ?>
 
           <div class="tab-content border border-top-0 rounded-bottom p-3">
-            <div class="<?= $tabPaneClass('anagrafica') ?>" id="athlete-tab-anagrafica" role="tabpanel">
-              <div class="row g-3">
-                <div class="col-12 col-md-3">
-                  <label class="form-label">Immagine atleta</label>
-                  <input class="form-control" type="file" id="editAthleteImageInput" name="image" form="editAthleteProfileForm" accept="image/jpeg,image/png,image/webp,image/gif">
-                  <div id="editAthleteImagePreviewWrap" class="mt-2 <?= ((string) ($selectedAtleta['image_url'] ?? '')) !== '' ? '' : 'd-none' ?>">
-                    <img id="editAthleteImagePreview" src="<?= htmlspecialchars((string) ($selectedAtleta['image_url'] ?? '')) ?>" data-initial-src="<?= htmlspecialchars((string) ($selectedAtleta['image_url'] ?? '')) ?>" alt="Anteprima immagine atleta" class="img-thumbnail" style="max-width: 140px; max-height: 140px; object-fit: cover;">
-                  </div>
-                  <div class="form-check mt-2">
-                    <input class="form-check-input" type="checkbox" id="editAthleteRemoveImageCheckbox" form="editAthleteProfileForm">
-                    <label class="form-check-label" for="editAthleteRemoveImageCheckbox">Rimuovi immagine attuale</label>
-                  </div>
-                </div>
-                <div class="col-12 col-md-3">
-                  <label class="form-label">Stato</label>
-                  <select class="form-select" name="status" form="editAthleteProfileForm">
-                    <option value="Attivo" <?= ($selectedAtleta['status'] ?? '') === 'Attivo' ? 'selected' : '' ?>>Attivo</option>
-                    <option value="Sospeso" <?= ($selectedAtleta['status'] ?? '') === 'Sospeso' ? 'selected' : '' ?>>Sospeso</option>
-                  </select>
-                </div>
-                <div class="col-12 col-md-3">
-                  <label class="form-label">Sesso</label>
-                  <select class="form-select" name="sesso" form="editAthleteProfileForm">
-                    <option value="">Seleziona</option>
-                    <option value="M" <?= ($selectedAtleta['gender'] ?? '') === 'M' ? 'selected' : '' ?>>Maschio</option>
-                    <option value="F" <?= ($selectedAtleta['gender'] ?? '') === 'F' ? 'selected' : '' ?>>Femmina</option>
-                  </select>
-                </div>
-                <div class="col-12 col-md-3">
-                  <label class="form-label">Data scadenza account</label>
-                  <input type="date" class="form-control" name="data_scadenza_account" form="editAthleteProfileForm" value="<?= htmlspecialchars((string) ($selectedAtleta['account_expiry_date'] ?? '')) ?>">
-                </div>
-                <div class="col-12 col-md-6">
-                  <label class="form-label">Nome</label>
-                  <input class="form-control" name="nome" required form="editAthleteProfileForm" value="<?= htmlspecialchars((string) ($selectedAtleta['first_name'] ?? '')) ?>">
-                </div>
-                <div class="col-12 col-md-6">
-                  <label class="form-label">Cognome</label>
-                  <input class="form-control" name="cognome" required form="editAthleteProfileForm" value="<?= htmlspecialchars((string) ($selectedAtleta['last_name'] ?? '')) ?>">
-                </div>
-                <div class="col-12 col-md-4">
-                  <label class="form-label">Codice fiscale</label>
-                  <div class="input-group">
-                    <input class="form-control" name="codice_fiscale" maxlength="16" form="editAthleteProfileForm" value="<?= htmlspecialchars((string) ($selectedAtleta['tax_code'] ?? '')) ?>">
-                    <button class="btn btn-outline-secondary js-cf-calc-btn" type="button" data-form-id="editAthleteProfileForm">Calcola</button>
-                  </div>
-                </div>
-                <div class="col-12 col-md-4">
-                  <label class="form-label">P.IVA</label>
-                  <input class="form-control" name="piva" maxlength="11" pattern="\d{11}" title="Inserisci 11 cifre" form="editAthleteProfileForm" value="<?= htmlspecialchars((string) ($selectedAtleta['vat_number'] ?? '')) ?>">
-                </div>
-                <div class="col-12 col-md-4">
-                  <label class="form-label">Codice univoco fatturazione</label>
-                  <input class="form-control" name="codice_univoco_fatturazione" maxlength="7" pattern="[A-Za-z0-9]{6,7}" title="Inserisci 6-7 caratteri alfanumerici" form="editAthleteProfileForm" value="<?= htmlspecialchars((string) ($selectedAtleta['invoice_code'] ?? '')) ?>">
-                </div>
-                <div class="col-12 col-md-2">
-                  <label class="form-label">Data nascita</label>
-                  <input type="date" class="form-control" name="data_nascita" form="editAthleteProfileForm" value="<?= htmlspecialchars((string) ($selectedAtleta['birth_date'] ?? '')) ?>">
-                </div>
-                <div class="col-12 col-md-4">
-                  <label class="form-label">Città nascita</label>
-                  <select class="form-select js-comune-select" name="citta_nascita" id="edit_citta_nascita" data-province-target="edit_provincia_nascita" data-country-target="edit_stato_nascita" form="editAthleteProfileForm">
-                    <option value="<?= htmlspecialchars((string) ($selectedAtleta['birth_city'] ?? '')) ?>" selected><?= htmlspecialchars((string) ($selectedAtleta['birth_city'] ?? '')) ?></option>
-                  </select>
-                </div>
-                <div class="col-12 col-md-2">
-                  <label class="form-label">Prov. nascita</label>
-                  <input class="form-control" name="provincia_nascita" id="edit_provincia_nascita" form="editAthleteProfileForm" value="<?= htmlspecialchars((string) ($selectedAtleta['birth_province'] ?? '')) ?>">
-                </div>
-                <div class="col-12 col-md-4">
-                  <label class="form-label">Stato nascita</label>
-                  <input class="form-control" name="stato_nascita" id="edit_stato_nascita" form="editAthleteProfileForm" value="<?= htmlspecialchars((string) ($selectedAtleta['birth_country'] ?? '')) ?>">
-                </div>
-                <div class="col-12">
-                  <label class="form-label">Note atleta</label>
-                  <textarea class="form-control" rows="4" name="note_atleta" form="editAthleteProfileForm"><?= htmlspecialchars((string) ($selectedAtleta['notes'] ?? '')) ?></textarea>
-                </div>
-                <div class="col-12 d-flex justify-content-end">
-                  <button class="btn btn-primary" type="submit" form="editAthleteProfileForm">Salva anagrafica</button>
-                </div>
-              </div>
-            </div>
+            <?php
+            $athleteFormId = 'editAthleteProfileForm';
+            $athleteFormValues = $editAthleteFormValues;
+            $athleteTabPaneClasses = [
+                'anagrafica' => $tabPaneClass('anagrafica'),
+                'contatti' => $tabPaneClass('contatti'),
+                'misure' => $tabPaneClass('misure'),
+            ];
+            $athletePaneIds = [
+                'anagrafica' => 'athlete-tab-anagrafica',
+                'contatti' => 'athlete-tab-contatti',
+                'misure' => 'athlete-tab-misure',
+            ];
+            $athleteShowIntroAlert = false;
+            $athleteShowTabSaveButtons = true;
+            $athleteImageInputId = 'editAthleteImageInput';
+            $athleteImagePreviewWrapId = 'editAthleteImagePreviewWrap';
+            $athleteImagePreviewId = 'editAthleteImagePreview';
+            $athleteImagePreviewWrapClass = $editAthleteFormValues['image_url'] === '' ? 'd-none' : '';
+            $athleteImageRemoveCheckboxId = 'editAthleteRemoveImageCheckbox';
+            $athleteImagePlaceholderId = 'editAthleteImagePlaceholder';
+            $athleteImageCropContainerId = 'editAthleteCropContainer';
+            $athleteImageCropSourceId = 'editAthleteCropSource';
+            $athleteImageApplyCropButtonId = 'applyEditAthleteImageCropBtn';
+            $athleteImageCancelCropButtonId = 'cancelEditAthleteImageCropBtn';
+            $athleteBirthCitySelectId = 'edit_citta_nascita';
+            $athleteBirthProvinceInputId = 'edit_provincia_nascita';
+            $athleteBirthCountryInputId = 'edit_stato_nascita';
+            $athleteResidenceCitySelectId = 'edit_citta_residenza';
+            $athleteResidenceProvinceInputId = 'edit_provincia_residenza';
+            $athleteResidenceCapInputId = 'edit_cap_residenza';
+            $athleteResidenceCountryInputId = 'edit_stato_residenza';
 
-            <div class="<?= $tabPaneClass('contatti') ?>" id="athlete-tab-contatti" role="tabpanel">
-              <div class="row g-3">
-                <div class="col-12">
-                  <label class="form-label">Indirizzo residenza</label>
-                  <input class="form-control" name="indirizzo_residenza" form="editAthleteProfileForm" value="<?= htmlspecialchars((string) ($selectedAtleta['address'] ?? '')) ?>">
-                </div>
-                <div class="col-12 col-md-4">
-                  <label class="form-label">Città residenza</label>
-                  <select class="form-select js-comune-select" name="citta_residenza" id="edit_citta_residenza" data-province-target="edit_provincia_residenza" data-country-target="edit_stato_residenza" data-cap-target="edit_cap_residenza" form="editAthleteProfileForm">
-                    <option value="<?= htmlspecialchars((string) ($selectedAtleta['city'] ?? '')) ?>" selected><?= htmlspecialchars((string) ($selectedAtleta['city'] ?? '')) ?></option>
-                  </select>
-                </div>
-                <div class="col-12 col-md-2">
-                  <label class="form-label">Provincia</label>
-                  <input class="form-control" name="provincia_residenza" id="edit_provincia_residenza" form="editAthleteProfileForm" value="<?= htmlspecialchars((string) ($selectedAtleta['province'] ?? '')) ?>">
-                </div>
-                <div class="col-12 col-md-2">
-                  <label class="form-label">CAP</label>
-                  <input class="form-control" name="cap_residenza" id="edit_cap_residenza" form="editAthleteProfileForm" value="<?= htmlspecialchars((string) ($selectedAtleta['postal_code'] ?? '')) ?>">
-                </div>
-                <div class="col-12 col-md-4">
-                  <label class="form-label">Stato residenza</label>
-                  <input class="form-control" name="stato_residenza" id="edit_stato_residenza" form="editAthleteProfileForm" value="<?= htmlspecialchars((string) ($selectedAtleta['country'] ?? '')) ?>">
-                </div>
-                <div class="col-12 col-md-4">
-                  <label class="form-label">Telefono 1</label>
-                  <input class="form-control" name="telefono_1" form="editAthleteProfileForm" value="<?= htmlspecialchars((string) ($selectedAtleta['phone'] ?? '')) ?>">
-                </div>
-                <div class="col-12 col-md-4">
-                  <label class="form-label">Telefono 2</label>
-                  <input class="form-control" name="telefono_2" form="editAthleteProfileForm" value="<?= htmlspecialchars((string) ($selectedAtleta['phone_alt'] ?? '')) ?>">
-                </div>
-                <div class="col-12 col-md-4">
-                  <label class="form-label">PEC</label>
-                  <input type="email" class="form-control" name="pec" form="editAthleteProfileForm" value="<?= htmlspecialchars((string) ($selectedAtleta['pec'] ?? '')) ?>">
-                </div>
-                <div class="col-12 col-md-6">
-                  <label class="form-label">Email 1</label>
-                  <input type="email" class="form-control" name="email_1" form="editAthleteProfileForm" value="<?= htmlspecialchars((string) ($selectedAtleta['email'] ?? '')) ?>">
-                </div>
-                <div class="col-12 col-md-6">
-                  <label class="form-label">Email 2</label>
-                  <input type="email" class="form-control" name="email_2" form="editAthleteProfileForm" value="<?= htmlspecialchars((string) ($selectedAtleta['email_alt'] ?? '')) ?>">
-                </div>
-                <div class="col-12 d-flex justify-content-end">
-                  <button class="btn btn-primary" type="submit" form="editAthleteProfileForm">Salva contatti</button>
-                </div>
-              </div>
-            </div>
-
-            <div class="<?= $tabPaneClass('misure') ?>" id="athlete-tab-misure" role="tabpanel">
-              <div class="row g-3">
-                <div class="col-12 col-md-3">
-                  <label class="form-label">Altezza (cm)</label>
-                  <input type="number" min="0" class="form-control" name="altezza" form="editAthleteProfileForm" value="<?= htmlspecialchars((string) ($selectedAtleta['height'] ?? '')) ?>">
-                </div>
-                <div class="col-12 col-md-3">
-                  <label class="form-label">Peso</label>
-                  <input type="number" min="0" step="0.01" class="form-control" name="peso" form="editAthleteProfileForm" value="<?= htmlspecialchars((string) ($selectedAtleta['weight'] ?? '')) ?>">
-                </div>
-                </div>
-                <div class="row g-3">
-                <div class="col-12 col-md-4">
-                  <label class="form-label">Misura maglia</label>
-                  <input class="form-control" maxlength="3" name="misura_maglia" form="editAthleteProfileForm" value="<?= htmlspecialchars((string) ($selectedAtleta['shirt_size'] ?? '')) ?>">
-                </div>
-                <div class="col-12 col-md-4">
-                  <label class="form-label">Misura pantaloni</label>
-                  <input class="form-control" maxlength="3" name="misura_pantaloni" form="editAthleteProfileForm" value="<?= htmlspecialchars((string) ($selectedAtleta['pants_size'] ?? '')) ?>">
-                </div>
-                <div class="col-12 col-md-4">
-                  <label class="form-label">Misura Cintura</label>
-                  <input class="form-control" maxlength="3" name="misura" form="editAthleteProfileForm" value="<?= htmlspecialchars((string) ($selectedAtleta['size'] ?? '')) ?>">
-                </div>
-                <div class="col-12 d-flex justify-content-end">
-                  <button class="btn btn-primary" type="submit" form="editAthleteProfileForm">Salva misure</button>
-                </div>
-              </div>
-            </div>
+            require __DIR__ . '/partials/atleta_form_tabs.php';
+            ?>
 
             <div class="<?= $tabPaneClass('documenti') ?>" id="athlete-tab-documenti" role="tabpanel">
               <div class="d-flex justify-content-between align-items-center gap-3 mb-3">
@@ -859,6 +754,9 @@ $selectedPagamenti = $hasSelectedAtleta && isset($selectedAtleta['pagamenti']) &
   </div>
 </div>
 
+  <link rel="stylesheet" href="<?= htmlspecialchars((string) ($frontendAssets['cropper_css'] ?? 'https://unpkg.com/cropperjs@1.6.2/dist/cropper.min.css')) ?>">
+  <script src="<?= htmlspecialchars((string) ($frontendAssets['cropper_js'] ?? 'https://unpkg.com/cropperjs@1.6.2/dist/cropper.min.js')) ?>"></script>
+
 <script>
 document.addEventListener('DOMContentLoaded', function () {
   const setupCodiceFiscaleAutocalcolo = function (formId) {
@@ -1106,6 +1004,20 @@ document.addEventListener('DOMContentLoaded', function () {
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#039;');
 
+    const getInitialsLabel = (athlete) => {
+      const raw = (athlete && athlete.name) ? String(athlete.name).trim() : '';
+      if (raw === '') {
+        return 'A';
+      }
+
+      const parts = raw.split(/\s+/).filter(Boolean);
+      if (parts.length === 1) {
+        return parts[0].slice(0, 2).toUpperCase();
+      }
+
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    };
+
     new DataTable('#atleti-table', {
       serverSide: true,
       processing: true,
@@ -1119,7 +1031,21 @@ document.addEventListener('DOMContentLoaded', function () {
         url: dataTableLangUrl,
       },
       columns: [
-        { data: 'id' },
+        {
+          data: 'image_url',
+          orderable: false,
+          searchable: false,
+          render: function (data, type, row) {
+            const imgUrl = String(data || '').trim();
+            const label = escapeHtml(row.name || 'Atleta');
+            const initials = escapeHtml(getInitialsLabel(row));
+            if (imgUrl !== '') {
+              return '<img src="' + escapeHtml(imgUrl) + '" alt="' + label + '" style="width: 36px; height: 36px; object-fit: cover; border-radius: 50%;" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'inline-flex\';">'
+                + '<span class="badge text-bg-light border" style="display:none;width: 36px; height: 36px; line-height: 26px;">' + initials + '</span>';
+            }
+            return '<span class="badge text-bg-light border" style="width: 36px; height: 36px; line-height: 26px;">' + initials + '</span>';
+          },
+        },
         { data: 'name' },
         { data: 'email' },
         { data: 'phone' },
@@ -1205,27 +1131,167 @@ document.addEventListener('DOMContentLoaded', function () {
 
   const addPanel = document.getElementById('addAtletaPanel');
   const addAthleteForm = document.getElementById('addAthleteForm');
+  const editAthleteForm = document.getElementById('editAthleteProfileForm');
   const openAddBtn = document.getElementById('openAddAtletaPanelBtn');
   const closeAddBtn = document.getElementById('closeAddAtletaPanelBtn');
   const cancelAddBtn = document.getElementById('cancelAddAtletaBtn');
   const addAthleteImageInput = document.getElementById('addAthleteImageInput');
-  const addAthleteImagePreviewWrap = document.getElementById('addAthleteImagePreviewWrap');
   const addAthleteImagePreview = document.getElementById('addAthleteImagePreview');
+  const addAthleteImagePlaceholder = document.getElementById('addAthleteImagePlaceholder');
+  const addAthleteCropContainer = document.getElementById('addAthleteCropContainer');
+  const addAthleteCropSource = document.getElementById('addAthleteCropSource');
+  const addAthleteCropDataInput = document.getElementById('addAthleteCropImageData');
+  const applyAddAthleteImageCropBtn = document.getElementById('applyAddAthleteImageCropBtn');
+  const cancelAddAthleteImageCropBtn = document.getElementById('cancelAddAthleteImageCropBtn');
   const addTabInput = document.getElementById('addAthleteTabInput');
   const editTabInput = document.getElementById('editAthleteTabInput');
   const editAthleteImageInput = document.getElementById('editAthleteImageInput');
-  const editAthleteImagePreviewWrap = document.getElementById('editAthleteImagePreviewWrap');
   const editAthleteImagePreview = document.getElementById('editAthleteImagePreview');
+  const editAthleteImagePlaceholder = document.getElementById('editAthleteImagePlaceholder');
+  const editAthleteCropContainer = document.getElementById('editAthleteCropContainer');
+  const editAthleteCropSource = document.getElementById('editAthleteCropSource');
+  const editAthleteCropDataInput = document.getElementById('editAthleteCropImageData');
+  const editAthleteCurrentImagePath = document.getElementById('editAthleteCurrentImagePath');
+  const applyEditAthleteImageCropBtn = document.getElementById('applyEditAthleteImageCropBtn');
+  const cancelEditAthleteImageCropBtn = document.getElementById('cancelEditAthleteImageCropBtn');
   const editAthleteRemoveImageCheckbox = document.getElementById('editAthleteRemoveImageCheckbox');
   const editAthleteRemoveImageInput = document.getElementById('editAthleteRemoveImageInput');
 
-  const resetAddImagePreview = function () {
-    if (addAthleteImagePreview) {
-      addAthleteImagePreview.src = '';
+  let addAthleteImageCropper = null;
+  let editAthleteImageCropper = null;
+
+  const getAthleteInitials = function (isEdit) {
+    const prefix = isEdit ? 'edit' : 'add';
+    const nameInput = document.getElementById(prefix + 'Nome');
+    const surnameInput = document.getElementById(prefix + 'Cognome');
+    const fullName = ((nameInput ? nameInput.value : '') + ' ' + (surnameInput ? surnameInput.value : '')).trim();
+    if (fullName === '') {
+      return 'A';
     }
-    if (addAthleteImagePreviewWrap) {
-      addAthleteImagePreviewWrap.classList.add('d-none');
+
+    const parts = fullName.split(/\s+/).filter(Boolean);
+    if (parts.length === 1) {
+      return parts[0].slice(0, 2).toUpperCase();
     }
+
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  };
+
+  const renderAthletePreview = function (isEdit, imageUrl, initials) {
+    const preview = isEdit ? editAthleteImagePreview : addAthleteImagePreview;
+    const placeholder = isEdit ? editAthleteImagePlaceholder : addAthleteImagePlaceholder;
+
+    if (!preview || !placeholder) {
+      return;
+    }
+
+    placeholder.textContent = String(initials || 'A').toUpperCase();
+
+    if (imageUrl && String(imageUrl).trim() !== '') {
+      preview.src = String(imageUrl);
+      preview.classList.remove('d-none');
+      placeholder.classList.add('d-none');
+      return;
+    }
+
+    preview.src = '';
+    preview.classList.add('d-none');
+    placeholder.classList.remove('d-none');
+  };
+
+  const destroyAthleteCropper = function (isEdit) {
+    const cropper = isEdit ? editAthleteImageCropper : addAthleteImageCropper;
+    const cropContainer = isEdit ? editAthleteCropContainer : addAthleteCropContainer;
+    const cropSource = isEdit ? editAthleteCropSource : addAthleteCropSource;
+
+    if (cropper && typeof cropper.destroy === 'function') {
+      cropper.destroy();
+    }
+
+    if (isEdit) {
+      editAthleteImageCropper = null;
+    } else {
+      addAthleteImageCropper = null;
+    }
+
+    if (cropContainer) {
+      cropContainer.classList.add('d-none');
+    }
+    if (cropSource) {
+      cropSource.src = '';
+    }
+  };
+
+  const showAthleteCropper = function (isEdit, dataUrl) {
+    const cropContainer = isEdit ? editAthleteCropContainer : addAthleteCropContainer;
+    const cropSource = isEdit ? editAthleteCropSource : addAthleteCropSource;
+
+    if (!cropContainer || !cropSource || typeof Cropper === 'undefined') {
+      return false;
+    }
+
+    destroyAthleteCropper(isEdit);
+    cropSource.src = dataUrl;
+    cropContainer.classList.remove('d-none');
+
+    const cropper = new Cropper(cropSource, {
+      aspectRatio: 1,
+      viewMode: 1,
+      dragMode: 'move',
+      autoCropArea: 1,
+      responsive: true,
+      background: false,
+      guides: true,
+    });
+
+    if (isEdit) {
+      editAthleteImageCropper = cropper;
+    } else {
+      addAthleteImageCropper = cropper;
+    }
+
+    return true;
+  };
+
+  const applyAthleteCrop = function (isEdit) {
+    const cropper = isEdit ? editAthleteImageCropper : addAthleteImageCropper;
+    const cropDataInput = isEdit ? editAthleteCropDataInput : addAthleteCropDataInput;
+    const imageInput = isEdit ? editAthleteImageInput : addAthleteImageInput;
+
+    if (!cropper) {
+      return false;
+    }
+
+    const canvas = cropper.getCroppedCanvas({
+      width: 320,
+      height: 320,
+      imageSmoothingEnabled: true,
+      imageSmoothingQuality: 'high',
+    });
+
+    if (!canvas) {
+      return false;
+    }
+
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
+    if (cropDataInput) {
+      cropDataInput.value = dataUrl;
+    }
+    if (imageInput) {
+      imageInput.value = '';
+    }
+
+    if (isEdit && editAthleteRemoveImageCheckbox) {
+      editAthleteRemoveImageCheckbox.checked = false;
+    }
+    if (isEdit && editAthleteRemoveImageInput) {
+      editAthleteRemoveImageInput.value = '0';
+    }
+
+    renderAthletePreview(isEdit, dataUrl, getAthleteInitials(isEdit));
+    destroyAthleteCropper(isEdit);
+
+    return true;
   };
 
   const restoreAddFormFromQuery = function () {
@@ -1284,6 +1350,12 @@ document.addEventListener('DOMContentLoaded', function () {
       if (!addAthleteForm.checkValidity()) {
         event.preventDefault();
         addAthleteForm.reportValidity();
+        return;
+      }
+
+      const hasCropData = addAthleteCropDataInput && String(addAthleteCropDataInput.value || '').trim() !== '';
+      if (!hasCropData && addAthleteImageCropper) {
+        applyAthleteCrop(false);
       }
     });
   }
@@ -1291,47 +1363,83 @@ document.addEventListener('DOMContentLoaded', function () {
   if (addAthleteImageInput) {
     addAthleteImageInput.addEventListener('change', function () {
       const file = addAthleteImageInput.files && addAthleteImageInput.files[0] ? addAthleteImageInput.files[0] : null;
+      const cropDataInput = addAthleteCropDataInput;
+
+      if (cropDataInput) {
+        cropDataInput.value = '';
+      }
+
       if (!file) {
-        resetAddImagePreview();
+        destroyAthleteCropper(false);
+        renderAthletePreview(false, '', getAthleteInitials(false));
         return;
       }
 
-      if (typeof file.type === 'string' && file.type.indexOf('image/') !== 0) {
+      const allowedMimes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+      const maxSize = 5 * 1024 * 1024;
+
+      if (!allowedMimes.includes(file.type)) {
+        window.alert('Formato immagine non supportato. Usa JPG, PNG, WEBP o GIF.');
         addAthleteImageInput.value = '';
-        resetAddImagePreview();
+        renderAthletePreview(false, '', getAthleteInitials(false));
+        return;
+      }
+
+      if (file.size > maxSize) {
+        window.alert('Immagine troppo grande. Dimensione massima 5MB.');
+        addAthleteImageInput.value = '';
+        renderAthletePreview(false, '', getAthleteInitials(false));
         return;
       }
 
       const reader = new FileReader();
       reader.onload = function (event) {
-        if (!addAthleteImagePreview || !addAthleteImagePreviewWrap) {
+        const dataUrl = event.target && event.target.result ? String(event.target.result) : '';
+        if (dataUrl === '') {
           return;
         }
-        addAthleteImagePreview.src = String((event.target && event.target.result) || '');
-        addAthleteImagePreviewWrap.classList.remove('d-none');
+
+        const cropShown = showAthleteCropper(false, dataUrl);
+        if (!cropShown) {
+          renderAthletePreview(false, dataUrl, getAthleteInitials(false));
+        }
       };
       reader.onerror = function () {
         addAthleteImageInput.value = '';
-        resetAddImagePreview();
+        renderAthletePreview(false, '', getAthleteInitials(false));
       };
       reader.readAsDataURL(file);
     });
   }
 
+  if (applyAddAthleteImageCropBtn) {
+    applyAddAthleteImageCropBtn.addEventListener('click', function () {
+      if (!applyAthleteCrop(false)) {
+        window.alert('Impossibile applicare il ritaglio immagine.');
+      }
+    });
+  }
+
+  if (cancelAddAthleteImageCropBtn) {
+    cancelAddAthleteImageCropBtn.addEventListener('click', function () {
+      if (addAthleteImageInput) {
+        addAthleteImageInput.value = '';
+      }
+      if (addAthleteCropDataInput) {
+        addAthleteCropDataInput.value = '';
+      }
+      destroyAthleteCropper(false);
+      renderAthletePreview(false, '', getAthleteInitials(false));
+    });
+  }
+
   const resetEditImagePreview = function () {
-    if (!editAthleteImagePreview || !editAthleteImagePreviewWrap) {
+    if (!editAthleteImagePreview) {
       return;
     }
 
     const initialSrc = String(editAthleteImagePreview.dataset.initialSrc || '');
-    if (initialSrc === '') {
-      editAthleteImagePreview.src = '';
-      editAthleteImagePreviewWrap.classList.add('d-none');
-      return;
-    }
-
-    editAthleteImagePreview.src = initialSrc;
-    editAthleteImagePreviewWrap.classList.remove('d-none');
+    renderAthletePreview(true, initialSrc, getAthleteInitials(true));
   };
 
   const applyEditImageRemovalState = function () {
@@ -1341,14 +1449,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const isRemoving = editAthleteRemoveImageCheckbox.checked;
     editAthleteRemoveImageInput.value = isRemoving ? '1' : '0';
-
-    if (!editAthleteImagePreviewWrap || !editAthleteImagePreview) {
-      return;
+    if (editAthleteCropDataInput) {
+      editAthleteCropDataInput.value = '';
     }
 
     if (isRemoving) {
-      editAthleteImagePreview.src = '';
-      editAthleteImagePreviewWrap.classList.add('d-none');
+      destroyAthleteCropper(true);
+      renderAthletePreview(true, '', getAthleteInitials(true));
       if (editAthleteImageInput) {
         editAthleteImageInput.value = '';
       }
@@ -1369,11 +1476,26 @@ document.addEventListener('DOMContentLoaded', function () {
         if (editAthleteRemoveImageCheckbox && editAthleteRemoveImageCheckbox.checked) {
           return;
         }
+        if (editAthleteCropDataInput) {
+          editAthleteCropDataInput.value = '';
+        }
+        destroyAthleteCropper(true);
         resetEditImagePreview();
         return;
       }
 
-      if (typeof file.type === 'string' && file.type.indexOf('image/') !== 0) {
+      const allowedMimes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+      const maxSize = 5 * 1024 * 1024;
+
+      if (!allowedMimes.includes(file.type)) {
+        window.alert('Formato immagine non supportato. Usa JPG, PNG, WEBP o GIF.');
+        editAthleteImageInput.value = '';
+        resetEditImagePreview();
+        return;
+      }
+
+      if (file.size > maxSize) {
+        window.alert('Immagine troppo grande. Dimensione massima 5MB.');
         editAthleteImageInput.value = '';
         resetEditImagePreview();
         return;
@@ -1385,20 +1507,57 @@ document.addEventListener('DOMContentLoaded', function () {
       if (editAthleteRemoveImageInput) {
         editAthleteRemoveImageInput.value = '0';
       }
+      if (editAthleteCropDataInput) {
+        editAthleteCropDataInput.value = '';
+      }
 
       const reader = new FileReader();
       reader.onload = function (event) {
-        if (!editAthleteImagePreview || !editAthleteImagePreviewWrap) {
+        const dataUrl = event.target && event.target.result ? String(event.target.result) : '';
+        if (dataUrl === '') {
           return;
         }
-        editAthleteImagePreview.src = String((event.target && event.target.result) || '');
-        editAthleteImagePreviewWrap.classList.remove('d-none');
+
+        const cropShown = showAthleteCropper(true, dataUrl);
+        if (!cropShown) {
+          renderAthletePreview(true, dataUrl, getAthleteInitials(true));
+        }
       };
       reader.onerror = function () {
         editAthleteImageInput.value = '';
         resetEditImagePreview();
       };
       reader.readAsDataURL(file);
+    });
+  }
+
+  if (applyEditAthleteImageCropBtn) {
+    applyEditAthleteImageCropBtn.addEventListener('click', function () {
+      if (!applyAthleteCrop(true)) {
+        window.alert('Impossibile applicare il ritaglio immagine.');
+      }
+    });
+  }
+
+  if (cancelEditAthleteImageCropBtn) {
+    cancelEditAthleteImageCropBtn.addEventListener('click', function () {
+      if (editAthleteImageInput) {
+        editAthleteImageInput.value = '';
+      }
+      if (editAthleteCropDataInput) {
+        editAthleteCropDataInput.value = '';
+      }
+      destroyAthleteCropper(true);
+      if (editAthleteRemoveImageCheckbox && editAthleteRemoveImageCheckbox.checked) {
+        renderAthletePreview(true, '', getAthleteInitials(true));
+        return;
+      }
+
+      const currentImagePath = editAthleteCurrentImagePath ? String(editAthleteCurrentImagePath.value || '') : '';
+      const currentImageUrl = currentImagePath !== ''
+        ? String((editAthleteImagePreview && editAthleteImagePreview.dataset.initialSrc) || '')
+        : String((editAthleteImagePreview && editAthleteImagePreview.dataset.initialSrc) || '');
+      renderAthletePreview(true, currentImageUrl, getAthleteInitials(true));
     });
   }
 
@@ -1423,8 +1582,21 @@ document.addEventListener('DOMContentLoaded', function () {
     if (addAthleteImageInput) {
       addAthleteImageInput.value = '';
     }
-    resetAddImagePreview();
+    if (addAthleteCropDataInput) {
+      addAthleteCropDataInput.value = '';
+    }
+    destroyAthleteCropper(false);
+    renderAthletePreview(false, '', getAthleteInitials(false));
   };
+
+  if (editAthleteForm) {
+    editAthleteForm.addEventListener('submit', function () {
+      const hasCropData = editAthleteCropDataInput && String(editAthleteCropDataInput.value || '').trim() !== '';
+      if (!hasCropData && editAthleteImageCropper) {
+        applyAthleteCrop(true);
+      }
+    });
+  }
 
   if (openAddBtn) {
     openAddBtn.addEventListener('click', showAddPanel);

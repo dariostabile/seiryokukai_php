@@ -71,7 +71,7 @@ foreach (array_keys($dayLabels) as $dayKey) {
   <div class="card-body">
     <div class="d-flex justify-content-between align-items-center mb-3 gap-2">
       <h5 class="m-0">Gestione Corsi</h5>
-      <button class="btn btn-success" type="button" id="openAddCorsoPanelBtn">+ Aggiungi corso</button>
+      <button class="btn btn-success" type="button" id="openAddCorsoPanelBtn">+ Aggiungi Corso</button>
     </div>
 
     <?php if ($okMessage !== ''): ?>
@@ -119,94 +119,25 @@ foreach (array_keys($dayLabels) as $dayKey) {
       <div class="card-body">
         <form method="post" action="<?= htmlspecialchars($corsiApiUrl) ?>" class="row g-3" id="addCorsoForm">
           <input type="hidden" name="action" value="add">
-
-          <div class="col-12 col-md-4">
-            <label class="form-label">Stato</label>
-            <select class="form-select" name="active">
-              <option value="1" <?= $addPrefill['active'] === 1 ? 'selected' : '' ?>>Attivo</option>
-              <option value="0" <?= $addPrefill['active'] === 0 ? 'selected' : '' ?>>Non attivo</option>
-            </select>
-          </div>
-          <div class="col-12 col-md-4">
-            <label class="form-label">Data Inizio</label>
-            <input class="form-control" type="date" name="start_date" value="<?= htmlspecialchars($addPrefill['start_date']) ?>">
-          </div>
-          <div class="col-12 col-md-4">
-            <label class="form-label">Data Fine</label>
-            <input class="form-control" type="date" name="end_date" value="<?= htmlspecialchars($addPrefill['end_date']) ?>">
-          </div>
-
-          <div class="col-12 col-md-4">
-            <label class="form-label">Nome Corso</label>
-            <input class="form-control" name="name" placeholder="Nome corso" required value="<?= htmlspecialchars($addPrefill['name']) ?>">
-          </div>
-          <div class="col-12 col-md-4">
-            <label class="form-label">Disciplina</label>
-            <select class="form-select" name="disciplina_id" required>
-              <option value="">Seleziona disciplina</option>
-              <?php foreach ($discipline as $disciplina): ?>
-                <?php $disciplinaId = (int) ($disciplina['id'] ?? 0); ?>
-                <option value="<?= $disciplinaId ?>" <?= $disciplinaId === $addPrefill['disciplina_id'] ? 'selected' : '' ?>>
-                  <?= htmlspecialchars((string) ($disciplina['name'] ?? '')) ?>
-                </option>
-              <?php endforeach; ?>
-            </select>
-          </div>
-
-          <div class="col-12 col-md-4">
-            <label class="form-label">Istruttore</label>
-            <select class="form-select" name="user_id" required>
-              <option value="">Seleziona istruttore</option>
-              <?php foreach ($users as $u): ?>
-                <?php $userId = (int) ($u['id'] ?? 0); ?>
-                <option value="<?= $userId ?>" <?= $userId === $addPrefill['user_id'] ? 'selected' : '' ?>>
-                  <?= htmlspecialchars((string) ($u['name'] ?? '')) ?>
-                </option>
-              <?php endforeach; ?>
-            </select>
-          </div>
-          <div class="col-12 col-md-3">
-            <label class="form-label">Sede</label>
-            <select class="form-select" name="sede_id" required>
-              <option value="">Seleziona sede</option>
-              <?php foreach ($sedi as $sede): ?>
-                <?php $sedeId = (int) ($sede['id'] ?? 0); ?>
-                <?php $sedeAttiva = (int) ($sede['active'] ?? 1) === 1; ?>
-                <option value="<?= $sedeId ?>" <?= $sedeId === $addPrefill['sede_id'] ? 'selected' : '' ?> <?= $sedeAttiva ? '' : 'disabled' ?>>
-                  <?= htmlspecialchars((string) ($sede['name'] ?? '')) ?><?= $sedeAttiva ? '' : ' (non attiva)' ?>
-                </option>
-              <?php endforeach; ?>
-            </select>
-          </div>
-          <div class="col-12 col-md-2">
-            <label class="form-label">Quota Mensile</label>
-            <input class="form-control" type="number" name="monthly_fee" step="0.01" placeholder="Quota" value="<?= htmlspecialchars($addPrefill['monthly_fee']) ?>">
-          </div>
-
-          <div class="col-12">
-            <small class="text-muted">Orari settimanali:</small>
-          </div>
-
-          <?php foreach ($dayLabels as $dayKey => $dayLabel): ?>
-            <div class="col-12 col-lg-8">
-              <div class="row g-1 align-items-end">
-                <div class="col-5 col-md-3">
-                  <label class="form-label mb-1"><?= htmlspecialchars($dayLabel) ?></label>
-                </div>
-                <div class="col-3 col-md-2">
-                  <input type="time" class="form-control" name="<?= htmlspecialchars($dayKey) ?>_inizio" value="<?= htmlspecialchars((string) ($addPrefill[$dayKey . '_inizio'] ?? '')) ?>">
-                </div>
-                <div class="col-3 col-md-2">
-                  <input type="time" class="form-control" name="<?= htmlspecialchars($dayKey) ?>_fine" value="<?= htmlspecialchars((string) ($addPrefill[$dayKey . '_fine'] ?? '')) ?>">
-                </div>
-              </div>
-            </div>
-          <?php endforeach; ?>
-
-          <div class="col-12 d-flex justify-content-end gap-2">
-            <button class="btn btn-secondary" type="button" id="cancelAddCorsoBtn">Annulla</button>
-            <button class="btn btn-success" type="submit">+ Aggiungi Corso</button>
-          </div>
+          <?php
+          $corsoFormValues = $addPrefill;
+          $corsoFormIsEdit = false;
+          $corsoFieldIds = [
+              'active' => '',
+              'start_date' => '',
+              'end_date' => '',
+              'name' => '',
+              'disciplina_id' => '',
+              'user_id' => '',
+              'sede_id' => '',
+              'monthly_fee' => '',
+          ];
+          foreach (array_keys($dayLabels) as $dayKey) {
+              $corsoFieldIds[$dayKey . '_inizio'] = '';
+              $corsoFieldIds[$dayKey . '_fine'] = '';
+          }
+          require __DIR__ . '/partials/corso_form_fields.php';
+          ?>
         </form>
       </div>
     </div>
@@ -220,87 +151,39 @@ foreach (array_keys($dayLabels) as $dayKey) {
         <form method="post" action="<?= htmlspecialchars($corsiApiUrl) ?>" class="row g-3" id="editCorsoForm">
           <input type="hidden" name="action" value="update">
           <input type="hidden" name="corso_id" id="editCorsoId">
+          <?php
+          $corsoFormValues = [
+              'active' => 1,
+              'start_date' => '',
+              'end_date' => '',
+              'name' => '',
+              'disciplina_id' => 0,
+              'user_id' => 0,
+              'sede_id' => 0,
+              'monthly_fee' => '',
+          ];
+          foreach (array_keys($dayLabels) as $dayKey) {
+              $corsoFormValues[$dayKey . '_inizio'] = '';
+              $corsoFormValues[$dayKey . '_fine'] = '';
+          }
 
-          <div class="col-12 col-md-4">
-            <label class="form-label">Stato</label>
-            <select class="form-select" name="active" id="editCorsoActive">
-              <option value="1">Attivo</option>
-              <option value="0">Non attivo</option>
-            </select>
-          </div>
-          <div class="col-12 col-md-4">
-            <label class="form-label">Data Inizio</label>
-            <input type="date" class="form-control" name="start_date" id="editCorsoStartDate">
-          </div>
-          <div class="col-12 col-md-4">
-            <label class="form-label">Data Fine</label>
-            <input type="date" class="form-control" name="end_date" id="editCorsoEndDate">
-          </div>
-
-          <div class="col-12 col-md-4">
-            <label class="form-label">Nome Corso</label>
-            <input type="text" class="form-control" name="name" id="editCorsoName" placeholder="Nome corso" required>
-          </div>
-          <div class="col-12 col-md-4">
-            <label class="form-label">Disciplina</label>
-            <select class="form-select" name="disciplina_id" id="editCorsoDisciplina" required>
-              <option value="">Seleziona disciplina</option>
-              <?php foreach ($discipline as $disciplina): ?>
-                <option value="<?= (int) ($disciplina['id'] ?? 0) ?>"><?= htmlspecialchars((string) ($disciplina['name'] ?? '')) ?></option>
-              <?php endforeach; ?>
-            </select>
-          </div>
-          <div class="col-12 col-md-4">
-            <label class="form-label">Istruttore</label>
-            <select class="form-select" name="user_id" id="editCorsoUser" required>
-              <option value="">Seleziona istruttore</option>
-              <?php foreach ($users as $u): ?>
-                <option value="<?= (int) ($u['id'] ?? 0) ?>"><?= htmlspecialchars((string) ($u['name'] ?? '')) ?></option>
-              <?php endforeach; ?>
-            </select>
-          </div>
-          <div class="col-12 col-md-3">
-            <label class="form-label">Sede</label>
-            <select class="form-select" name="sede_id" id="editCorsoSede" required>
-              <option value="">Seleziona sede</option>
-              <?php foreach ($sedi as $sede): ?>
-                <?php $sedeId = (int) ($sede['id'] ?? 0); ?>
-                <?php $sedeAttiva = (int) ($sede['active'] ?? 1) === 1; ?>
-                <option value="<?= $sedeId ?>" <?= $sedeAttiva ? '' : 'disabled' ?>>
-                  <?= htmlspecialchars((string) ($sede['name'] ?? '')) ?><?= $sedeAttiva ? '' : ' (non attiva)' ?>
-                </option>
-              <?php endforeach; ?>
-            </select>
-          </div>
-          <div class="col-12 col-md-2">
-            <label class="form-label">Quota Mensile</label>
-            <input type="number" class="form-control" name="monthly_fee" id="editCorsoMonthlyFee" step="0.01" placeholder="Quota">
-          </div>
-
-          <div class="col-12">
-            <small class="text-muted">Orari settimanali:</small>
-          </div>
-
-          <?php foreach ($dayLabels as $dayKey => $dayLabel): ?>
-            <div class="col-12 col-lg-8">
-              <div class="row g-1 align-items-end">
-                <div class="col-5 col-md-3">
-                  <label class="form-label mb-1"><?= htmlspecialchars($dayLabel) ?></label>
-                </div>
-                <div class="col-3 col-md-2">
-                  <input type="time" class="form-control" name="<?= htmlspecialchars($dayKey) ?>_inizio" id="edit_<?= htmlspecialchars($dayKey) ?>_inizio">
-                </div>
-                <div class="col-3 col-md-2">
-                  <input type="time" class="form-control" name="<?= htmlspecialchars($dayKey) ?>_fine" id="edit_<?= htmlspecialchars($dayKey) ?>_fine">
-                </div>
-              </div>
-            </div>
-          <?php endforeach; ?>
-
-          <div class="col-12 d-flex justify-content-end gap-2">
-            <button class="btn btn-secondary" type="button" id="cancelEditCorsoBtn">Annulla</button>
-            <button class="btn btn-primary" type="submit">Salva</button>
-          </div>
+          $corsoFormIsEdit = true;
+          $corsoFieldIds = [
+              'active' => 'editCorsoActive',
+              'start_date' => 'editCorsoStartDate',
+              'end_date' => 'editCorsoEndDate',
+              'name' => 'editCorsoName',
+              'disciplina_id' => 'editCorsoDisciplina',
+              'user_id' => 'editCorsoUser',
+              'sede_id' => 'editCorsoSede',
+              'monthly_fee' => 'editCorsoMonthlyFee',
+          ];
+          foreach (array_keys($dayLabels) as $dayKey) {
+              $corsoFieldIds[$dayKey . '_inizio'] = 'edit_' . $dayKey . '_inizio';
+              $corsoFieldIds[$dayKey . '_fine'] = 'edit_' . $dayKey . '_fine';
+          }
+          require __DIR__ . '/partials/corso_form_fields.php';
+          ?>
         </form>
       </div>
     </div>
