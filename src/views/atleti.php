@@ -17,7 +17,7 @@ $okMessage = trim((string) ($_GET['ok'] ?? ''));
 $errMessage = trim((string) ($_GET['err'] ?? ''));
 $openAddPanel = ((string) ($_GET['open_add'] ?? '0')) === '1';
 $activeTab = trim((string) ($_GET['athlete_tab'] ?? 'anagrafica'));
-$allowedTabs = ['anagrafica', 'contatti', 'documenti', 'iscrizioni', 'pagamenti'];
+$allowedTabs = ['anagrafica', 'contatti', 'misure', 'documenti', 'iscrizioni', 'pagamenti'];
 if (!in_array($activeTab, $allowedTabs, true)) {
     $activeTab = 'anagrafica';
 }
@@ -68,7 +68,7 @@ $selectedPagamenti = $hasSelectedAtleta && isset($selectedAtleta['pagamenti']) &
     <div class="d-flex justify-content-between align-items-center mb-3 gap-2 flex-wrap">
       <div>
         <h5 class="m-0">Gestione Atleti</h5>
-        <small class="text-muted">Scheda atleta con tab anagrafica, contatti, documenti, iscrizioni e pagamenti.</small>
+        <small class="text-muted">Scheda atleta con tab anagrafica, contatti, misure, documenti/certificati, iscrizioni e pagamenti.</small>
       </div>
       <button class="btn btn-success" type="button" id="openAddAtletaPanelBtn">+ Nuovo atleta</button>
     </div>
@@ -118,7 +118,10 @@ $selectedPagamenti = $hasSelectedAtleta && isset($selectedAtleta['pagamenti']) &
               <button class="nav-link js-athlete-add-tab-trigger" data-bs-toggle="tab" data-bs-target="#add-athlete-contatti" type="button" role="tab">Contatti</button>
             </li>
             <li class="nav-item" role="presentation">
-              <button class="nav-link disabled" type="button" role="tab" aria-disabled="true" tabindex="-1">Documenti</button>
+              <button class="nav-link js-athlete-add-tab-trigger" data-bs-toggle="tab" data-bs-target="#add-athlete-misure" type="button" role="tab">Misure</button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link disabled" type="button" role="tab" aria-disabled="true" tabindex="-1">Documenti/Certificati</button>
             </li>
             <li class="nav-item" role="presentation">
               <button class="nav-link disabled" type="button" role="tab" aria-disabled="true" tabindex="-1">Iscrizioni</button>
@@ -131,7 +134,7 @@ $selectedPagamenti = $hasSelectedAtleta && isset($selectedAtleta['pagamenti']) &
           <div class="tab-content border border-top-0 rounded-bottom p-3 col-12">
             <div class="tab-pane fade show active" id="add-athlete-anagrafica" role="tabpanel">
               <div class="alert alert-info py-2 mb-3" role="alert">
-                I tab Documenti, Iscrizioni e Pagamenti diventano disponibili nella scheda atleta dopo il primo salvataggio.
+                I tab Documenti/Certificati, Iscrizioni e Pagamenti diventano disponibili nella scheda atleta dopo il primo salvataggio.
               </div>
               <div class="row g-3">
                 <div class="col-12 col-md-3">
@@ -210,29 +213,6 @@ $selectedPagamenti = $hasSelectedAtleta && isset($selectedAtleta['pagamenti']) &
                 </div>
     </div>
     <div class="row g-3">
-                
-                <div class="col-12 col-md-2">
-                  <label class="form-label">Altezza (cm)</label>
-                  <input type="number" min="0" class="form-control" name="altezza">
-                </div>
-                <div class="col-12 col-md-2">
-                  <label class="form-label">Peso (kg)</label>
-                  <input type="number" step="0.01" min="0" class="form-control" name="peso">
-                </div>
-                </div>
-                <div class="row g-3">
-                <div class="col-12 col-md-3">
-                  <label class="form-label">Misura</label>
-                  <input class="form-control" name="misura" maxlength="3">
-                </div>
-                <div class="col-12 col-md-3">
-                  <label class="form-label">Misura maglia</label>
-                  <input class="form-control" name="misura_maglia" maxlength="3">
-                </div>
-                <div class="col-12 col-md-3">
-                  <label class="form-label">Misura pantaloni</label>
-                  <input class="form-control" name="misura_pantaloni" maxlength="3">
-                </div>
                 <div class="col-12">
                   <label class="form-label">Note atleta</label>
                   <textarea class="form-control" name="note_atleta" rows="3"></textarea>
@@ -288,6 +268,31 @@ $selectedPagamenti = $hasSelectedAtleta && isset($selectedAtleta['pagamenti']) &
                 </div>
               </div>
             </div>
+
+            <div class="tab-pane fade" id="add-athlete-misure" role="tabpanel">
+              <div class="row g-3">
+                <div class="col-12 col-md-3">
+                  <label class="form-label">Altezza (cm)</label>
+                  <input type="number" min="0" class="form-control" name="altezza">
+                </div>
+                <div class="col-12 col-md-3">
+                  <label class="form-label">Peso (kg)</label>
+                  <input type="number" step="0.01" min="0" class="form-control" name="peso">
+                </div>
+                <div class="col-12 col-md-2">
+                  <label class="form-label">Misura</label>
+                  <input class="form-control" name="misura" maxlength="3">
+                </div>
+                <div class="col-12 col-md-2">
+                  <label class="form-label">Misura maglia</label>
+                  <input class="form-control" name="misura_maglia" maxlength="3">
+                </div>
+                <div class="col-12 col-md-2">
+                  <label class="form-label">Misura pantaloni</label>
+                  <input class="form-control" name="misura_pantaloni" maxlength="3">
+                </div>
+              </div>
+            </div>
           </div>
 
           <div class="col-12 d-flex justify-content-end gap-2">
@@ -332,7 +337,10 @@ $selectedPagamenti = $hasSelectedAtleta && isset($selectedAtleta['pagamenti']) &
               <button class="<?= $tabButtonClass('contatti') ?> js-athlete-edit-tab-trigger" data-bs-toggle="tab" data-bs-target="#athlete-tab-contatti" type="button" role="tab">Contatti</button>
             </li>
             <li class="nav-item" role="presentation">
-              <button class="<?= $tabButtonClass('documenti') ?> js-athlete-edit-tab-trigger" data-bs-toggle="tab" data-bs-target="#athlete-tab-documenti" type="button" role="tab">Documenti</button>
+              <button class="<?= $tabButtonClass('misure') ?> js-athlete-edit-tab-trigger" data-bs-toggle="tab" data-bs-target="#athlete-tab-misure" type="button" role="tab">Misure</button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="<?= $tabButtonClass('documenti') ?> js-athlete-edit-tab-trigger" data-bs-toggle="tab" data-bs-target="#athlete-tab-documenti" type="button" role="tab">Documenti/Certificati</button>
             </li>
             <li class="nav-item" role="presentation">
               <button class="<?= $tabButtonClass('iscrizioni') ?> js-athlete-edit-tab-trigger" data-bs-toggle="tab" data-bs-target="#athlete-tab-iscrizioni" type="button" role="tab">Iscrizioni</button>
@@ -398,7 +406,7 @@ $selectedPagamenti = $hasSelectedAtleta && isset($selectedAtleta['pagamenti']) &
                   <label class="form-label">Codice univoco fatturazione</label>
                   <input class="form-control" name="codice_univoco_fatturazione" maxlength="7" pattern="[A-Za-z0-9]{6,7}" title="Inserisci 6-7 caratteri alfanumerici" form="editAthleteProfileForm" value="<?= htmlspecialchars((string) ($selectedAtleta['invoice_code'] ?? '')) ?>">
                 </div>
-                <div class="col-12 col-md-4">
+                <div class="col-12 col-md-2">
                   <label class="form-label">Data nascita</label>
                   <input type="date" class="form-control" name="data_nascita" form="editAthleteProfileForm" value="<?= htmlspecialchars((string) ($selectedAtleta['birth_date'] ?? '')) ?>">
                 </div>
@@ -408,33 +416,13 @@ $selectedPagamenti = $hasSelectedAtleta && isset($selectedAtleta['pagamenti']) &
                     <option value="<?= htmlspecialchars((string) ($selectedAtleta['birth_city'] ?? '')) ?>" selected><?= htmlspecialchars((string) ($selectedAtleta['birth_city'] ?? '')) ?></option>
                   </select>
                 </div>
-                <div class="col-12 col-md-4">
-                  <label class="form-label">Provincia nascita</label>
+                <div class="col-12 col-md-2">
+                  <label class="form-label">Prov. nascita</label>
                   <input class="form-control" name="provincia_nascita" id="edit_provincia_nascita" form="editAthleteProfileForm" value="<?= htmlspecialchars((string) ($selectedAtleta['birth_province'] ?? '')) ?>">
                 </div>
                 <div class="col-12 col-md-4">
                   <label class="form-label">Stato nascita</label>
                   <input class="form-control" name="stato_nascita" id="edit_stato_nascita" form="editAthleteProfileForm" value="<?= htmlspecialchars((string) ($selectedAtleta['birth_country'] ?? '')) ?>">
-                </div>
-                <div class="col-12 col-md-4">
-                  <label class="form-label">Altezza (cm)</label>
-                  <input type="number" min="0" class="form-control" name="altezza" form="editAthleteProfileForm" value="<?= htmlspecialchars((string) ($selectedAtleta['height'] ?? '')) ?>">
-                </div>
-                <div class="col-12 col-md-3">
-                  <label class="form-label">Peso</label>
-                  <input type="number" min="0" step="0.01" class="form-control" name="peso" form="editAthleteProfileForm" value="<?= htmlspecialchars((string) ($selectedAtleta['weight'] ?? '')) ?>">
-                </div>
-                <div class="col-12 col-md-3">
-                  <label class="form-label">Misura</label>
-                  <input class="form-control" maxlength="3" name="misura" form="editAthleteProfileForm" value="<?= htmlspecialchars((string) ($selectedAtleta['size'] ?? '')) ?>">
-                </div>
-                <div class="col-12 col-md-3">
-                  <label class="form-label">Misura maglia</label>
-                  <input class="form-control" maxlength="3" name="misura_maglia" form="editAthleteProfileForm" value="<?= htmlspecialchars((string) ($selectedAtleta['shirt_size'] ?? '')) ?>">
-                </div>
-                <div class="col-12 col-md-3">
-                  <label class="form-label">Misura pantaloni</label>
-                  <input class="form-control" maxlength="3" name="misura_pantaloni" form="editAthleteProfileForm" value="<?= htmlspecialchars((string) ($selectedAtleta['pants_size'] ?? '')) ?>">
                 </div>
                 <div class="col-12">
                   <label class="form-label">Note atleta</label>
@@ -496,48 +484,47 @@ $selectedPagamenti = $hasSelectedAtleta && isset($selectedAtleta['pagamenti']) &
               </div>
             </div>
 
-            <div class="<?= $tabPaneClass('documenti') ?>" id="athlete-tab-documenti" role="tabpanel">
-              <form method="post" action="<?= htmlspecialchars($atletiApiUrl) ?>" class="row g-3" enctype="multipart/form-data">
-                <input type="hidden" name="action" value="add_documento">
-                <input type="hidden" name="idatleta" value="<?= (int) ($selectedAtleta['id'] ?? 0) ?>">
+            <div class="<?= $tabPaneClass('misure') ?>" id="athlete-tab-misure" role="tabpanel">
+              <div class="row g-3">
+                <div class="col-12 col-md-3">
+                  <label class="form-label">Altezza (cm)</label>
+                  <input type="number" min="0" class="form-control" name="altezza" form="editAthleteProfileForm" value="<?= htmlspecialchars((string) ($selectedAtleta['height'] ?? '')) ?>">
+                </div>
+                <div class="col-12 col-md-3">
+                  <label class="form-label">Peso</label>
+                  <input type="number" min="0" step="0.01" class="form-control" name="peso" form="editAthleteProfileForm" value="<?= htmlspecialchars((string) ($selectedAtleta['weight'] ?? '')) ?>">
+                </div>
+                </div>
+                <div class="row g-3">
                 <div class="col-12 col-md-4">
-                  <label class="form-label">Tipo documento</label>
-                  <select class="form-select" name="idtipo_documento" required>
-                    <option value="">Seleziona</option>
-                    <?php foreach ($tipiDocumenti as $tipoDocumento): ?>
-                      <option value="<?= (int) ($tipoDocumento['id'] ?? 0) ?>"><?= htmlspecialchars((string) ($tipoDocumento['type'] ?? '')) ?></option>
-                    <?php endforeach; ?>
-                  </select>
+                  <label class="form-label">Misura maglia</label>
+                  <input class="form-control" maxlength="3" name="misura_maglia" form="editAthleteProfileForm" value="<?= htmlspecialchars((string) ($selectedAtleta['shirt_size'] ?? '')) ?>">
                 </div>
                 <div class="col-12 col-md-4">
-                  <label class="form-label">Descrizione</label>
-                  <input class="form-control" name="descrizione_documento">
+                  <label class="form-label">Misura pantaloni</label>
+                  <input class="form-control" maxlength="3" name="misura_pantaloni" form="editAthleteProfileForm" value="<?= htmlspecialchars((string) ($selectedAtleta['pants_size'] ?? '')) ?>">
                 </div>
-                <div class="col-12 col-md-2">
-                  <label class="form-label">Data documento</label>
-                  <input type="date" class="form-control" name="data_documento">
-                </div>
-                <div class="col-12 col-md-2">
-                  <label class="form-label">Scadenza</label>
-                  <input type="date" class="form-control" name="data_scadenza">
-                </div>
-                <div class="col-12 col-md-6">
-                  <label class="form-label">File documento</label>
-                  <input class="form-control" type="file" name="document_file" accept="application/pdf,image/jpeg,image/png,image/webp">
-                  <small class="text-muted">Formati supportati: PDF, JPG, PNG, WEBP. Max 8MB.</small>
-                </div>
-                <div class="col-12">
-                  <label class="form-label">URL documento</label>
-                  <input class="form-control" name="url_documento" placeholder="https://... se non carichi un file">
-                  <small class="text-muted">Compila l'URL solo se il documento non viene caricato da questo form.</small>
+                <div class="col-12 col-md-4">
+                  <label class="form-label">Misura Cintura</label>
+                  <input class="form-control" maxlength="3" name="misura" form="editAthleteProfileForm" value="<?= htmlspecialchars((string) ($selectedAtleta['size'] ?? '')) ?>">
                 </div>
                 <div class="col-12 d-flex justify-content-end">
-                  <button class="btn btn-outline-primary" type="submit">Aggiungi documento</button>
+                  <button class="btn btn-primary" type="submit" form="editAthleteProfileForm">Salva misure</button>
                 </div>
-              </form>
+              </div>
+            </div>
 
-              <div class="table-responsive mt-4">
-                <table class="table table-sm align-middle">
+            <div class="<?= $tabPaneClass('documenti') ?>" id="athlete-tab-documenti" role="tabpanel">
+              <div class="d-flex justify-content-between align-items-center gap-3 mb-3">
+                <div>
+                  <h6 class="mb-1">Documenti caricati</h6>
+                  <small class="text-muted">Consulta l'archivio e aggiungi nuovi documenti da qui.</small>
+                </div>
+                <button type="button" class="btn btn-outline-primary" id="openAddDocumentoPanelBtn">Nuovo documento</button>
+              </div>
+
+              <div class="table-responsive">
+                <table id="documenti-table" class="table table-sm align-middle">
                   <thead>
                     <tr>
                       <th>Tipo</th>
@@ -549,11 +536,7 @@ $selectedPagamenti = $hasSelectedAtleta && isset($selectedAtleta['pagamenti']) &
                     </tr>
                   </thead>
                   <tbody>
-                    <?php if ($selectedDocumenti === []): ?>
-                      <tr>
-                        <td colspan="6" class="text-center text-muted py-3">Nessun documento registrato.</td>
-                      </tr>
-                    <?php else: ?>
+                    <?php if ($selectedDocumenti !== []): ?>
                       <?php foreach ($selectedDocumenti as $documento): ?>
                         <tr>
                           <td><?= htmlspecialchars((string) ($documento['type_name'] ?? '')) ?></td>
@@ -579,7 +562,6 @@ $selectedPagamenti = $hasSelectedAtleta && isset($selectedAtleta['pagamenti']) &
                                 data-description="<?= htmlspecialchars((string) ($documento['description'] ?? ''), ENT_QUOTES) ?>"
                                 data-document-date="<?= htmlspecialchars((string) ($documento['document_date'] ?? ''), ENT_QUOTES) ?>"
                                 data-expiry-date="<?= htmlspecialchars((string) ($documento['expiry_date'] ?? ''), ENT_QUOTES) ?>"
-                                data-url="<?= htmlspecialchars((string) ($documento['url'] ?? ''), ENT_QUOTES) ?>"
                               >Modifica</button>
                               <form method="post" action="<?= htmlspecialchars($atletiApiUrl) ?>" onsubmit="return confirm('Eliminare questo documento?');">
                                 <input type="hidden" name="action" value="delete_documento">
@@ -596,6 +578,48 @@ $selectedPagamenti = $hasSelectedAtleta && isset($selectedAtleta['pagamenti']) &
                 </table>
               </div>
 
+              <div id="addDocumentoPanel" class="card border mt-3 d-none">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <h6 class="m-0">Nuovo documento</h6>
+                  <button type="button" class="btn btn-sm btn-outline-secondary" id="closeAddDocumentoPanelBtn">Chiudi</button>
+                </div>
+                <div class="card-body">
+                  <form method="post" action="<?= htmlspecialchars($atletiApiUrl) ?>" class="row g-3" enctype="multipart/form-data">
+                    <input type="hidden" name="action" value="add_documento">
+                    <input type="hidden" name="idatleta" value="<?= (int) ($selectedAtleta['id'] ?? 0) ?>">
+                    <div class="col-12">
+                      <label class="form-label">Tipo documento</label>
+                      <select class="form-select" name="idtipo_documento" required>
+                        <option value="">Seleziona</option>
+                        <?php foreach ($tipiDocumenti as $tipoDocumento): ?>
+                          <option value="<?= (int) ($tipoDocumento['id'] ?? 0) ?>"><?= htmlspecialchars((string) ($tipoDocumento['type'] ?? '')) ?></option>
+                        <?php endforeach; ?>
+                      </select>
+                    </div>
+                    <div class="col-12 col-md-6">
+                      <label class="form-label">Descrizione</label>
+                      <input class="form-control" name="descrizione_documento">
+                    </div>
+                    <div class="col-12 col-md-3">
+                      <label class="form-label">Data rilascio</label>
+                      <input type="date" class="form-control" name="data_documento">
+                    </div>
+                    <div class="col-12 col-md-3">
+                      <label class="form-label">Scadenza</label>
+                      <input type="date" class="form-control" name="data_scadenza">
+                    </div>
+                    <div class="col-12 col-md-6">
+                      <label class="form-label">File documento</label>
+                      <input class="form-control" type="file" name="document_file" accept="application/pdf,image/jpeg,image/png,image/webp">
+                      <small class="text-muted">Formati supportati: PDF, JPG, PNG, WEBP. Max 8MB.</small>
+                    </div>
+                    <div class="col-12 d-flex justify-content-end">
+                      <button class="btn btn-outline-primary" type="submit">Aggiungi documento</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+
               <div id="editDocumentoPanel" class="card border mt-3 d-none">
                 <div class="card-header d-flex justify-content-between align-items-center">
                   <h6 class="m-0">Modifica documento</h6>
@@ -606,7 +630,7 @@ $selectedPagamenti = $hasSelectedAtleta && isset($selectedAtleta['pagamenti']) &
                     <input type="hidden" name="action" value="update_documento">
                     <input type="hidden" name="idatleta" value="<?= (int) ($selectedAtleta['id'] ?? 0) ?>">
                     <input type="hidden" name="iddocumento" id="editDocumentoId">
-                    <div class="col-12 col-md-4">
+                    <div class="col-12">
                       <label class="form-label">Tipo documento</label>
                       <select class="form-select" name="idtipo_documento" id="editDocumentoType" required>
                         <option value="">Seleziona</option>
@@ -615,25 +639,21 @@ $selectedPagamenti = $hasSelectedAtleta && isset($selectedAtleta['pagamenti']) &
                         <?php endforeach; ?>
                       </select>
                     </div>
-                    <div class="col-12 col-md-4">
+                    <div class="col-12 col-md-6">
                       <label class="form-label">Descrizione</label>
                       <input class="form-control" name="descrizione_documento" id="editDocumentoDescription">
                     </div>
-                    <div class="col-12 col-md-2">
+                    <div class="col-12 col-md-3">
                       <label class="form-label">Data documento</label>
                       <input type="date" class="form-control" name="data_documento" id="editDocumentoDate">
                     </div>
-                    <div class="col-12 col-md-2">
+                    <div class="col-12 col-md-3">
                       <label class="form-label">Scadenza</label>
                       <input type="date" class="form-control" name="data_scadenza" id="editDocumentoExpiryDate">
                     </div>
                     <div class="col-12 col-md-6">
                       <label class="form-label">Nuovo file documento</label>
                       <input class="form-control" type="file" name="document_file" accept="application/pdf,image/jpeg,image/png,image/webp">
-                    </div>
-                    <div class="col-12">
-                      <label class="form-label">URL documento</label>
-                      <input class="form-control" name="url_documento" id="editDocumentoUrl" placeholder="https://... oppure lascia il valore attuale">
                     </div>
                     <div class="col-12 d-flex justify-content-end">
                       <button class="btn btn-primary" type="submit">Salva modifiche</button>
@@ -644,49 +664,16 @@ $selectedPagamenti = $hasSelectedAtleta && isset($selectedAtleta['pagamenti']) &
             </div>
 
             <div class="<?= $tabPaneClass('iscrizioni') ?>" id="athlete-tab-iscrizioni" role="tabpanel">
-              <form method="post" action="<?= htmlspecialchars($atletiApiUrl) ?>" class="row g-3">
-                <input type="hidden" name="action" value="add_iscrizione">
-                <input type="hidden" name="idatleta" value="<?= (int) ($selectedAtleta['id'] ?? 0) ?>">
-                <div class="col-12 col-md-3">
-                  <label class="form-label">Data inizio</label>
-                  <input type="date" class="form-control" name="data_inizio_iscrizione" required>
+              <div class="d-flex justify-content-between align-items-center gap-3 mb-3">
+                <div>
+                  <h6 class="mb-1">Iscrizioni registrate</h6>
+                  <small class="text-muted">Consulta le iscrizioni esistenti e aggiungine una nuova.</small>
                 </div>
-                <div class="col-12 col-md-3">
-                  <label class="form-label">Data fine</label>
-                  <input type="date" class="form-control" name="data_fine_iscrizione">
-                </div>
-                <div class="col-12 col-md-3">
-                  <label class="form-label">Totale iscrizione</label>
-                  <input type="number" step="0.01" min="0" class="form-control" name="totale_iscrizione">
-                </div>
-                <div class="col-12 col-md-3">
-                  <label class="form-label">Stato</label>
-                  <select class="form-select" name="stato_iscrizione" required>
-                    <option value="A">Attiva</option>
-                    <option value="S">Sospesa</option>
-                    <option value="C">Conclusa</option>
-                  </select>
-                </div>
-                <div class="col-12">
-                  <label class="form-label">Corsi collegati</label>
-                  <select class="form-select" name="course_ids[]" multiple size="5">
-                    <?php foreach ($corsi as $corso): ?>
-                      <option value="<?= (int) ($corso['id'] ?? 0) ?>"><?= htmlspecialchars((string) ($corso['name'] ?? '')) ?></option>
-                    <?php endforeach; ?>
-                  </select>
-                  <small class="text-muted">Puoi associare piu corsi alla stessa iscrizione.</small>
-                </div>
-                <div class="col-12">
-                  <label class="form-label">Note iscrizione</label>
-                  <textarea class="form-control" rows="3" name="note_iscrizione"></textarea>
-                </div>
-                <div class="col-12 d-flex justify-content-end">
-                  <button class="btn btn-outline-primary" type="submit">Aggiungi iscrizione</button>
-                </div>
-              </form>
+                <button type="button" class="btn btn-outline-primary" id="openAddIscrizionePanelBtn">Nuova iscrizione</button>
+              </div>
 
-              <div class="table-responsive mt-4">
-                <table class="table table-sm align-middle">
+              <div class="table-responsive">
+                <table id="iscrizioni-table" class="table table-sm align-middle">
                   <thead>
                     <tr>
                       <th>ID</th>
@@ -698,11 +685,7 @@ $selectedPagamenti = $hasSelectedAtleta && isset($selectedAtleta['pagamenti']) &
                     </tr>
                   </thead>
                   <tbody>
-                    <?php if ($selectedIscrizioni === []): ?>
-                      <tr>
-                        <td colspan="6" class="text-center text-muted py-3">Nessuna iscrizione registrata.</td>
-                      </tr>
-                    <?php else: ?>
+                    <?php if ($selectedIscrizioni !== []): ?>
                       <?php foreach ($selectedIscrizioni as $iscrizione): ?>
                         <tr>
                           <td>#<?= (int) ($iscrizione['id'] ?? 0) ?></td>
@@ -722,49 +705,74 @@ $selectedPagamenti = $hasSelectedAtleta && isset($selectedAtleta['pagamenti']) &
                   </tbody>
                 </table>
               </div>
+
+              <div id="addIscrizionePanel" class="card border mt-3 d-none">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <h6 class="m-0">Nuova iscrizione</h6>
+                  <button type="button" class="btn btn-sm btn-outline-secondary" id="closeAddIscrizionePanelBtn">Chiudi</button>
+                </div>
+                <div class="card-body">
+                  <form method="post" action="<?= htmlspecialchars($atletiApiUrl) ?>" class="row g-3">
+                    <input type="hidden" name="action" value="add_iscrizione">
+                    <input type="hidden" name="idatleta" value="<?= (int) ($selectedAtleta['id'] ?? 0) ?>">
+                    <div class="col-12 col-md-3">
+                      <label class="form-label">Data inizio</label>
+                      <input type="date" class="form-control" name="data_inizio_iscrizione" required>
+                    </div>
+                    <div class="col-12 col-md-3">
+                      <label class="form-label">Data fine</label>
+                      <input type="date" class="form-control" name="data_fine_iscrizione">
+                    </div>
+                    <div class="col-12 col-md-3">
+                      <label class="form-label">Totale iscrizione</label>
+                      <input type="number" step="0.01" min="0" class="form-control" name="totale_iscrizione">
+                    </div>
+                    <div class="col-12 col-md-3">
+                      <label class="form-label">Stato</label>
+                      <select class="form-select" name="stato_iscrizione" required>
+                        <option value="A">Attiva</option>
+                        <option value="S">Sospesa</option>
+                        <option value="C">Conclusa</option>
+                      </select>
+                    </div>
+                    <div class="col-12">
+                      <label class="form-label">Corsi collegati</label>
+                      <select class="form-select" name="course_ids[]" multiple size="5">
+                        <?php foreach ($corsi as $corso): ?>
+                          <option value="<?= (int) ($corso['id'] ?? 0) ?>"><?= htmlspecialchars((string) ($corso['name'] ?? '')) ?></option>
+                        <?php endforeach; ?>
+                      </select>
+                      <small class="text-muted">Puoi associare piu corsi alla stessa iscrizione.</small>
+                    </div>
+                    <div class="col-12">
+                      <label class="form-label">Note iscrizione</label>
+                      <textarea class="form-control" rows="3" name="note_iscrizione"></textarea>
+                    </div>
+                    <div class="col-12 d-flex justify-content-end">
+                      <button class="btn btn-outline-primary" type="submit">Aggiungi iscrizione</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
             </div>
 
             <div class="<?= $tabPaneClass('pagamenti') ?>" id="athlete-tab-pagamenti" role="tabpanel">
-              <form method="post" action="<?= htmlspecialchars($atletiApiUrl) ?>" class="row g-3">
-                <input type="hidden" name="action" value="add_pagamento">
-                <input type="hidden" name="idatleta" value="<?= (int) ($selectedAtleta['id'] ?? 0) ?>">
-                <div class="col-12 col-md-4">
-                  <label class="form-label">Corso iscritto</label>
-                  <select class="form-select" name="idcorso" <?= $selectedIscrizioni === [] ? 'disabled' : 'required' ?>>
-                    <option value="">Seleziona</option>
-                    <?php foreach ($selectedIscrizioni as $iscrizione): ?>
-                      <option value="<?= (int) ($iscrizione['course_id'] ?? $iscrizione['id'] ?? 0) ?>">
-                        #<?= (int) ($iscrizione['course_id'] ?? $iscrizione['id'] ?? 0) ?> - <?= htmlspecialchars((string) ($iscrizione['courses'] ?? '')) ?>
-                      </option>
-                    <?php endforeach; ?>
-                  </select>
-                  <?php if ($selectedIscrizioni === []): ?>
-                    <small class="text-muted">Aggiungi prima almeno un corso nel tab Iscrizioni.</small>
-                  <?php endif; ?>
+              <div class="d-flex justify-content-between align-items-center gap-3 mb-3">
+                <div>
+                  <h6 class="mb-1">Pagamenti registrati</h6>
+                  <small class="text-muted">Consulta i pagamenti inseriti e registrane uno nuovo.</small>
                 </div>
-                <div class="col-12 col-md-4">
-                  <label class="form-label">Data pagamento</label>
-                  <input type="date" class="form-control" name="data_pagamento" required>
-                </div>
-                <div class="col-12 col-md-4">
-                  <label class="form-label">Importo</label>
-                  <input type="number" step="0.01" min="0" class="form-control" name="quota_pagamento" required>
-                </div>
-                <div class="col-12 col-md-4">
-                  <label class="form-label">Data scadenza</label>
-                  <input type="date" class="form-control" name="data_scadenza">
-                </div>
-                <div class="col-12">
-                  <label class="form-label">Note pagamento</label>
-                  <textarea class="form-control" rows="3" name="note_pagamento"></textarea>
-                </div>
-                <div class="col-12 d-flex justify-content-end">
-                  <button class="btn btn-outline-primary" type="submit" <?= $selectedIscrizioni === [] ? 'disabled' : '' ?>>Registra pagamento</button>
-                </div>
-              </form>
+                <button type="button" class="btn btn-outline-primary" id="openAddPagamentoPanelBtn" <?= $selectedIscrizioni === [] ? 'disabled' : '' ?>>Nuovo pagamento</button>
+              </div>
 
-              <div class="table-responsive mt-4">
-                <table class="table table-sm align-middle">
+              <?php if ($selectedIscrizioni === []): ?>
+                <div class="alert alert-info py-2" role="alert">
+                  Aggiungi prima almeno un corso nel tab Iscrizioni.
+                </div>
+              <?php endif; ?>
+
+              <div class="table-responsive">
+                <table id="pagamenti-table" class="table table-sm align-middle">
                   <thead>
                     <tr>
                       <th>ID</th>
@@ -776,11 +784,7 @@ $selectedPagamenti = $hasSelectedAtleta && isset($selectedAtleta['pagamenti']) &
                     </tr>
                   </thead>
                   <tbody>
-                    <?php if ($selectedPagamenti === []): ?>
-                      <tr>
-                        <td colspan="6" class="text-center text-muted py-3">Nessun pagamento registrato.</td>
-                      </tr>
-                    <?php else: ?>
+                    <?php if ($selectedPagamenti !== []): ?>
                       <?php foreach ($selectedPagamenti as $pagamento): ?>
                         <tr>
                           <td>#<?= (int) ($pagamento['id'] ?? 0) ?></td>
@@ -800,13 +804,56 @@ $selectedPagamenti = $hasSelectedAtleta && isset($selectedAtleta['pagamenti']) &
                   </tbody>
                 </table>
               </div>
+
+              <div id="addPagamentoPanel" class="card border mt-3 d-none">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <h6 class="m-0">Nuovo pagamento</h6>
+                  <button type="button" class="btn btn-sm btn-outline-secondary" id="closeAddPagamentoPanelBtn">Chiudi</button>
+                </div>
+                <div class="card-body">
+                  <form method="post" action="<?= htmlspecialchars($atletiApiUrl) ?>" class="row g-3">
+                    <input type="hidden" name="action" value="add_pagamento">
+                    <input type="hidden" name="idatleta" value="<?= (int) ($selectedAtleta['id'] ?? 0) ?>">
+                    <div class="col-12 col-md-4">
+                      <label class="form-label">Corso iscritto</label>
+                      <select class="form-select" name="idcorso" <?= $selectedIscrizioni === [] ? 'disabled' : 'required' ?>>
+                        <option value="">Seleziona</option>
+                        <?php foreach ($selectedIscrizioni as $iscrizione): ?>
+                          <option value="<?= (int) ($iscrizione['course_id'] ?? $iscrizione['id'] ?? 0) ?>">
+                            #<?= (int) ($iscrizione['course_id'] ?? $iscrizione['id'] ?? 0) ?> - <?= htmlspecialchars((string) ($iscrizione['courses'] ?? '')) ?>
+                          </option>
+                        <?php endforeach; ?>
+                      </select>
+                    </div>
+                    <div class="col-12 col-md-4">
+                      <label class="form-label">Data pagamento</label>
+                      <input type="date" class="form-control" name="data_pagamento" required>
+                    </div>
+                    <div class="col-12 col-md-4">
+                      <label class="form-label">Importo</label>
+                      <input type="number" step="0.01" min="0" class="form-control" name="quota_pagamento" required>
+                    </div>
+                    <div class="col-12 col-md-4">
+                      <label class="form-label">Data scadenza</label>
+                      <input type="date" class="form-control" name="data_scadenza">
+                    </div>
+                    <div class="col-12">
+                      <label class="form-label">Note pagamento</label>
+                      <textarea class="form-control" rows="3" name="note_pagamento"></textarea>
+                    </div>
+                    <div class="col-12 d-flex justify-content-end">
+                      <button class="btn btn-outline-primary" type="submit" <?= $selectedIscrizioni === [] ? 'disabled' : '' ?>>Registra pagamento</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
     <?php elseif (((string) ($_GET['open_edit'] ?? '0')) === '1'): ?>
       <div class="alert alert-warning mt-4 mb-0" role="alert">
-        Scheda atleta non trovata. Seleziona un atleta dalla tabella e clicca su "Scheda" per aprire tutti i tab (Documenti, Iscrizioni, Pagamenti).
+        Scheda atleta non trovata. Seleziona un atleta dalla tabella e clicca su "Scheda" per aprire tutti i tab (Documenti/Certificati, Iscrizioni, Pagamenti).
       </div>
     <?php endif; ?>
   </div>
@@ -1115,6 +1162,45 @@ document.addEventListener('DOMContentLoaded', function () {
         },
       ],
     });
+
+    const documentiTable = document.getElementById('documenti-table');
+    if (documentiTable) {
+      new DataTable('#documenti-table', {
+        pageLength: 10,
+        order: [[0, 'asc'], [2, 'desc']],
+        language: {
+          url: dataTableLangUrl,
+          emptyTable: 'Nessun documento registrato.',
+        },
+        columnDefs: [
+          { orderable: false, searchable: false, targets: [4, 5] },
+        ],
+      });
+    }
+
+    const iscrizioniTable = document.getElementById('iscrizioni-table');
+    if (iscrizioniTable) {
+      new DataTable('#iscrizioni-table', {
+        pageLength: 10,
+        order: [[0, 'desc']],
+        language: {
+          url: dataTableLangUrl,
+          emptyTable: 'Nessuna iscrizione registrata.',
+        },
+      });
+    }
+
+    const pagamentiTable = document.getElementById('pagamenti-table');
+    if (pagamentiTable) {
+      new DataTable('#pagamenti-table', {
+        pageLength: 10,
+        order: [[0, 'desc']],
+        language: {
+          url: dataTableLangUrl,
+          emptyTable: 'Nessun pagamento registrato.',
+        },
+      });
+    }
   }
 
   const addPanel = document.getElementById('addAtletaPanel');
@@ -1356,7 +1442,13 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
       }
       const target = event.target.getAttribute('data-bs-target') || '';
-      addTabInput.value = target.includes('contatti') ? 'contatti' : 'anagrafica';
+      if (target.includes('contatti')) {
+        addTabInput.value = 'contatti';
+      } else if (target.includes('misure')) {
+        addTabInput.value = 'misure';
+      } else {
+        addTabInput.value = 'anagrafica';
+      }
     });
   });
 
@@ -1368,6 +1460,8 @@ document.addEventListener('DOMContentLoaded', function () {
       const target = event.target.getAttribute('data-bs-target') || '';
       if (target.includes('contatti')) {
         editTabInput.value = 'contatti';
+      } else if (target.includes('misure')) {
+        editTabInput.value = 'misure';
       } else if (target.includes('documenti')) {
         editTabInput.value = 'documenti';
       } else if (target.includes('iscrizioni')) {
@@ -1385,6 +1479,15 @@ document.addEventListener('DOMContentLoaded', function () {
     editPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
+  const addDocumentoPanel = document.getElementById('addDocumentoPanel');
+  const openAddDocumentoPanelBtn = document.getElementById('openAddDocumentoPanelBtn');
+  const closeAddDocumentoPanelBtn = document.getElementById('closeAddDocumentoPanelBtn');
+  const addIscrizionePanel = document.getElementById('addIscrizionePanel');
+  const openAddIscrizionePanelBtn = document.getElementById('openAddIscrizionePanelBtn');
+  const closeAddIscrizionePanelBtn = document.getElementById('closeAddIscrizionePanelBtn');
+  const addPagamentoPanel = document.getElementById('addPagamentoPanel');
+  const openAddPagamentoPanelBtn = document.getElementById('openAddPagamentoPanelBtn');
+  const closeAddPagamentoPanelBtn = document.getElementById('closeAddPagamentoPanelBtn');
   const editDocumentoPanel = document.getElementById('editDocumentoPanel');
   const closeEditDocumentoPanelBtn = document.getElementById('closeEditDocumentoPanelBtn');
   const editDocumentoId = document.getElementById('editDocumentoId');
@@ -1392,13 +1495,96 @@ document.addEventListener('DOMContentLoaded', function () {
   const editDocumentoDescription = document.getElementById('editDocumentoDescription');
   const editDocumentoDate = document.getElementById('editDocumentoDate');
   const editDocumentoExpiryDate = document.getElementById('editDocumentoExpiryDate');
-  const editDocumentoUrl = document.getElementById('editDocumentoUrl');
+
+  const hideDocumentoPanels = function () {
+    if (addDocumentoPanel) {
+      addDocumentoPanel.classList.add('d-none');
+    }
+    if (editDocumentoPanel) {
+      editDocumentoPanel.classList.add('d-none');
+    }
+  };
+
+  const hideIscrizionePanel = function () {
+    if (addIscrizionePanel) {
+      addIscrizionePanel.classList.add('d-none');
+    }
+  };
+
+  const hidePagamentoPanel = function () {
+    if (addPagamentoPanel) {
+      addPagamentoPanel.classList.add('d-none');
+    }
+  };
+
+  hideDocumentoPanels();
+  hideIscrizionePanel();
+  hidePagamentoPanel();
+
+  document.querySelectorAll('.js-athlete-edit-tab-trigger').forEach(function (tabButton) {
+    tabButton.addEventListener('shown.bs.tab', function (event) {
+      const target = event.target.getAttribute('data-bs-target') || '';
+      if (!target.includes('documenti')) {
+        hideDocumentoPanels();
+      }
+      if (!target.includes('iscrizioni')) {
+        hideIscrizionePanel();
+      }
+      if (!target.includes('pagamenti')) {
+        hidePagamentoPanel();
+      }
+    });
+  });
+
+  if (openAddDocumentoPanelBtn && addDocumentoPanel) {
+    openAddDocumentoPanelBtn.addEventListener('click', function () {
+      hideDocumentoPanels();
+      addDocumentoPanel.classList.remove('d-none');
+      addDocumentoPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+  }
+
+  if (closeAddDocumentoPanelBtn && addDocumentoPanel) {
+    closeAddDocumentoPanelBtn.addEventListener('click', function () {
+      hideDocumentoPanels();
+    });
+  }
+
+  if (openAddIscrizionePanelBtn && addIscrizionePanel) {
+    openAddIscrizionePanelBtn.addEventListener('click', function () {
+      hideIscrizionePanel();
+      addIscrizionePanel.classList.remove('d-none');
+      addIscrizionePanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+  }
+
+  if (closeAddIscrizionePanelBtn && addIscrizionePanel) {
+    closeAddIscrizionePanelBtn.addEventListener('click', function () {
+      hideIscrizionePanel();
+    });
+  }
+
+  if (openAddPagamentoPanelBtn && addPagamentoPanel) {
+    openAddPagamentoPanelBtn.addEventListener('click', function () {
+      hidePagamentoPanel();
+      addPagamentoPanel.classList.remove('d-none');
+      addPagamentoPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+  }
+
+  if (closeAddPagamentoPanelBtn && addPagamentoPanel) {
+    closeAddPagamentoPanelBtn.addEventListener('click', function () {
+      hidePagamentoPanel();
+    });
+  }
 
   document.querySelectorAll('.js-edit-documento-btn').forEach(function (btn) {
     btn.addEventListener('click', function () {
       if (!editDocumentoPanel) {
         return;
       }
+
+      hideDocumentoPanels();
 
       if (editDocumentoId) {
         editDocumentoId.value = btn.getAttribute('data-document-id') || '';
@@ -1415,9 +1601,6 @@ document.addEventListener('DOMContentLoaded', function () {
       if (editDocumentoExpiryDate) {
         editDocumentoExpiryDate.value = btn.getAttribute('data-expiry-date') || '';
       }
-      if (editDocumentoUrl) {
-        editDocumentoUrl.value = btn.getAttribute('data-url') || '';
-      }
 
       editDocumentoPanel.classList.remove('d-none');
       editDocumentoPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -1426,7 +1609,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   if (closeEditDocumentoPanelBtn && editDocumentoPanel) {
     closeEditDocumentoPanelBtn.addEventListener('click', function () {
-      editDocumentoPanel.classList.add('d-none');
+      hideDocumentoPanels();
     });
   }
 
