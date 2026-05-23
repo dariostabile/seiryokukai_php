@@ -108,13 +108,14 @@ $tabId = static function (string $name) use ($athletePaneIds): string {
         </div>
 
         <small class="text-muted">Formati supportati: JPG, PNG, WEBP, GIF (max 5MB)</small>
+
+        <?php if ($showRemoveImage): ?>
+          <div class="form-check mt-2">
+            <input class="form-check-input" type="checkbox" id="<?= htmlspecialchars((string) $athleteImageRemoveCheckboxId) ?>" form="<?= htmlspecialchars($formId) ?>">
+            <label class="form-check-label" for="<?= htmlspecialchars((string) $athleteImageRemoveCheckboxId) ?>">Rimuovi immagine attuale</label>
+          </div>
+        <?php endif; ?>
       </div>
-      <?php if ($showRemoveImage): ?>
-        <div class="form-check mt-2">
-          <input class="form-check-input" type="checkbox" id="<?= htmlspecialchars((string) $athleteImageRemoveCheckboxId) ?>" form="<?= htmlspecialchars($formId) ?>">
-          <label class="form-check-label" for="<?= htmlspecialchars((string) $athleteImageRemoveCheckboxId) ?>">Rimuovi immagine attuale</label>
-        </div>
-      <?php endif; ?>
     </div>
     <div class="col-12 col-md-3">
       <label class="form-label">Stato</label>
@@ -129,7 +130,7 @@ $tabId = static function (string $name) use ($athletePaneIds): string {
     </div>
   </div>
 
-  <div class="row g-3">
+  <div class="row g-3 mt-3">
     <div class="col-12 col-md-3">
       <label class="form-label">Sesso</label>
       <select class="form-select" name="sesso" form="<?= htmlspecialchars($formId) ?>">

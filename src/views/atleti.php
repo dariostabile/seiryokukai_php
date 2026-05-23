@@ -1151,11 +1151,13 @@ document.addEventListener('DOMContentLoaded', function () {
   const editAthleteCropContainer = document.getElementById('editAthleteCropContainer');
   const editAthleteCropSource = document.getElementById('editAthleteCropSource');
   const editAthleteCropDataInput = document.getElementById('editAthleteCropImageData');
-  const editAthleteCurrentImagePath = document.getElementById('editAthleteCurrentImagePath');
   const applyEditAthleteImageCropBtn = document.getElementById('applyEditAthleteImageCropBtn');
   const cancelEditAthleteImageCropBtn = document.getElementById('cancelEditAthleteImageCropBtn');
   const editAthleteRemoveImageCheckbox = document.getElementById('editAthleteRemoveImageCheckbox');
   const editAthleteRemoveImageInput = document.getElementById('editAthleteRemoveImageInput');
+
+  const ALLOWED_IMAGE_MIMES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+  const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 
   let addAthleteImageCropper = null;
   let editAthleteImageCropper = null;
@@ -1375,17 +1377,14 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
       }
 
-      const allowedMimes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-      const maxSize = 5 * 1024 * 1024;
-
-      if (!allowedMimes.includes(file.type)) {
+      if (!ALLOWED_IMAGE_MIMES.includes(file.type)) {
         window.alert('Formato immagine non supportato. Usa JPG, PNG, WEBP o GIF.');
         addAthleteImageInput.value = '';
         renderAthletePreview(false, '', getAthleteInitials(false));
         return;
       }
 
-      if (file.size > maxSize) {
+      if (file.size > MAX_IMAGE_SIZE) {
         window.alert('Immagine troppo grande. Dimensione massima 5MB.');
         addAthleteImageInput.value = '';
         renderAthletePreview(false, '', getAthleteInitials(false));
@@ -1484,17 +1483,14 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
       }
 
-      const allowedMimes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-      const maxSize = 5 * 1024 * 1024;
-
-      if (!allowedMimes.includes(file.type)) {
+      if (!ALLOWED_IMAGE_MIMES.includes(file.type)) {
         window.alert('Formato immagine non supportato. Usa JPG, PNG, WEBP o GIF.');
         editAthleteImageInput.value = '';
         resetEditImagePreview();
         return;
       }
 
-      if (file.size > maxSize) {
+      if (file.size > MAX_IMAGE_SIZE) {
         window.alert('Immagine troppo grande. Dimensione massima 5MB.');
         editAthleteImageInput.value = '';
         resetEditImagePreview();
@@ -1553,11 +1549,8 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
       }
 
-      const currentImagePath = editAthleteCurrentImagePath ? String(editAthleteCurrentImagePath.value || '') : '';
-      const currentImageUrl = currentImagePath !== ''
-        ? String((editAthleteImagePreview && editAthleteImagePreview.dataset.initialSrc) || '')
-        : String((editAthleteImagePreview && editAthleteImagePreview.dataset.initialSrc) || '');
-      renderAthletePreview(true, currentImageUrl, getAthleteInitials(true));
+      const initialSrc = String((editAthleteImagePreview && editAthleteImagePreview.dataset.initialSrc) || '');
+      renderAthletePreview(true, initialSrc, getAthleteInitials(true));
     });
   }
 
