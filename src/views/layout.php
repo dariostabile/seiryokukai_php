@@ -147,6 +147,7 @@ $templateDistPath = (string) $appPaths['public'] . '/template/university/dist';
   <script src="<?= htmlspecialchars($templateDistPath . '/js/custom.js') ?>"></script>
   <script src="<?= htmlspecialchars((string) ($frontendAssets['datatables_js_core'] ?? 'https://cdn.datatables.net/2.0.8/js/dataTables.min.js')) ?>"></script>
   <script src="<?= htmlspecialchars((string) ($frontendAssets['datatables_js_bootstrap'] ?? 'https://cdn.datatables.net/2.0.8/js/dataTables.bootstrap5.min.js')) ?>"></script>
+  <script src="<?= htmlspecialchars($publicAssetsPath . '/datatables.date-eu.js') ?>"></script>
   <script src="<?= htmlspecialchars((string) ($frontendAssets['select2_js'] ?? 'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js')) ?>"></script>
   <script>
     window.SeiryokukaiConfig = Object.assign({}, window.SeiryokukaiConfig || {}, {

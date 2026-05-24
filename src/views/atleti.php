@@ -419,14 +419,14 @@ if ($hasSelectedAtleta) {
               </div>
 
               <div class="table-responsive">
-                <table id="documenti-table" class="table table-sm align-middle">
+                <table id="documenti-table" class="table table-sm align-middle w-100 js-datatable">
                   <thead>
                     <tr>
                       <th>Tipo</th>
                       <th>Descrizione</th>
                       <th>Data</th>
                       <th>Scadenza</th>
-                      <th>Link</th>
+                      
                       <th class="text-end">Azioni</th>
                     </tr>
                   </thead>
@@ -436,19 +436,35 @@ if ($hasSelectedAtleta) {
                         <tr>
                           <td><?= htmlspecialchars((string) ($documento['type_name'] ?? '')) ?></td>
                           <td><?= htmlspecialchars((string) ($documento['description'] ?? '')) ?></td>
-                          <td><?= htmlspecialchars((string) ($documento['document_date'] ?? '')) ?></td>
-                          <td><?= htmlspecialchars((string) ($documento['expiry_date'] ?? '')) ?></td>
-                          <td>
-                            <?php if (((string) ($documento['public_url'] ?? '')) !== ''): ?>
-                              <a href="<?= htmlspecialchars((string) $documento['public_url']) ?>" target="_blank" rel="noreferrer">
-                                <?= htmlspecialchars((string) (($documento['file_name'] ?? '') !== '' ? $documento['file_name'] : 'Apri')) ?>
-                              </a>
-                            <?php else: ?>
-                              <span class="text-muted">-</span>
-                            <?php endif; ?>
+                          <td data-order="<?= htmlspecialchars((string) ($documento['document_date'] ?? '')) ?>">
+                            <?php
+                              $date = (string) ($documento['document_date'] ?? '');
+                              if ($date && preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+                                [$y, $m, $d] = explode('-', $date);
+                                echo htmlspecialchars("$d/$m/$y");
+                              } else {
+                                echo htmlspecialchars($date);
+                              }
+                            ?>
+                          </td>
+                          <td data-order="<?= htmlspecialchars((string) ($documento['expiry_date'] ?? '')) ?>">
+                            <?php
+                              $date = (string) ($documento['expiry_date'] ?? '');
+                              if ($date && preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+                                [$y, $m, $d] = explode('-', $date);
+                                echo htmlspecialchars("$d/$m/$y");
+                              } else {
+                                echo htmlspecialchars($date);
+                              }
+                            ?>
                           </td>
                           <td class="text-end">
                             <div class="d-flex justify-content-end gap-2">
+                              <?php if (((string) ($documento['public_url'] ?? '')) !== ''): ?>
+                                <a href="<?= htmlspecialchars((string) $documento['public_url']) ?>" target="_blank" rel="noreferrer" class="btn btn-sm btn-outline-secondary" download>
+                                  Download
+                                </a>
+                              <?php endif; ?>
                               <button
                                 type="button"
                                 class="btn btn-sm btn-outline-primary js-edit-documento-btn"
@@ -458,7 +474,7 @@ if ($hasSelectedAtleta) {
                                 data-document-date="<?= htmlspecialchars((string) ($documento['document_date'] ?? ''), ENT_QUOTES) ?>"
                                 data-expiry-date="<?= htmlspecialchars((string) ($documento['expiry_date'] ?? ''), ENT_QUOTES) ?>"
                               >Modifica</button>
-                              <form method="post" action="<?= htmlspecialchars($atletiApiUrl) ?>" onsubmit="return confirm('Eliminare questo documento?');">
+                              <form method="post" action="<?= htmlspecialchars($atletiApiUrl) ?>" onsubmit="return confirm('Eliminare questo documento?');" style="display:inline;">
                                 <input type="hidden" name="action" value="delete_documento">
                                 <input type="hidden" name="idatleta" value="<?= (int) ($selectedAtleta['id'] ?? 0) ?>">
                                 <input type="hidden" name="iddocumento" value="<?= (int) ($documento['id'] ?? 0) ?>">
@@ -479,39 +495,18 @@ if ($hasSelectedAtleta) {
                   <button type="button" class="btn btn-sm btn-outline-secondary" id="closeAddDocumentoPanelBtn">Chiudi</button>
                 </div>
                 <div class="card-body">
-                  <form method="post" action="<?= htmlspecialchars($atletiApiUrl) ?>" class="row g-3" enctype="multipart/form-data">
-                    <input type="hidden" name="action" value="add_documento">
-                    <input type="hidden" name="idatleta" value="<?= (int) ($selectedAtleta['id'] ?? 0) ?>">
-                    <div class="col-12">
-                      <label class="form-label">Tipo documento</label>
-                      <select class="form-select" name="idtipo_documento" required>
-                        <option value="">Seleziona</option>
-                        <?php foreach ($tipiDocumenti as $tipoDocumento): ?>
-                          <option value="<?= (int) ($tipoDocumento['id'] ?? 0) ?>"><?= htmlspecialchars((string) ($tipoDocumento['type'] ?? '')) ?></option>
-                        <?php endforeach; ?>
-                      </select>
-                    </div>
-                    <div class="col-12 col-md-6">
-                      <label class="form-label">Descrizione</label>
-                      <input class="form-control" name="descrizione_documento">
-                    </div>
-                    <div class="col-12 col-md-3">
-                      <label class="form-label">Data rilascio</label>
-                      <input type="date" class="form-control" name="data_documento">
-                    </div>
-                    <div class="col-12 col-md-3">
-                      <label class="form-label">Scadenza</label>
-                      <input type="date" class="form-control" name="data_scadenza">
-                    </div>
-                    <div class="col-12 col-md-6">
-                      <label class="form-label">File documento</label>
-                      <input class="form-control" type="file" name="document_file" accept="application/pdf,image/jpeg,image/png,image/webp">
-                      <small class="text-muted">Formati supportati: PDF, JPG, PNG, WEBP. Max 8MB.</small>
-                    </div>
-                    <div class="col-12 d-flex justify-content-end">
-                      <button class="btn btn-outline-primary" type="submit">Aggiungi documento</button>
-                    </div>
-                  </form>
+                  <?php
+                  $formAction = $atletiApiUrl;
+                  $formId = 'addDocumentoForm';
+                  $submitLabel = 'Aggiungi documento';
+                  $hiddenFields = [
+                    '<input type="hidden" name="action" value="add_documento">',
+                    '<input type="hidden" name="idatleta" value="' . (int)($selectedAtleta['id'] ?? 0) . '">',
+                  ];
+                  $values = [];
+                  $isEdit = false;
+                  require __DIR__ . '/partials/documento_form.php';
+                  ?>
                 </div>
               </div>
 
@@ -521,39 +516,25 @@ if ($hasSelectedAtleta) {
                   <button type="button" class="btn btn-sm btn-outline-secondary" id="closeEditDocumentoPanelBtn">Chiudi</button>
                 </div>
                 <div class="card-body">
-                  <form method="post" action="<?= htmlspecialchars($atletiApiUrl) ?>" class="row g-3" enctype="multipart/form-data" id="editDocumentoForm">
-                    <input type="hidden" name="action" value="update_documento">
-                    <input type="hidden" name="idatleta" value="<?= (int) ($selectedAtleta['id'] ?? 0) ?>">
-                    <input type="hidden" name="iddocumento" id="editDocumentoId">
-                    <div class="col-12">
-                      <label class="form-label">Tipo documento</label>
-                      <select class="form-select" name="idtipo_documento" id="editDocumentoType" required>
-                        <option value="">Seleziona</option>
-                        <?php foreach ($tipiDocumenti as $tipoDocumento): ?>
-                          <option value="<?= (int) ($tipoDocumento['id'] ?? 0) ?>"><?= htmlspecialchars((string) ($tipoDocumento['type'] ?? '')) ?></option>
-                        <?php endforeach; ?>
-                      </select>
-                    </div>
-                    <div class="col-12 col-md-6">
-                      <label class="form-label">Descrizione</label>
-                      <input class="form-control" name="descrizione_documento" id="editDocumentoDescription">
-                    </div>
-                    <div class="col-12 col-md-3">
-                      <label class="form-label">Data documento</label>
-                      <input type="date" class="form-control" name="data_documento" id="editDocumentoDate">
-                    </div>
-                    <div class="col-12 col-md-3">
-                      <label class="form-label">Scadenza</label>
-                      <input type="date" class="form-control" name="data_scadenza" id="editDocumentoExpiryDate">
-                    </div>
-                    <div class="col-12 col-md-6">
-                      <label class="form-label">Nuovo file documento</label>
-                      <input class="form-control" type="file" name="document_file" accept="application/pdf,image/jpeg,image/png,image/webp">
-                    </div>
-                    <div class="col-12 d-flex justify-content-end">
-                      <button class="btn btn-primary" type="submit">Salva modifiche</button>
-                    </div>
-                  </form>
+                  <?php
+                  $formAction = $atletiApiUrl;
+                  $formId = 'editDocumentoForm';
+                  $submitLabel = 'Salva modifiche';
+                  $hiddenFields = [
+                    '<input type="hidden" name="action" value="update_documento">',
+                    '<input type="hidden" name="idatleta" value="' . (int)($selectedAtleta['id'] ?? 0) . '">',
+                    '<input type="hidden" name="iddocumento" id="editDocumentoId">',
+                  ];
+                  // I valori saranno popolati via JS all'apertura del pannello modifica
+                  $values = [
+                    'idtipo_documento' => '',
+                    'descrizione_documento' => '',
+                    'data_documento' => '',
+                    'data_scadenza' => '',
+                  ];
+                  $isEdit = true;
+                  require __DIR__ . '/partials/documento_form.php';
+                  ?>
                 </div>
               </div>
             </div>
@@ -568,7 +549,7 @@ if ($hasSelectedAtleta) {
               </div>
 
               <div class="table-responsive">
-                <table id="iscrizioni-table" class="table table-sm align-middle">
+                <table id="iscrizioni-table" class="table table-sm align-middle w-100">
                   <thead>
                     <tr>
                       <th>ID</th>
@@ -584,10 +565,26 @@ if ($hasSelectedAtleta) {
                       <?php foreach ($selectedIscrizioni as $iscrizione): ?>
                         <tr>
                           <td>#<?= (int) ($iscrizione['id'] ?? 0) ?></td>
-                          <td>
-                            <?= htmlspecialchars((string) ($iscrizione['start_date'] ?? '')) ?>
+                          <td data-order="<?= htmlspecialchars((string) ($iscrizione['start_date'] ?? '')) ?>">
+                            <?php
+                              $date = (string) ($iscrizione['start_date'] ?? '');
+                              if ($date && preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+                                [$y, $m, $d] = explode('-', $date);
+                                echo htmlspecialchars("$d/$m/$y");
+                              } else {
+                                echo htmlspecialchars($date);
+                              }
+                            ?>
                             <?php if (((string) ($iscrizione['end_date'] ?? '')) !== ''): ?>
-                              - <?= htmlspecialchars((string) $iscrizione['end_date']) ?>
+                              - <?php
+                                $date = (string) $iscrizione['end_date'];
+                                if ($date && preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+                                  [$y, $m, $d] = explode('-', $date);
+                                  echo htmlspecialchars("$d/$m/$y");
+                                } else {
+                                  echo htmlspecialchars($date);
+                                }
+                              ?>
                             <?php endif; ?>
                           </td>
                           <td><?= htmlspecialchars((string) ($iscrizione['courses'] ?? '')) ?></td>
@@ -667,32 +664,86 @@ if ($hasSelectedAtleta) {
               <?php endif; ?>
 
               <div class="table-responsive">
-                <table id="pagamenti-table" class="table table-sm align-middle">
+                <table id="pagamenti-table" class="table table-sm align-middle w-100">
                   <thead>
                     <tr>
-                      <th>ID</th>
-                      <th>Corso</th>
                       <th>Data pagamento</th>
                       <th>Scadenza</th>
+                      <th>Corso</th>
                       <th>Importo</th>
                       <th>Note</th>
+                      <th class="text-end">Azioni</th>
                     </tr>
                   </thead>
                   <tbody>
                     <?php if ($selectedPagamenti !== []): ?>
-                      <?php foreach ($selectedPagamenti as $pagamento): ?>
+                      <?php
+                        // Trova l'ultimo pagamento per ciascun corso
+                        $lastPagamentiByCorso = [];
+                        foreach ($selectedPagamenti as $idx => $pagamento) {
+                          $cid = (string)($pagamento['course_id'] ?? '');
+                          $date = (string)($pagamento['payment_date'] ?? '');
+                          if (!isset($lastPagamentiByCorso[$cid]) || strcmp($date, $lastPagamentiByCorso[$cid]['payment_date']) > 0) {
+                            $lastPagamentiByCorso[$cid] = [
+                              'idx' => $idx,
+                              'payment_date' => $date
+                            ];
+                          }
+                        }
+                      ?>
+                      <?php foreach ($selectedPagamenti as $idx => $pagamento): ?>
                         <tr>
-                          <td>#<?= (int) ($pagamento['id'] ?? 0) ?></td>
-                          <td>
+                          <td data-order="<?= htmlspecialchars((string) ($pagamento['payment_date'] ?? '')) ?>">
+                            <?php
+                              $date = (string) ($pagamento['payment_date'] ?? '');
+                              if ($date && preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+                                [$y, $m, $d] = explode('-', $date);
+                                echo htmlspecialchars("$d/$m/$y");
+                              } else {
+                                echo htmlspecialchars($date);
+                              }
+                            ?>
+                          </td>
+                          <td data-order="<?= htmlspecialchars((string) ($pagamento['expiry_date'] ?? '')) ?>">
+                            <?php
+                              $date = (string) ($pagamento['expiry_date'] ?? '');
+                              if ($date && preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+                                [$y, $m, $d] = explode('-', $date);
+                                echo htmlspecialchars("$d/$m/$y");
+                              } else {
+                                echo htmlspecialchars($date);
+                              }
+                            ?>
+                          </td>
+                          <td data-course-id="<?= (int)($pagamento['course_id'] ?? 0) ?>">
                             <?= htmlspecialchars((string) ($pagamento['course_name'] ?? '')) ?>
                             <?php if (((string) ($pagamento['course_name'] ?? '')) === ''): ?>
                               #<?= (int) ($pagamento['course_id'] ?? 0) ?>
                             <?php endif; ?>
                           </td>
-                          <td><?= htmlspecialchars((string) ($pagamento['payment_date'] ?? '')) ?></td>
-                          <td><?= htmlspecialchars((string) ($pagamento['expiry_date'] ?? '')) ?></td>
                           <td><?= htmlspecialchars((string) ($pagamento['amount'] ?? '')) ?></td>
                           <td><?= htmlspecialchars((string) ($pagamento['notes'] ?? '')) ?></td>
+                          <?php
+                            $cid = (string)($pagamento['course_id'] ?? '');
+                            $isLast = isset($lastPagamentiByCorso[$cid]) && $lastPagamentiByCorso[$cid]['idx'] === $idx;
+                          ?>
+                          <td class="text-end">
+                            <div class="d-flex justify-content-end gap-2">
+                              <?php if ($isLast): ?>
+                                <button type="button" class="btn btn-sm btn-outline-primary js-edit-pagamento-btn" data-pagamento-id="<?= (int)($pagamento['id'] ?? 0) ?>">Modifica</button>
+                                <form method="post" action="<?= htmlspecialchars($atletiApiUrl) ?>" onsubmit="return confirm('Eliminare questo pagamento?');" style="display:inline;">
+                                  <input type="hidden" name="action" value="delete_pagamento">
+                                  <input type="hidden" name="idatleta" value="<?= (int)($selectedAtleta['id'] ?? 0) ?>">
+                                  <input type="hidden" name="idpagamento" value="<?= (int)($pagamento['id'] ?? 0) ?>">
+                                  <button class="btn btn-sm btn-outline-danger" type="submit">Elimina</button>
+                                </form>
+                              <?php else: ?>
+                                <span class="text-muted" data-bs-toggle="tooltip" title="Solo l'ultimo pagamento per disciplina può essere modificato o eliminato">
+                                  <i class="bi bi-lock" aria-hidden="true"></i>
+                                </span>
+                              <?php endif; ?>
+                            </div>
+                          </td>
                         </tr>
                       <?php endforeach; ?>
                     <?php endif; ?>
@@ -709,7 +760,7 @@ if ($hasSelectedAtleta) {
                   <form method="post" action="<?= htmlspecialchars($atletiApiUrl) ?>" class="row g-3">
                     <input type="hidden" name="action" value="add_pagamento">
                     <input type="hidden" name="idatleta" value="<?= (int) ($selectedAtleta['id'] ?? 0) ?>">
-                    <div class="col-12 col-md-4">
+                    <div class="col-12 col-md-3">
                       <label class="form-label">Corso iscritto</label>
                       <select class="form-select" name="idcorso" <?= $selectedIscrizioni === [] ? 'disabled' : 'required' ?>>
                         <option value="">Seleziona</option>
@@ -720,19 +771,19 @@ if ($hasSelectedAtleta) {
                         <?php endforeach; ?>
                       </select>
                     </div>
-                    <div class="col-12 col-md-4">
-                      <label class="form-label">Data pagamento</label>
-                      <input type="date" class="form-control" name="data_pagamento" required>
-                    </div>
-                    <div class="col-12 col-md-4">
+                    <div class="col-12 col-md-3">
                       <label class="form-label">Importo</label>
                       <input type="number" step="0.01" min="0" class="form-control" name="quota_pagamento" required>
                     </div>
-                    <div class="col-12 col-md-4">
+                    <div class="col-12 col-md-3">
+                      <label class="form-label">Data pagamento</label>
+                      <input type="date" class="form-control" name="data_pagamento" required value="<?= date('Y-m-d') ?>">
+                    </div>
+                    <div class="col-12 col-md-3">
                       <label class="form-label">Data scadenza</label>
                       <input type="date" class="form-control" name="data_scadenza">
                     </div>
-                    <div class="col-12">
+                    <div class="col-6">
                       <label class="form-label">Note pagamento</label>
                       <textarea class="form-control" rows="3" name="note_pagamento"></textarea>
                     </div>
@@ -742,6 +793,136 @@ if ($hasSelectedAtleta) {
                   </form>
                 </div>
               </div>
+
+              <div id="editPagamentoPanel" class="card border mt-3 d-none">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <h6 class="m-0">Modifica pagamento</h6>
+                  <button type="button" class="btn btn-sm btn-outline-secondary" id="closeEditPagamentoPanelBtn">Chiudi</button>
+                </div>
+                <div class="card-body">
+                  <form method="post" action="<?= htmlspecialchars($atletiApiUrl) ?>" class="row g-3" id="editPagamentoForm">
+                    <input type="hidden" name="action" value="update_pagamento">
+                    <input type="hidden" name="idatleta" value="<?= (int) ($selectedAtleta['id'] ?? 0) ?>">
+                    <input type="hidden" name="idpagamento" id="editPagamentoId">
+                    <div class="col-12 col-md-3">
+                      <label class="form-label">Corso iscritto</label>
+                      <select class="form-select" name="idcorso" id="editPagamentoCorso" required>
+                        <option value="">Seleziona</option>
+                        <?php foreach ($selectedIscrizioni as $iscrizione): ?>
+                          <option value="<?= (int) ($iscrizione['course_id'] ?? $iscrizione['id'] ?? 0) ?>">
+                            #<?= (int) ($iscrizione['course_id'] ?? $iscrizione['id'] ?? 0) ?> - <?= htmlspecialchars((string) ($iscrizione['courses'] ?? '')) ?>
+                          </option>
+                        <?php endforeach; ?>
+                      </select>
+                    </div>
+                    <div class="col-12 col-md-3">
+                      <label class="form-label">Importo</label>
+                      <input type="number" step="0.01" min="0" class="form-control" name="quota_pagamento" id="editPagamentoImporto" required>
+                    </div>
+                    <div class="col-12 col-md-3">
+                      <label class="form-label">Data pagamento</label>
+                      <input type="date" class="form-control" name="data_pagamento" id="editPagamentoData" required>
+                    </div>
+                    <div class="col-12 col-md-3">
+                      <label class="form-label">Data scadenza</label>
+                      <input type="date" class="form-control" name="data_scadenza" id="editPagamentoScadenza">
+                    </div>
+                    <div class="col-6">
+                      <label class="form-label">Note pagamento</label>
+                      <textarea class="form-control" rows="3" name="note_pagamento" id="editPagamentoNote"></textarea>
+                    </div>
+                    <div class="col-12 d-flex justify-content-end">
+                      <button class="btn btn-outline-primary" type="submit">Salva modifiche</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            <script>
+            document.addEventListener('DOMContentLoaded', function () {
+              // Gestione apertura/chiusura pannello modifica pagamento
+              document.querySelectorAll('.js-edit-pagamento-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                  var row = btn.closest('tr');
+                  if (!row) return;
+                  // Recupera dati dalle celle
+                  var id = btn.getAttribute('data-pagamento-id');
+                  var cells = row.querySelectorAll('td');
+                  var dataPagamento = cells[0]?.getAttribute('data-order') || '';
+                  var dataScadenza = cells[1]?.getAttribute('data-order') || '';
+                  var corsoText = cells[2]?.textContent.trim() || '';
+                  var importo = cells[3]?.textContent.trim() || '';
+                  var note = cells[4]?.textContent.trim() || '';
+                  // Popola form
+                  document.getElementById('editPagamentoId').value = id;
+                  document.getElementById('editPagamentoData').value = dataPagamento;
+                  document.getElementById('editPagamentoScadenza').value = dataScadenza;
+                  document.getElementById('editPagamentoImporto').value = importo.replace(',', '.');
+                  document.getElementById('editPagamentoNote').value = note;
+                  // Seleziona corso tramite data-course-id
+                  var corsoSelect = document.getElementById('editPagamentoCorso');
+                  var courseCell = cells[2];
+                  var courseId = courseCell ? courseCell.getAttribute('data-course-id') : '';
+                  if (corsoSelect && courseId) {
+                    for (var i = 0; i < corsoSelect.options.length; i++) {
+                      if (corsoSelect.options[i].value == courseId) {
+                        corsoSelect.selectedIndex = i;
+                        break;
+                      }
+                    }
+                  }
+                  document.getElementById('editPagamentoPanel').classList.remove('d-none');
+                  window.scrollTo({top: document.getElementById('editPagamentoPanel').offsetTop - 80, behavior: 'smooth'});
+                });
+              });
+              document.getElementById('closeEditPagamentoPanelBtn')?.addEventListener('click', function() {
+                document.getElementById('editPagamentoPanel').classList.add('d-none');
+              });
+
+              // Gestione submit AJAX modifica pagamento
+              var editPagamentoForm = document.getElementById('editPagamentoForm');
+              if (editPagamentoForm) {
+                editPagamentoForm.addEventListener('submit', function(e) {
+                  e.preventDefault();
+                  var form = e.target;
+                  var formData = new FormData(form);
+                  var url = form.getAttribute('action');
+                  var alertBox = document.createElement('div');
+                  alertBox.className = 'alert mt-2';
+                  form.querySelectorAll('.alert').forEach(function(a) { a.remove(); });
+                  fetch(url, {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                  })
+                  .then(function(resp) { return resp.json(); })
+                  .then(function(json) {
+                    if (json && json.ok) {
+                      alertBox.classList.add('alert-success');
+                      alertBox.textContent = json.message || 'Pagamento aggiornato con successo';
+                      document.getElementById('editPagamentoPanel').classList.add('d-none');
+                      // Aggiorna tabella pagamenti
+                      var table = document.getElementById('pagamenti-table');
+                      if (window.DataTable && table && table.DataTable) {
+                        table.DataTable().ajax.reload();
+                      } else {
+                        window.location.reload();
+                      }
+                    } else {
+                      alertBox.classList.add('alert-danger');
+                      alertBox.textContent = (json && json.message) ? json.message : 'Errore durante il salvataggio';
+                    }
+                    form.appendChild(alertBox);
+                  })
+                  .catch(function() {
+                    alertBox.classList.add('alert-danger');
+                    alertBox.textContent = 'Errore di rete';
+                    form.appendChild(alertBox);
+                  });
+                });
+              }
+            });
+            </script>
+            </script>
             </div>
           </div>
         </div>
@@ -1089,26 +1270,14 @@ document.addEventListener('DOMContentLoaded', function () {
       ],
     });
 
-    const documentiTable = document.getElementById('documenti-table');
-    if (documentiTable) {
-      new DataTable('#documenti-table', {
-        pageLength: 10,
-        order: [[0, 'asc'], [2, 'desc']],
-        language: {
-          url: dataTableLangUrl,
-          emptyTable: 'Nessun documento registrato.',
-        },
-        columnDefs: [
-          { orderable: false, searchable: false, targets: [4, 5] },
-        ],
-      });
-    }
+    // Inizializzazione DataTable per documenti-table gestita da app.js
 
     const iscrizioniTable = document.getElementById('iscrizioni-table');
     if (iscrizioniTable) {
       new DataTable('#iscrizioni-table', {
         pageLength: 10,
         order: [[0, 'desc']],
+        responsive: true,
         language: {
           url: dataTableLangUrl,
           emptyTable: 'Nessuna iscrizione registrata.',
@@ -1121,6 +1290,7 @@ document.addEventListener('DOMContentLoaded', function () {
       new DataTable('#pagamenti-table', {
         pageLength: 10,
         order: [[0, 'desc']],
+        responsive: true,
         language: {
           url: dataTableLangUrl,
           emptyTable: 'Nessun pagamento registrato.',
@@ -1751,21 +1921,20 @@ document.addEventListener('DOMContentLoaded', function () {
 
       hideDocumentoPanels();
 
-      if (editDocumentoId) {
-        editDocumentoId.value = btn.getAttribute('data-document-id') || '';
-      }
-      if (editDocumentoType) {
-        editDocumentoType.value = btn.getAttribute('data-type-id') || '';
-      }
-      if (editDocumentoDescription) {
-        editDocumentoDescription.value = btn.getAttribute('data-description') || '';
-      }
-      if (editDocumentoDate) {
-        editDocumentoDate.value = btn.getAttribute('data-document-date') || '';
-      }
-      if (editDocumentoExpiryDate) {
-        editDocumentoExpiryDate.value = btn.getAttribute('data-expiry-date') || '';
-      }
+      // Popola tutti i campi del form di modifica documento in modo generico
+      const mapping = {
+        'editDocumentoId': 'data-document-id',
+        'editDocumentoType': 'data-type-id',
+        'editDocumentoDescription': 'data-description',
+        'editDocumentoDate': 'data-document-date',
+        'editDocumentoExpiryDate': 'data-expiry-date',
+      };
+      Object.entries(mapping).forEach(function ([fieldId, dataAttr]) {
+        const el = document.getElementById(fieldId);
+        if (el) {
+          el.value = btn.getAttribute(dataAttr) || '';
+        }
+      });
 
       editDocumentoPanel.classList.remove('d-none');
       editDocumentoPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
