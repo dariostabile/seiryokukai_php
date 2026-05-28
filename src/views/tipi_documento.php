@@ -291,7 +291,7 @@ document.addEventListener('DOMContentLoaded', function () {
         form.appendChild(actionInput);
         form.appendChild(idInput);
 
-        ui.postForm(form.action, form)
+        ui.postForm(form.getAttribute("action"), form)
           .then(function (payload) {
             showAlert('success', payload.message || 'Tipo documento eliminato con successo');
             if (tableEl.__dataTable) {
@@ -323,7 +323,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
       try {
         const currentAction = actionInput ? actionInput.value : 'add';
-        const payload = await ui.postForm(form.action, form);
+        const payload = await ui.postForm(form.getAttribute("action"), form);
         showAlert('success', payload.message || (currentAction === 'update' ? 'Tipo documento modificato con successo' : 'Tipo documento creato con successo'));
         setAddMode();
         setPanelVisible(false);

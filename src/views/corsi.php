@@ -500,7 +500,7 @@ document.addEventListener('DOMContentLoaded', function () {
         tempForm.appendChild(actionInput);
         tempForm.appendChild(idInput);
 
-        ui.postForm(tempForm.action, tempForm)
+        ui.postForm(tempForm.getAttribute('action'), tempForm)
           .then(function (payload) {
             showAlert('success', payload.message || 'Corso eliminato con successo');
             if (corsiTable) {
@@ -550,7 +550,7 @@ document.addEventListener('DOMContentLoaded', function () {
       }
 
       try {
-        const payload = await ui.postForm(addCorsoForm.action, addCorsoForm);
+        const payload = await ui.postForm(addCorsoForm.getAttribute('action'), addCorsoForm);
         showAlert('success', payload.message || 'Corso creato con successo');
 
         addCorsoForm.reset();
@@ -591,7 +591,7 @@ document.addEventListener('DOMContentLoaded', function () {
       }
 
       try {
-        const payload = await ui.postForm(editCorsoForm.action, editCorsoForm);
+        const payload = await ui.postForm(editCorsoForm.getAttribute('action'), editCorsoForm);
         showAlert('success', payload.message || 'Corso modificato con successo');
 
         if (editCorsoPanel) {
