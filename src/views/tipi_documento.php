@@ -60,7 +60,7 @@ $openTipoDocumentoPanel = $openAddPanel || ($openEdit && $editPrefill['id'] > 0)
       </div>
       <div class="card-body">
         <form method="post" action="<?= htmlspecialchars($tipiDocumentiApiUrl) ?>" class="row g-3" id="tipoDocumentoForm">
-          <input type="hidden" name="action" id="tipoDocumentoAction" value="add">
+          <input type="hidden" name="form_action" id="tipoDocumentoAction" value="add">
           <input type="hidden" name="id" id="tipoDocumentoId" value="">
           <?php
           $tipoDocumentoFormValue = $openEdit && $editPrefill['id'] > 0

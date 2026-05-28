@@ -119,6 +119,7 @@ foreach (array_keys($dayLabels) as $dayKey) {
       <div class="card-body">
         <form method="post" action="<?= htmlspecialchars($corsiApiUrl) ?>" class="row g-3" id="addCorsoForm">
           <input type="hidden" name="action" value="add">
+            <input type="hidden" name="form_action" value="add">
           <?php
           $corsoFormValues = $addPrefill;
           $corsoFormIsEdit = false;

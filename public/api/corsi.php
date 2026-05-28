@@ -77,6 +77,7 @@ if (!$auth->isLoggedIn()) {
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = trim((string) ($_POST['action'] ?? 'add'));
+    $action = trim((string) ($_POST['form_action'] ?? 'add'));
 
 
     $orari = [

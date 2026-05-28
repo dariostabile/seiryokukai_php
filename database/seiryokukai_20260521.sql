@@ -8545,7 +8545,7 @@ CREATE TABLE `corsi` (
   `nome_corso` varchar(45) DEFAULT NULL,
   `descrizione_corso` longtext,
   `data_inizio_corso` date DEFAULT NULL,
-  `data_fine_corso` varchar(45) DEFAULT NULL,
+  `data_fine_corso` date DEFAULT NULL,
   `quota_mensile_corso` decimal(6,2) DEFAULT NULL,
   `orari` varchar(255) DEFAULT NULL,
   `lun_inizio` time DEFAULT NULL,

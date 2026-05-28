@@ -573,7 +573,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && (string) ($_GET['action'] ?? '') ===
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $action = trim((string) ($_POST['action'] ?? 'add'));
+    $action = trim((string) ($_POST['form_action'] ?? 'add'));
 
     if ($action === 'status') {
         $id = (int) ($_POST['id'] ?? 0);

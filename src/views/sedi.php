@@ -72,7 +72,7 @@ $openSitePanel = $openAddPanel || ($openEdit && $editPrefill['id'] > 0);
       </div>
       <div class="card-body">
         <form method="post" action="<?= htmlspecialchars($sediApiUrl) ?>" class="row g-3" id="siteForm">
-          <input type="hidden" name="action" id="siteAction" value="add">
+          <input type="hidden" name="form_action" id="siteAction" value="add">
           <input type="hidden" name="id" id="siteId" value="">
           <?php
           $sedeFormValues = $openEdit && $editPrefill['id'] > 0
