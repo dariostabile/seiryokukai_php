@@ -14,15 +14,46 @@ $corsoFormValues = is_array($corsoFormValues ?? null) ? $corsoFormValues : [];
 $corsoFieldIds = is_array($corsoFieldIds ?? null) ? $corsoFieldIds : [];
 $corsoFormIsEdit = (bool) ($corsoFormIsEdit ?? false);
 ?>
+
 <div class="col-12 col-md-4">
-  <label class="form-label">Immagine corso (JPG/PNG, max 2MB)</label>
-  <input class="form-control" type="file" name="immagine_corso" accept="image/jpeg,image/png">
-  <?php if ($corsoFormIsEdit && !empty($corsoFormValues['immagine_corso'])): ?>
-    <div class="mt-2">
-      <span class="text-muted small">Immagine attuale:</span><br>
-      <img src="<?= htmlspecialchars($corsoFormValues['immagine_corso']) ?>" alt="Immagine corso" style="max-width:120px;max-height:120px;object-fit:contain;border:1px solid #ccc;">
+  <div class="border rounded p-3 h-100">
+    <div class="text-center mb-2">
+      <img
+        id="corsoImagePreview"
+        src="<?= htmlspecialchars((string)($corsoFormValues['immagine_corso'] ?? '')) ?>"
+        data-initial-src="<?= htmlspecialchars((string)($corsoFormValues['immagine_corso'] ?? '')) ?>"
+        alt="Immagine corso"
+        class="rounded-circle"
+        style="width: 120px; height: 120px; object-fit: cover;"
+      >
+      <div id="corsoImagePlaceholder" class="rounded-circle border d-flex align-items-center justify-content-center mx-auto text-muted <?= !empty($corsoFormValues['immagine_corso']) ? 'd-none' : '' ?>" style="width: 120px; height: 120px;">
+        <?= isset($corsoFormValues['name']) ? strtoupper(substr($corsoFormValues['name'], 0, 2)) : 'C' ?>
+      </div>
     </div>
-  <?php endif; ?>
+
+    <label class="form-label" for="corsoImageInput">Immagine corso</label>
+    <input class="form-control" type="file" id="corsoImageInput" name="immagine_corso" accept="image/jpeg,image/png,image/webp,image/gif">
+
+    <div id="corsoImageCropContainer" class="mt-3 d-none">
+      <div class="border rounded p-2 bg-light">
+        <img id="corsoImageCropSource" src="" alt="Ritaglio immagine corso" style="max-width: 100%; display: block;">
+      </div>
+      <div class="d-flex gap-2 mt-2">
+        <button type="button" class="btn btn-sm btn-primary" id="corsoImageApplyCropBtn">Usa ritaglio</button>
+        <button type="button" class="btn btn-sm btn-outline-secondary" id="corsoImageCancelCropBtn">Annulla ritaglio</button>
+      </div>
+      <small class="text-muted">Trascina e zooma l'immagine, poi premi "Usa ritaglio".</small>
+    </div>
+
+    <small class="text-muted">Formati supportati: JPG, PNG, WEBP, GIF (max 2MB)</small>
+
+    <?php if ($corsoFormIsEdit && !empty($corsoFormValues['immagine_corso'])): ?>
+      <div class="form-check mt-2">
+        <input class="form-check-input" type="checkbox" id="corsoImageRemoveCheckbox" name="remove_immagine_corso" value="1">
+        <label class="form-check-label" for="corsoImageRemoveCheckbox">Rimuovi immagine attuale</label>
+      </div>
+    <?php endif; ?>
+  </div>
 </div>
 <div class="col-12 col-md-4">
   <label class="form-label">Stato</label>

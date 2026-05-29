@@ -1,33 +1,69 @@
-<?php 
-declare(strict_types=1);
+/**
+ * Elimina un file immagine corso dal percorso relativo (public/corsi/{id}/...)
+ */
+function eliminaImmagineCorsoDaPercorso(string $path): void
+{
+    $cleanPath = ltrim(trim($path), '/');
+    if ($cleanPath === '') {
+        return;
+    }
+    if (strpos($cleanPath, 'public/corsi/') !== 0) {
+        return;
+    }
+    $absolutePath = __DIR__ . '/../../' . $cleanPath;
+    if (is_file($absolutePath)) {
+        @unlink($absolutePath);
+    }
+}
 
-session_start();
-
-require_once __DIR__ . '/../../src/lib/auth.php';
-require_once __DIR__ . '/../../src/lib/data.php';
-
-use App\Requests\Corsi\AddCorsoRequest;
-use App\Requests\Corsi\UpdateCorsoRequest;
-use App\Requests\ValidationException;
-
-function gestisciUploadImmagineCorso(array $file, int $corsoId): string
+/**
+ * Gestisce upload immagine corso da base64 (crop)
+ */
+function gestisciUploadImmagineBase64Corso(string $dataUrl, int $corsoId): string
 {
     if ($corsoId <= 0) {
         throw new \InvalidArgumentException('Corso non valido per upload immagine');
     }
+    $dataUrl = trim($dataUrl);
 
-    if (($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
-        return '';
-    }
-
-    if (($file['error'] ?? UPLOAD_ERR_OK) !== UPLOAD_ERR_OK) {
-        throw new \RuntimeException('Upload immagine corso non riuscito');
-    }
-
-    $tmpPath = (string) ($file['tmp_name'] ?? '');
-    $size = (int) ($file['size'] ?? 0);
-
+    <?php
     if ($tmpPath === '' || !is_uploaded_file($tmpPath)) {
+
+    // --- Funzioni di utilità immagini corso ---
+    /** Elimina un file immagine corso dal percorso relativo (public/corsi/{id}/...) */
+    function eliminaImmagineCorsoDaPercorso(string $path): void {
+        $cleanPath = ltrim(trim($path), '/');
+        if ($cleanPath === '' || strpos($cleanPath, 'public/corsi/') !== 0) return;
+        $absolutePath = __DIR__ . '/../../' . $cleanPath;
+        if (is_file($absolutePath)) @unlink($absolutePath);
+    }
+
+    /** Gestisce upload immagine corso da base64 (crop) */
+    function gestisciUploadImmagineBase64Corso(string $dataUrl, int $corsoId): string {
+        if ($corsoId <= 0) throw new \InvalidArgumentException('Corso non valido per upload immagine');
+        $dataUrl = trim($dataUrl);
+        if ($dataUrl === '') return '';
+        if (!preg_match('#^data:(image/(?:jpeg|png));base64,([A-Za-z0-9+/=]+)$#', $dataUrl, $matches))
+            throw new \RuntimeException('Dati immagine ritagliata non validi');
+        $mime = (string) ($matches[1] ?? '');
+        $base64Data = (string) ($matches[2] ?? '');
+        $binary = base64_decode($base64Data, true);
+        if ($binary === false || $binary === '') throw new \RuntimeException('Immagine ritagliata non valida');
+        if (strlen($binary) > 2 * 1024 * 1024) throw new \RuntimeException('L\'immagine deve essere minore di 2MB');
+        $allowed = ['image/jpeg' => 'jpg', 'image/png' => 'png'];
+        if (!isset($allowed[$mime])) throw new \RuntimeException('Formato immagine non supportato');
+        $extension = $allowed[$mime];
+        $relativeDir = 'public/corsi/' . $corsoId;
+        $absoluteDir = __DIR__ . '/../../' . $relativeDir;
+        if (!is_dir($absoluteDir) && !mkdir($absoluteDir, 0775, true) && !is_dir($absoluteDir))
+            throw new \RuntimeException('Impossibile creare la cartella immagini corso');
+        $fileName = $corsoId . '_' . date('YmdHis') . '_' . bin2hex(random_bytes(4)) . '.' . $extension;
+        $relativePath = $relativeDir . '/' . $fileName;
+        $absolutePath = __DIR__ . '/../../' . $relativePath;
+        if (file_put_contents($absolutePath, $binary) === false)
+            throw new \RuntimeException('Impossibile salvare l\'immagine ritagliata');
+        return $relativePath;
+    }
         throw new \RuntimeException('File immagine corso non valido');
     }
 
@@ -168,8 +204,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'update') {
         try {
             $request = new UpdateCorsoRequest($_POST);
+            $corsoId = $request->getInt('corso_id');
+            $existingCorso = $corsi->readCorsoById($corsoId);
+            if (!is_array($existingCorso)) {
+                throw new \RuntimeException('Corso non trovato');
+            }
+            $currentImagePath = trim((string) ($existingCorso['image_path'] ?? ($_POST['current_immagine_corso'] ?? '')));
+            $removeImage = ((string) ($_POST['remove_immagine_corso'] ?? '0')) === '1';
+
             $corsi->updateCorso(
-                $request->getInt('corso_id'),
+                $corsoId,
                 $request->getInt('sede_id'),
                 $request->getInt('disciplina_id'),
                 $request->getInt('user_id'),
@@ -181,17 +225,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $orari
             );
 
+            $newImagePath = $currentImagePath;
+            // Gestione rimozione immagine
+            if ($removeImage) {
+                $newImagePath = '';
+            }
+
+            // Gestione crop base64
+            $croppedImageData = trim((string) ($_POST['crop_image_base64'] ?? ''));
+            if ($croppedImageData !== '') {
+                $uploadedPath = gestisciUploadImmagineBase64Corso($croppedImageData, $corsoId);
+                if ($uploadedPath !== '') {
+                    $newImagePath = $uploadedPath;
+                }
+            }
+
+            // Gestione upload file classico
             $fileImmagine = $_FILES['immagine_corso'] ?? [];
-            if (!empty($fileImmagine) && ($fileImmagine['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
-                $imagePath = gestisciUploadImmagineCorso($fileImmagine, $request->getInt('corso_id'));
-                if ($imagePath !== '') {
-                    $corsi->updateImmagineCorso($request->getInt('corso_id'), $imagePath);
+            if ($croppedImageData === '' && !empty($fileImmagine) && ($fileImmagine['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
+                $uploadedPath = gestisciUploadImmagineCorso($fileImmagine, $corsoId);
+                if ($uploadedPath !== '') {
+                    $newImagePath = $uploadedPath;
+                }
+            }
+
+            // Aggiorna solo se cambia
+            if ($newImagePath !== $currentImagePath) {
+                $corsi->updateImmagineCorso($corsoId, $newImagePath);
+                if ($currentImagePath !== '' && ($removeImage || $newImagePath !== $currentImagePath)) {
+                    eliminaImmagineCorsoDaPercorso($currentImagePath);
                 }
             }
 
             if ($wantsJson) {
                 json_success('Corso modificato con successo', [
-                    'id' => $request->getInt('corso_id'),
+                    'id' => $corsoId,
                 ]);
             }
 

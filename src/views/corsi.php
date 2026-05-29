@@ -1,5 +1,4 @@
 <?php
-
 declare(strict_types=1);
 
 /** @var array $corsi */
@@ -195,6 +194,137 @@ foreach (array_keys($dayLabels) as $dayKey) {
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+
+    // === Gestione immagine corso (preview, crop, rimozione) ===
+    const corsoImageInput = document.getElementById('corsoImageInput');
+    const corsoImagePreview = document.getElementById('corsoImagePreview');
+    const corsoImagePlaceholder = document.getElementById('corsoImagePlaceholder');
+    const corsoImageCropContainer = document.getElementById('corsoImageCropContainer');
+    const corsoImageCropSource = document.getElementById('corsoImageCropSource');
+    const corsoImageApplyCropBtn = document.getElementById('corsoImageApplyCropBtn');
+    const corsoImageCancelCropBtn = document.getElementById('corsoImageCancelCropBtn');
+    const corsoImageRemoveCheckbox = document.getElementById('corsoImageRemoveCheckbox');
+    let corsoImageCropper = null;
+    const ALLOWED_CORSO_IMAGE_MIMES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    const MAX_CORSO_IMAGE_SIZE = 2 * 1024 * 1024;
+
+    function renderCorsoImagePreview(src) {
+      if (corsoImagePreview) {
+        corsoImagePreview.src = src || '';
+        corsoImagePreview.classList.toggle('d-none', !src);
+      }
+      if (corsoImagePlaceholder) {
+        corsoImagePlaceholder.classList.toggle('d-none', !!src);
+      }
+    }
+
+    function destroyCorsoCropper() {
+      if (corsoImageCropper && typeof corsoImageCropper.destroy === 'function') {
+        corsoImageCropper.destroy();
+      }
+      corsoImageCropper = null;
+      if (corsoImageCropContainer) {
+        corsoImageCropContainer.classList.add('d-none');
+      }
+    }
+
+    function showCorsoCropper(dataUrl) {
+      if (!corsoImageCropSource || !corsoImageCropContainer) return false;
+      corsoImageCropSource.src = dataUrl;
+      corsoImageCropContainer.classList.remove('d-none');
+      if (window.Cropper) {
+        corsoImageCropper = new window.Cropper(corsoImageCropSource, {
+          aspectRatio: 1,
+          viewMode: 1,
+          autoCropArea: 1,
+          background: false,
+          movable: true,
+          zoomable: true,
+          scalable: false,
+          rotatable: false
+        });
+      }
+      return true;
+    }
+
+    function applyCorsoCrop() {
+      if (!corsoImageCropper) return false;
+      const canvas = corsoImageCropper.getCroppedCanvas({ width: 400, height: 400 });
+      if (!canvas) return false;
+      const dataUrl = canvas.toDataURL('image/png');
+      renderCorsoImagePreview(dataUrl);
+      destroyCorsoCropper();
+      // TODO: se vuoi inviare il crop al backend, salva dataUrl in un hidden input
+      return true;
+    }
+
+    if (corsoImageInput) {
+      corsoImageInput.addEventListener('change', function () {
+        const file = corsoImageInput.files && corsoImageInput.files[0] ? corsoImageInput.files[0] : null;
+        if (!file) {
+          destroyCorsoCropper();
+          renderCorsoImagePreview('');
+          return;
+        }
+        if (!ALLOWED_CORSO_IMAGE_MIMES.includes(file.type)) {
+          window.alert('Formato immagine non supportato. Usa JPG, PNG, WEBP o GIF.');
+          corsoImageInput.value = '';
+          renderCorsoImagePreview('');
+          return;
+        }
+        if (file.size > MAX_CORSO_IMAGE_SIZE) {
+          window.alert('Immagine troppo grande. Dimensione massima 2MB.');
+          corsoImageInput.value = '';
+          renderCorsoImagePreview('');
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = function (event) {
+          const dataUrl = event.target && event.target.result ? String(event.target.result) : '';
+          if (dataUrl === '') return;
+          const cropShown = showCorsoCropper(dataUrl);
+          if (!cropShown) {
+            renderCorsoImagePreview(dataUrl);
+          }
+        };
+        reader.onerror = function () {
+          corsoImageInput.value = '';
+          renderCorsoImagePreview('');
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    if (corsoImageApplyCropBtn) {
+      corsoImageApplyCropBtn.addEventListener('click', function () {
+        if (!applyCorsoCrop()) {
+          window.alert('Impossibile applicare il ritaglio immagine.');
+        }
+      });
+    }
+
+    if (corsoImageCancelCropBtn) {
+      corsoImageCancelCropBtn.addEventListener('click', function () {
+        if (corsoImageInput) corsoImageInput.value = '';
+        destroyCorsoCropper();
+        renderCorsoImagePreview('');
+      });
+    }
+
+    if (corsoImageRemoveCheckbox) {
+      corsoImageRemoveCheckbox.addEventListener('change', function () {
+        if (corsoImageRemoveCheckbox.checked) {
+          renderCorsoImagePreview('');
+          if (corsoImageInput) corsoImageInput.value = '';
+          destroyCorsoCropper();
+        } else {
+          // Se deselezionato, ripristina preview iniziale
+          if (corsoImagePreview && corsoImagePreview.dataset.initialSrc) {
+            renderCorsoImagePreview(corsoImagePreview.dataset.initialSrc);
+          }
+        }
+      });
+    }
   const ui = window.SeiryokukaiUi || null;
   const openAddCorsoPanelBtn = document.getElementById('openAddCorsoPanelBtn');
   const addCorsoPanel = document.getElementById('addCorsoPanel');
