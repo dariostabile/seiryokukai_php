@@ -20,6 +20,7 @@ final class CorsiService extends BaseService
                  c.data_fine_corso AS end_date,
                 c.quota_mensile_corso AS monthly_fee,
                  COALESCE(c.attivo, 1) AS active,
+                 COALESCE(c.immagine_corso, '') AS image_path,
                      c.lun_inizio, c.lun_fine,
                      c.mar_inizio, c.mar_fine,
                      c.mer_inizio, c.mer_fine,
@@ -116,6 +117,7 @@ final class CorsiService extends BaseService
                 c.data_fine_corso AS end_date,
                 c.quota_mensile_corso AS monthly_fee,
                 COALESCE(c.attivo, 1) AS active,
+                COALESCE(c.immagine_corso, '') AS image_path,
                 c.lun_inizio, c.lun_fine,
                 c.mar_inizio, c.mar_fine,
                 c.mer_inizio, c.mer_fine,
@@ -140,6 +142,13 @@ final class CorsiService extends BaseService
         $stmt->execute();
 
         $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+        if (is_array($rows)) {
+            foreach ($rows as &$row) {
+                $row['image_path'] = $this->toPublicUrl((string) ($row['image_path'] ?? ''));
+            }
+            unset($row);
+        }
 
         return [
             'total' => $total,
@@ -236,6 +245,7 @@ final class CorsiService extends BaseService
                  c.data_fine_corso AS end_date,
                 c.quota_mensile_corso AS monthly_fee,
                  COALESCE(c.attivo, 1) AS active,
+                 COALESCE(c.immagine_corso, '') AS image_path,
                      c.lun_inizio, c.lun_fine,
                      c.mar_inizio, c.mar_fine,
                      c.mer_inizio, c.mer_fine,
@@ -254,6 +264,17 @@ final class CorsiService extends BaseService
         $row = $stmt->fetch(\PDO::FETCH_ASSOC);
 
         return is_array($row) ? $row : null;
+    }
+
+    public function updateImmagineCorso(int $id, string $imagePath): bool
+    {
+        if ($id <= 0) {
+            return false;
+        }
+
+        $pdo = db_connection();
+        $stmt = $pdo->prepare('UPDATE corsi SET immagine_corso = :immagine_corso WHERE idcorso = :id');
+        return $stmt->execute(['immagine_corso' => $imagePath, 'id' => $id]);
     }
 
     public function updateCorso(

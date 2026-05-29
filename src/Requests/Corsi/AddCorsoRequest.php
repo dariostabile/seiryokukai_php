@@ -19,6 +19,7 @@ class AddCorsoRequest extends FormRequest
             'end_date' => 'nullable|date',
             'monthly_fee' => 'nullable|float',
             'active' => 'nullable|int|min:0|max:1',
+            'immagine_corso' => 'nullable', // validazione custom in afterValidation
         ];
     }
 
@@ -35,6 +36,27 @@ class AddCorsoRequest extends FormRequest
             'monthly_fee.float' => 'La quota mensile deve essere un numero',
             'active.min' => 'Lo stato corso non è valido',
             'active.max' => 'Lo stato corso non è valido',
+            'immagine_corso.invalid_type' => 'L\'immagine del corso deve essere un file JPG o PNG',
+            'immagine_corso.max_size' => 'L\'immagine del corso non deve superare 2MB',
         ];
+    }
+
+    protected function afterValidation(): void
+    {
+        $file = $this->data['immagine_corso'] ?? null;
+        if ($file && is_array($file)) {
+            $allowedTypes = ['image/jpeg', 'image/png'];
+            $maxSize = 2 * 1024 * 1024; // 2MB
+            $type = $file['type'] ?? '';
+            $size = $file['size'] ?? 0;
+            if (!in_array($type, $allowedTypes, true)) {
+                $this->errors['immagine_corso'] = $this->messages()['immagine_corso.invalid_type'] ?? 'Tipo file non valido';
+            } elseif ($size > $maxSize) {
+                $this->errors['immagine_corso'] = $this->messages()['immagine_corso.max_size'] ?? 'File troppo grande';
+            }
+            if (!empty($this->errors)) {
+                throw new \\App\\Requests\\ValidationException($this->errors);
+            }
+        }
     }
 }

@@ -10,6 +10,61 @@ use App\Requests\Corsi\AddCorsoRequest;
 use App\Requests\Corsi\UpdateCorsoRequest;
 use App\Requests\ValidationException;
 
+function gestisciUploadImmagineCorso(array $file, int $corsoId): string
+{
+    if ($corsoId <= 0) {
+        throw new \InvalidArgumentException('Corso non valido per upload immagine');
+    }
+
+    if (($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
+        return '';
+    }
+
+    if (($file['error'] ?? UPLOAD_ERR_OK) !== UPLOAD_ERR_OK) {
+        throw new \RuntimeException('Upload immagine corso non riuscito');
+    }
+
+    $tmpPath = (string) ($file['tmp_name'] ?? '');
+    $size = (int) ($file['size'] ?? 0);
+
+    if ($tmpPath === '' || !is_uploaded_file($tmpPath)) {
+        throw new \RuntimeException('File immagine corso non valido');
+    }
+
+    if ($size <= 0 || $size > 2 * 1024 * 1024) {
+        throw new \RuntimeException('L\'immagine deve essere minore di 2MB');
+    }
+
+    $finfo = new \finfo(FILEINFO_MIME_TYPE);
+    $mime = (string) $finfo->file($tmpPath);
+    $allowed = [
+        'image/jpeg' => 'jpg',
+        'image/png'  => 'png',
+    ];
+
+    if (!isset($allowed[$mime])) {
+        throw new \RuntimeException('Formato immagine non supportato (usa JPG o PNG)');
+    }
+
+    $extension = $allowed[$mime];
+    $relativeDir = 'public/corsi/' . $corsoId;
+    $absoluteDir = __DIR__ . '/../../' . $relativeDir;
+
+    if (!is_dir($absoluteDir) && !mkdir($absoluteDir, 0775, true) && !is_dir($absoluteDir)) {
+        throw new \RuntimeException('Impossibile creare la cartella immagini corso');
+    }
+
+    $fileName = $corsoId . '_' . date('YmdHis') . '_' . bin2hex(random_bytes(4)) . '.' . $extension;
+    $relativePath = $relativeDir . '/' . $fileName;
+    $absolutePath = __DIR__ . '/../../' . $relativePath;
+
+    if (!move_uploaded_file($tmpPath, $absolutePath)) {
+        throw new \RuntimeException('Impossibile salvare l\'immagine corso');
+    }
+
+    return $relativePath;
+}
+
 function wants_json_response(): bool
 {
     $accept = strtolower((string) ($_SERVER['HTTP_ACCEPT'] ?? ''));
@@ -76,8 +131,7 @@ if (!$auth->isLoggedIn()) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $action = trim((string) ($_POST['action'] ?? 'add'));
-    $action = trim((string) ($_POST['form_action'] ?? 'add'));
+    $action = trim((string) ($_POST['form_action'] ?? $_POST['action'] ?? 'add'));
 
 
     $orari = [
@@ -126,6 +180,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $request->getInt('active', 1),
                 $orari
             );
+
+            $fileImmagine = $_FILES['immagine_corso'] ?? [];
+            if (!empty($fileImmagine) && ($fileImmagine['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
+                $imagePath = gestisciUploadImmagineCorso($fileImmagine, $request->getInt('corso_id'));
+                if ($imagePath !== '') {
+                    $corsi->updateImmagineCorso($request->getInt('corso_id'), $imagePath);
+                }
+            }
 
             if ($wantsJson) {
                 json_success('Corso modificato con successo', [
@@ -224,9 +286,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $orari
         );
 
+        $nuovoId = (int) ($nuovoCorso['id'] ?? 0);
+        $fileImmagine = $_FILES['immagine_corso'] ?? [];
+        if (!empty($fileImmagine) && ($fileImmagine['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
+            $imagePath = gestisciUploadImmagineCorso($fileImmagine, $nuovoId);
+            if ($imagePath !== '') {
+                $corsi->updateImmagineCorso($nuovoId, $imagePath);
+            }
+        }
+
         if ($wantsJson) {
             json_success('Corso creato con successo', [
-                'id' => (int) ($nuovoCorso['id'] ?? 0),
+                'id' => $nuovoId,
                 'name' => (string) ($nuovoCorso['name'] ?? ''),
             ]);
         }

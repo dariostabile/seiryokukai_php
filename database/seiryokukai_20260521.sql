@@ -3,19 +3,13 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:8889
--- Creato il: Mag 21, 2026 alle 16:42
+-- Creato il: Mag 29, 2026 alle 16:13
 -- Versione del server: 8.0.44
 -- Versione PHP: 8.3.30
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
 SET time_zone = "+00:00";
-
-
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8mb4 */;
 
 --
 -- Database: `seiryokukai`
@@ -145,6 +139,13 @@ CREATE TABLE `atleti_has_corsi` (
   `note_iscrizione` longtext
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
+--
+-- Dump dei dati per la tabella `atleti_has_corsi`
+--
+
+INSERT INTO `atleti_has_corsi` (`idatleta`, `idcorso`, `data_iscrizione`, `data_scadenza_iscrizione`, `abbonamento`, `quota`, `stato_iscrizione`, `note_iscrizione`) VALUES
+(3, 1, '2025-09-16', '2026-07-31', 0, 40.00, 'A', 'Karate iscrizione 2025/2026');
+
 -- --------------------------------------------------------
 
 --
@@ -152,17 +153,17 @@ CREATE TABLE `atleti_has_corsi` (
 --
 
 CREATE TABLE `comuni_italiani` (
-  `nazione` varchar(45) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `comune` varchar(45) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
-  `regione` varchar(45) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `provincia` varchar(2) COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
-  `cap` varchar(5) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `prefisso` varchar(10) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `codicenazionale` varchar(4) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `codiceregionale` varchar(5) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `codiceistat` varchar(8) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `codiceusl` varchar(5) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `codasp` varchar(6) COLLATE utf8mb4_general_ci DEFAULT NULL
+  `nazione` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `comune` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `regione` varchar(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `provincia` varchar(2) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
+  `cap` varchar(5) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `prefisso` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `codicenazionale` varchar(4) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `codiceregionale` varchar(5) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `codiceistat` varchar(8) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `codiceusl` varchar(5) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `codasp` varchar(6) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -8561,15 +8562,17 @@ CREATE TABLE `corsi` (
   `sab_inizio` time DEFAULT NULL,
   `sab_fine` time DEFAULT NULL,
   `dom_inizio` time DEFAULT NULL,
-  `dom_fine` time DEFAULT NULL
+  `dom_fine` time DEFAULT NULL,
+  `immagine_corso` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
 --
 -- Dump dei dati per la tabella `corsi`
 --
 
-INSERT INTO `corsi` (`idcorso`, `idsede`, `iddisciplina`, `idutente`, `attivo`, `nome_corso`, `descrizione_corso`, `data_inizio_corso`, `data_fine_corso`, `quota_mensile_corso`, `orari`, `lun_inizio`, `lun_fine`, `mar_inizio`, `mar_fine`, `mer_inizio`, `mer_fine`, `gio_inizio`, `gio_fine`, `ven_inizio`, `ven_fine`, `sab_inizio`, `sab_fine`, `dom_inizio`, `dom_fine`) VALUES
-(1, 1, 1, 2, 1, 'Karate Adulti', 'Corso di Karate adulti', '2025-09-15', '2026-06-30', 40.00, NULL, NULL, NULL, '19:00:00', '20:30:00', NULL, NULL, '19:00:00', '20:30:00', '19:00:00', '20:30:00', NULL, NULL, NULL, NULL);
+INSERT INTO `corsi` (`idcorso`, `idsede`, `iddisciplina`, `idutente`, `attivo`, `nome_corso`, `descrizione_corso`, `data_inizio_corso`, `data_fine_corso`, `quota_mensile_corso`, `orari`, `lun_inizio`, `lun_fine`, `mar_inizio`, `mar_fine`, `mer_inizio`, `mer_fine`, `gio_inizio`, `gio_fine`, `ven_inizio`, `ven_fine`, `sab_inizio`, `sab_fine`, `dom_inizio`, `dom_fine`, `immagine_corso`) VALUES
+(1, 1, 1, 2, 1, 'Karate Adulti', 'Corso di Karate adulti', '2025-09-15', '2026-06-30', 40.00, NULL, NULL, NULL, '19:00:00', '20:30:00', NULL, NULL, '19:00:00', '20:30:00', '19:00:00', '20:30:00', NULL, NULL, NULL, NULL, NULL),
+(2, 1, 2, 4, 1, 'Pilates', NULL, '2025-09-15', '2026-07-31', NULL, NULL, NULL, NULL, '09:00:00', '10:00:00', NULL, NULL, '09:00:00', '10:00:00', NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -8606,6 +8609,13 @@ CREATE TABLE `documenti` (
   `data_scadenza` date DEFAULT NULL,
   `url_documento` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+
+--
+-- Dump dei dati per la tabella `documenti`
+--
+
+INSERT INTO `documenti` (`iddocumento`, `idatleta`, `idtipo_documento`, `descrizione_documento`, `data_documento`, `data_scadenza`, `url_documento`) VALUES
+(1, 3, 2, NULL, NULL, '2031-11-06', 'public/atleti/3/documenti/3_20260524073046_carta_identita_dario_stabile.pdf');
 
 -- --------------------------------------------------------
 
@@ -8786,6 +8796,14 @@ CREATE TABLE `pagamenti` (
   `quota_pagamento` decimal(6,2) DEFAULT NULL,
   `note_pagamento` longtext
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+
+--
+-- Dump dei dati per la tabella `pagamenti`
+--
+
+INSERT INTO `pagamenti` (`idpagamento`, `idatleta`, `idcorso`, `data_pagamento`, `data_scadenza`, `quota_pagamento`, `note_pagamento`) VALUES
+(1, 3, 1, '2026-04-14', '2026-05-15', 40.00, 'Quota Aprile'),
+(2, 3, 1, '2026-05-12', '2026-06-15', 40.00, 'Quota Maggio');
 
 -- --------------------------------------------------------
 
@@ -9258,7 +9276,7 @@ ALTER TABLE `atleti`
 -- AUTO_INCREMENT per la tabella `corsi`
 --
 ALTER TABLE `corsi`
-  MODIFY `idcorso` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `idcorso` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT per la tabella `discipline`
@@ -9270,7 +9288,7 @@ ALTER TABLE `discipline`
 -- AUTO_INCREMENT per la tabella `documenti`
 --
 ALTER TABLE `documenti`
-  MODIFY `iddocumento` int NOT NULL AUTO_INCREMENT;
+  MODIFY `iddocumento` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT per la tabella `gruppi_applicazioni`
@@ -9330,7 +9348,7 @@ ALTER TABLE `notifiche_has_destinatari`
 -- AUTO_INCREMENT per la tabella `pagamenti`
 --
 ALTER TABLE `pagamenti`
-  MODIFY `idpagamento` int NOT NULL AUTO_INCREMENT;
+  MODIFY `idpagamento` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT per la tabella `profili`
@@ -9486,7 +9504,3 @@ ALTER TABLE `utenti_has_sedi`
   ADD CONSTRAINT `fk_utenti_has_sedi_sedi1` FOREIGN KEY (`idsede`) REFERENCES `sedi` (`idsede`),
   ADD CONSTRAINT `fk_utenti_has_sedi_utenti1` FOREIGN KEY (`idutente`) REFERENCES `utenti` (`idutente`);
 COMMIT;
-
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;

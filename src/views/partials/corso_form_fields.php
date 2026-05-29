@@ -1,7 +1,5 @@
 <?php
-
 declare(strict_types=1);
-
 /**
  * Variabili attese:
  * - $corsoFormValues: array
@@ -12,11 +10,20 @@ declare(strict_types=1);
  * - $users: array
  * - $sedi: array
  */
-
 $corsoFormValues = is_array($corsoFormValues ?? null) ? $corsoFormValues : [];
 $corsoFieldIds = is_array($corsoFieldIds ?? null) ? $corsoFieldIds : [];
 $corsoFormIsEdit = (bool) ($corsoFormIsEdit ?? false);
 ?>
+<div class="col-12 col-md-4">
+  <label class="form-label">Immagine corso (JPG/PNG, max 2MB)</label>
+  <input class="form-control" type="file" name="immagine_corso" accept="image/jpeg,image/png">
+  <?php if ($corsoFormIsEdit && !empty($corsoFormValues['immagine_corso'])): ?>
+    <div class="mt-2">
+      <span class="text-muted small">Immagine attuale:</span><br>
+      <img src="<?= htmlspecialchars($corsoFormValues['immagine_corso']) ?>" alt="Immagine corso" style="max-width:120px;max-height:120px;object-fit:contain;border:1px solid #ccc;">
+    </div>
+  <?php endif; ?>
+</div>
 <div class="col-12 col-md-4">
   <label class="form-label">Stato</label>
   <select class="form-select" name="active" id="<?= htmlspecialchars((string) ($corsoFieldIds['active'] ?? '')) ?>">

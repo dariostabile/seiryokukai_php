@@ -98,6 +98,7 @@ foreach (array_keys($dayLabels) as $dayKey) {
       <table id="corsi-table" class="table align-middle js-datatable" data-server-side="1">
         <thead>
           <tr>
+              <th>Immagine</th>
             <th>Corso</th>
             <th>Istruttore</th>
             <th>Inizio</th>
@@ -108,6 +109,7 @@ foreach (array_keys($dayLabels) as $dayKey) {
           </tr>
         </thead>
         <tbody></tbody>
+
       </table>
     </div>
 
@@ -117,7 +119,7 @@ foreach (array_keys($dayLabels) as $dayKey) {
         <button class="btn btn-sm btn-outline-secondary" type="button" id="closeAddCorsoPanelBtn">Chiudi</button>
       </div>
       <div class="card-body">
-        <form method="post" action="<?= htmlspecialchars($corsiApiUrl) ?>" class="row g-3" id="addCorsoForm">
+        <form method="post" enctype="multipart/form-data" action="<?= htmlspecialchars($corsiApiUrl) ?>" class="row g-3" id="addCorsoForm">
           <input type="hidden" name="action" value="add">
             <input type="hidden" name="form_action" value="add">
           <?php
@@ -149,7 +151,7 @@ foreach (array_keys($dayLabels) as $dayKey) {
         <button class="btn btn-sm btn-outline-secondary" type="button" id="closeEditCorsoPanelBtn">Chiudi</button>
       </div>
       <div class="card-body">
-        <form method="post" action="<?= htmlspecialchars($corsiApiUrl) ?>" class="row g-3" id="editCorsoForm">
+        <form method="post" enctype="multipart/form-data" action="<?= htmlspecialchars($corsiApiUrl) ?>" class="row g-3" id="editCorsoForm">
           <input type="hidden" name="action" value="update">
           <input type="hidden" name="corso_id" id="editCorsoId">
           <?php
@@ -382,7 +384,7 @@ document.addEventListener('DOMContentLoaded', function () {
     serverSide: true,
     processing: true,
     pageLength: 10,
-    order: [[0, 'desc']],
+    order: [[1, 'asc']],
     ajax: {
       url: corsiApiUrl,
       type: 'GET',
@@ -395,19 +397,24 @@ document.addEventListener('DOMContentLoaded', function () {
     },
     columns: [
       {
+        data: 'image_path',
+        orderable: false,
+        render: function (data) {
+          if (!data) return '';
+          return `<img src="${data}" alt="img corso" style="max-width:48px;max-height:48px;object-fit:cover;border-radius:6px;border:1px solid #ccc;">`;
+        }
+      },
+      {
         data: 'name',
         render: function (value, type, row) {
           const corsoName = htmlEscape(value);
           const sedeName = htmlEscape(row.sede || '');
-
           if (type !== 'display') {
             return String(value || '');
           }
-
           if (sedeName === '') {
             return '<span>' + corsoName + '</span>';
           }
-
           return ''
             + '<span>' + corsoName + '</span>'
             + '<small class="d-block text-muted">[' + sedeName + ']</small>';
