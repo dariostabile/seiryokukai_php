@@ -476,9 +476,197 @@ final class AtletiService extends BaseService
         return count($courseIds);
     }
 
+    public function updateIscrizioneAtleta(int $idAtleta, int $idCorsoAttuale, array $payload): bool
+    {
+        $courseIds = array_values(array_unique(array_filter(array_map('intval', (array) ($payload['course_ids'] ?? [])), static fn (int $value): bool => $value > 0)));
+        if ($idAtleta <= 0 || $idCorsoAttuale <= 0 || $courseIds === []) {
+            return false;
+        }
+
+        $pdo = db_connection();
+        $idCorsoPrimario = $courseIds[0];
+        $includeCorsoAttuale = in_array($idCorsoAttuale, $courseIds, true);
+
+        $existsStmt = $pdo->prepare(
+            'SELECT 1
+             FROM atleti_has_corsi
+             WHERE idatleta = :idatleta
+               AND idcorso = :idcorso
+             LIMIT 1'
+        );
+        $existsStmt->execute([
+            'idatleta' => $idAtleta,
+            'idcorso' => $idCorsoAttuale,
+        ]);
+        if ($existsStmt->fetchColumn() === false) {
+            return false;
+        }
+
+        if (!$includeCorsoAttuale) {
+            $checkPagamentiStmt = $pdo->prepare(
+                'SELECT COUNT(*)
+                 FROM pagamenti
+                 WHERE idatleta = :idatleta
+                   AND idcorso = :idcorso'
+            );
+            $checkPagamentiStmt->execute([
+                'idatleta' => $idAtleta,
+                'idcorso' => $idCorsoAttuale,
+            ]);
+
+            $pagamentiAssociati = (int) $checkPagamentiStmt->fetchColumn();
+            if ($pagamentiAssociati > 0) {
+                throw new \RuntimeException('Impossibile cambiare corso all\'iscrizione: sono presenti pagamenti associati al corso attuale.');
+            }
+        }
+
+        $duplicateStmt = $pdo->prepare(
+            'SELECT 1
+             FROM atleti_has_corsi
+             WHERE idatleta = :idatleta
+               AND idcorso = :idcorso
+               AND idcorso <> :idcorso_attuale
+             LIMIT 1'
+        );
+        foreach ($courseIds as $courseId) {
+            if ($courseId === $idCorsoAttuale) {
+                continue;
+            }
+
+            $duplicateStmt->execute([
+                'idatleta' => $idAtleta,
+                'idcorso' => $courseId,
+                'idcorso_attuale' => $idCorsoAttuale,
+            ]);
+            if ($duplicateStmt->fetchColumn() !== false) {
+                throw new \RuntimeException('Esiste gia una iscrizione per questo corso.');
+            }
+        }
+
+        $pdo->beginTransaction();
+        try {
+            $baseData = [
+                'data_iscrizione' => $this->normalizeNullableDate($payload['data_inizio_iscrizione'] ?? null),
+                'data_scadenza_iscrizione' => $this->normalizeNullableDate($payload['data_fine_iscrizione'] ?? null),
+                'quota' => $this->normalizeNullableFloat($payload['totale_iscrizione'] ?? null),
+                'stato_iscrizione' => $this->normalizeNullableString($payload['stato_iscrizione'] ?? null),
+                'note_iscrizione' => $this->normalizeNullableString($payload['note_iscrizione'] ?? null),
+                'idatleta' => $idAtleta,
+            ];
+
+            $updatePrimaryStmt = $pdo->prepare(
+                'UPDATE atleti_has_corsi SET
+                    idcorso = :idcorso_nuovo,
+                    data_iscrizione = :data_iscrizione,
+                    data_scadenza_iscrizione = :data_scadenza_iscrizione,
+                    quota = :quota,
+                    stato_iscrizione = :stato_iscrizione,
+                    note_iscrizione = :note_iscrizione
+                 WHERE idatleta = :idatleta
+                   AND idcorso = :idcorso_attuale'
+            );
+            $updatePrimaryStmt->execute(array_merge($baseData, [
+                'idcorso_nuovo' => $idCorsoPrimario,
+                'idcorso_attuale' => $idCorsoAttuale,
+            ]));
+
+            $insertAdditionalStmt = $pdo->prepare(
+                'INSERT INTO atleti_has_corsi (
+                    idatleta,
+                    idcorso,
+                    data_iscrizione,
+                    data_scadenza_iscrizione,
+                    quota,
+                    stato_iscrizione,
+                    note_iscrizione
+                ) VALUES (
+                    :idatleta,
+                    :idcorso,
+                    :data_iscrizione,
+                    :data_scadenza_iscrizione,
+                    :quota,
+                    :stato_iscrizione,
+                    :note_iscrizione
+                )'
+            );
+
+            foreach ($courseIds as $courseId) {
+                if ($courseId === $idCorsoPrimario) {
+                    continue;
+                }
+
+                $insertAdditionalStmt->execute(array_merge($baseData, [
+                    'idcorso' => $courseId,
+                ]));
+            }
+
+            $pdo->commit();
+        } catch (\Throwable $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+
+            throw $e;
+        }
+
+        return true;
+    }
+
+    public function deleteIscrizioneAtleta(int $idAtleta, int $idCorso): bool
+    {
+        if ($idAtleta <= 0 || $idCorso <= 0) {
+            return false;
+        }
+
+        $pdo = db_connection();
+        $checkPagamentiStmt = $pdo->prepare(
+            'SELECT COUNT(*)
+             FROM pagamenti
+             WHERE idatleta = :idatleta
+               AND idcorso = :idcorso'
+        );
+        $checkPagamentiStmt->execute([
+            'idatleta' => $idAtleta,
+            'idcorso' => $idCorso,
+        ]);
+
+        $pagamentiAssociati = (int) $checkPagamentiStmt->fetchColumn();
+        if ($pagamentiAssociati > 0) {
+            throw new \RuntimeException('Impossibile eliminare l\'iscrizione: sono presenti pagamenti associati. Elimina prima i pagamenti collegati.');
+        }
+
+        $deleteIscrizioneStmt = $pdo->prepare(
+            'DELETE FROM atleti_has_corsi
+             WHERE idatleta = :idatleta
+               AND idcorso = :idcorso'
+        );
+        $deleteIscrizioneStmt->execute([
+            'idatleta' => $idAtleta,
+            'idcorso' => $idCorso,
+        ]);
+
+        return $deleteIscrizioneStmt->rowCount() > 0;
+    }
+
     public function addPagamentoAtleta(int $idAtleta, array $payload): int
     {
         $pdo = db_connection();
+
+        $iscrizioneStmt = $pdo->prepare(
+            'SELECT 1
+             FROM atleti_has_corsi
+             WHERE idatleta = :idatleta
+               AND idcorso = :idcorso
+             LIMIT 1'
+        );
+        $iscrizioneStmt->execute([
+            'idatleta' => $idAtleta,
+            'idcorso' => (int) ($payload['idcorso'] ?? 0),
+        ]);
+        if ($iscrizioneStmt->fetchColumn() === false) {
+            throw new \RuntimeException('Il corso selezionato non risulta tra le iscrizioni dell\'atleta');
+        }
+
         $stmt = $pdo->prepare(
             'INSERT INTO pagamenti (
                 idatleta,
@@ -506,6 +694,144 @@ final class AtletiService extends BaseService
         ]);
 
         return (int) $pdo->lastInsertId();
+    }
+
+    public function findPagamentoAtletaById(int $idPagamento, int $idAtleta): ?array
+    {
+        if ($idPagamento <= 0 || $idAtleta <= 0) {
+            return null;
+        }
+
+        $pdo = db_connection();
+        $stmt = $pdo->prepare(
+            'SELECT
+                idpagamento AS id,
+                idatleta,
+                idcorso,
+                data_pagamento,
+                data_scadenza,
+                quota_pagamento,
+                note_pagamento
+             FROM pagamenti
+             WHERE idpagamento = :idpagamento
+               AND idatleta = :idatleta
+             LIMIT 1'
+        );
+        $stmt->execute([
+            'idpagamento' => $idPagamento,
+            'idatleta' => $idAtleta,
+        ]);
+
+        $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+
+        return is_array($row) ? $row : null;
+    }
+
+    public function updatePagamentoAtleta(int $idPagamento, int $idAtleta, array $payload): bool
+    {
+        $current = $this->findPagamentoAtletaById($idPagamento, $idAtleta);
+        if ($current === null) {
+            return false;
+        }
+
+        $courseIdAttuale = (int) ($current['idcorso'] ?? 0);
+        if (!$this->isPagamentoUltimoPerCorso($idAtleta, $courseIdAttuale, $idPagamento)) {
+            throw new \RuntimeException('Puoi modificare solo l\'ultimo pagamento del corso.');
+        }
+
+        $courseIdNuovo = (int) ($payload['idcorso'] ?? 0);
+        if ($courseIdNuovo <= 0) {
+            return false;
+        }
+
+        $pdo = db_connection();
+        $iscrizioneStmt = $pdo->prepare(
+            'SELECT 1
+             FROM atleti_has_corsi
+             WHERE idatleta = :idatleta
+               AND idcorso = :idcorso
+             LIMIT 1'
+        );
+        $iscrizioneStmt->execute([
+            'idatleta' => $idAtleta,
+            'idcorso' => $courseIdNuovo,
+        ]);
+        if ($iscrizioneStmt->fetchColumn() === false) {
+            throw new \RuntimeException('Il corso selezionato non risulta tra le iscrizioni dell\'atleta');
+        }
+
+        $stmt = $pdo->prepare(
+            'UPDATE pagamenti SET
+                idcorso = :idcorso,
+                data_pagamento = :data_pagamento,
+                data_scadenza = :data_scadenza,
+                quota_pagamento = :quota_pagamento,
+                note_pagamento = :note_pagamento
+             WHERE idpagamento = :idpagamento
+               AND idatleta = :idatleta'
+        );
+        $stmt->execute([
+            'idcorso' => $courseIdNuovo,
+            'data_pagamento' => $this->normalizeNullableDate($payload['data_pagamento'] ?? null),
+            'data_scadenza' => $this->normalizeNullableDate($payload['data_scadenza'] ?? null),
+            'quota_pagamento' => $this->normalizeNullableFloat($payload['quota_pagamento'] ?? null),
+            'note_pagamento' => $this->normalizeNullableString($payload['note_pagamento'] ?? null),
+            'idpagamento' => $idPagamento,
+            'idatleta' => $idAtleta,
+        ]);
+
+        return true;
+    }
+
+    public function deletePagamentoAtleta(int $idPagamento, int $idAtleta): bool
+    {
+        $current = $this->findPagamentoAtletaById($idPagamento, $idAtleta);
+        if ($current === null) {
+            return false;
+        }
+
+        $courseId = (int) ($current['idcorso'] ?? 0);
+        if (!$this->isPagamentoUltimoPerCorso($idAtleta, $courseId, $idPagamento)) {
+            throw new \RuntimeException('Puoi eliminare solo l\'ultimo pagamento del corso.');
+        }
+
+        $pdo = db_connection();
+        $stmt = $pdo->prepare(
+            'DELETE FROM pagamenti
+             WHERE idpagamento = :idpagamento
+               AND idatleta = :idatleta'
+        );
+        $stmt->execute([
+            'idpagamento' => $idPagamento,
+            'idatleta' => $idAtleta,
+        ]);
+
+        return $stmt->rowCount() > 0;
+    }
+
+    private function isPagamentoUltimoPerCorso(int $idAtleta, int $idCorso, int $idPagamento): bool
+    {
+        if ($idAtleta <= 0 || $idCorso <= 0 || $idPagamento <= 0) {
+            return false;
+        }
+
+        $pdo = db_connection();
+        $stmt = $pdo->prepare(
+            'SELECT idpagamento
+             FROM pagamenti
+             WHERE idatleta = :idatleta
+               AND idcorso = :idcorso
+             ORDER BY data_pagamento DESC, idpagamento DESC
+             LIMIT 1'
+        );
+        $stmt->execute([
+            'idatleta' => $idAtleta,
+            'idcorso' => $idCorso,
+        ]);
+
+        $lastId = (int) $stmt->fetchColumn();
+
+        return $lastId === $idPagamento;
     }
 
     public function updateAtletaStatus(int $id, string $status): bool

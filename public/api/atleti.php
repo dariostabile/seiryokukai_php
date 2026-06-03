@@ -12,6 +12,8 @@ use App\Requests\Atleti\AddDocumentoAtletaRequest;
 use App\Requests\Atleti\AddIscrizioneAtletaRequest;
 use App\Requests\Atleti\AddPagamentoAtletaRequest;
 use App\Requests\Atleti\UpdateAtletaRequest;
+use App\Requests\Atleti\UpdateIscrizioneAtletaRequest;
+use App\Requests\Atleti\UpdatePagamentoAtletaRequest;
 use App\Requests\ValidationException;
 
 $auth = aut_service();
@@ -573,7 +575,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && (string) ($_GET['action'] ?? '') ===
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $action = trim((string) ($_POST['form_action'] ?? 'add'));
+    $action = trim((string) ($_POST['form_action'] ?? $_POST['action'] ?? 'add'));
 
     if ($action === 'status') {
         $id = (int) ($_POST['id'] ?? 0);
@@ -739,6 +741,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ]);
         }
 
+        if ($action === 'update_iscrizione') {
+            $request = new UpdateIscrizioneAtletaRequest($_POST);
+            $athleteId = $request->getInt('idatleta');
+            $currentCourseId = $request->getInt('idcorso_attuale');
+            $updated = $atleti->updateIscrizioneAtleta($athleteId, $currentCourseId, $request->all());
+            if (!$updated) {
+                throw new \RuntimeException('Iscrizione non trovata o gia eliminata');
+            }
+
+            redirect_atleti([
+                'ok' => 'Iscrizione aggiornata',
+                'open_edit' => '1',
+                'edit_id' => $athleteId,
+                'athlete_tab' => 'iscrizioni',
+            ]);
+        }
+
+        if ($action === 'delete_iscrizione') {
+            $athleteId = (int) ($_POST['idatleta'] ?? 0);
+            $courseId = (int) ($_POST['idcorso'] ?? 0);
+            if ($athleteId <= 0 || $courseId <= 0) {
+                throw new \RuntimeException('Dati iscrizione non validi');
+            }
+
+            $deleted = $atleti->deleteIscrizioneAtleta($athleteId, $courseId);
+            if (!$deleted) {
+                throw new \RuntimeException('Iscrizione non trovata o gia eliminata');
+            }
+
+            redirect_atleti([
+                'ok' => 'Iscrizione eliminata',
+                'open_edit' => '1',
+                'edit_id' => $athleteId,
+                'athlete_tab' => 'iscrizioni',
+            ]);
+        }
+
         if ($action === 'add_pagamento') {
             $request = new AddPagamentoAtletaRequest($_POST);
             $athleteId = $request->getInt('idatleta');
@@ -746,6 +785,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             redirect_atleti([
                 'ok' => 'Pagamento registrato',
+                'open_edit' => '1',
+                'edit_id' => $athleteId,
+                'athlete_tab' => 'pagamenti',
+            ]);
+        }
+
+        if ($action === 'update_pagamento') {
+            $request = new UpdatePagamentoAtletaRequest($_POST);
+            $athleteId = $request->getInt('idatleta');
+            $paymentId = $request->getInt('idpagamento');
+            $updated = $atleti->updatePagamentoAtleta($paymentId, $athleteId, $request->all());
+            if (!$updated) {
+                throw new \RuntimeException('Pagamento non trovato o gia eliminato');
+            }
+
+            redirect_atleti([
+                'ok' => 'Pagamento aggiornato',
+                'open_edit' => '1',
+                'edit_id' => $athleteId,
+                'athlete_tab' => 'pagamenti',
+            ]);
+        }
+
+        if ($action === 'delete_pagamento') {
+            $athleteId = (int) ($_POST['idatleta'] ?? 0);
+            $paymentId = (int) ($_POST['idpagamento'] ?? 0);
+            if ($athleteId <= 0 || $paymentId <= 0) {
+                throw new \RuntimeException('Dati pagamento non validi');
+            }
+
+            $deleted = $atleti->deletePagamentoAtleta($paymentId, $athleteId);
+            if (!$deleted) {
+                throw new \RuntimeException('Pagamento non trovato o gia eliminato');
+            }
+
+            redirect_atleti([
+                'ok' => 'Pagamento eliminato',
                 'open_edit' => '1',
                 'edit_id' => $athleteId,
                 'athlete_tab' => 'pagamenti',
@@ -799,7 +875,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             );
         }
 
-        if ($action === 'add_iscrizione') {
+        if ($action === 'add_iscrizione' || $action === 'update_iscrizione') {
             handle_validation_errors(
                 $e->errors(),
                 'atleti',
@@ -811,7 +887,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             );
         }
 
-        if ($action === 'add_pagamento') {
+        if ($action === 'add_pagamento' || $action === 'update_pagamento') {
             handle_validation_errors(
                 $e->errors(),
                 'atleti',
@@ -851,7 +927,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'update_documento' => 'documenti',
             'delete_documento' => 'documenti',
             'add_iscrizione' => 'iscrizioni',
+            'update_iscrizione' => 'iscrizioni',
+            'delete_iscrizione' => 'iscrizioni',
             'add_pagamento' => 'pagamenti',
+            'update_pagamento' => 'pagamenti',
+            'delete_pagamento' => 'pagamenti',
             default => trim((string) ($_POST['athlete_tab'] ?? 'anagrafica')),
         };
 
@@ -859,7 +939,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'err' => $e->getMessage() !== '' ? $e->getMessage() : 'Operazione non completata',
         ];
 
-        if ($action === 'update' || $action === 'add_documento' || $action === 'update_documento' || $action === 'delete_documento' || $action === 'add_iscrizione' || $action === 'add_pagamento') {
+        if ($action === 'update' || $action === 'add_documento' || $action === 'update_documento' || $action === 'delete_documento' || $action === 'add_iscrizione' || $action === 'update_iscrizione' || $action === 'delete_iscrizione' || $action === 'add_pagamento' || $action === 'update_pagamento' || $action === 'delete_pagamento') {
             $redirectParams['open_edit'] = '1';
             $redirectParams['edit_id'] = (string) ((int) ($_POST['id'] ?? $_POST['idatleta'] ?? 0));
             $redirectParams['athlete_tab'] = $targetTab;

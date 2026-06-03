@@ -552,19 +552,19 @@ if ($hasSelectedAtleta) {
                 <table id="iscrizioni-table" class="table table-sm align-middle w-100">
                   <thead>
                     <tr>
-                      <th>ID</th>
+                      <th>Corso</th>
                       <th>Periodo</th>
-                      <th>Corsi</th>
-                      <th>Totale</th>
+                      <th>Quota</th>
                       <th>Stato</th>
                       <th>Note</th>
+                      <th class="text-end">Azioni</th>
                     </tr>
                   </thead>
                   <tbody>
                     <?php if ($selectedIscrizioni !== []): ?>
                       <?php foreach ($selectedIscrizioni as $iscrizione): ?>
                         <tr>
-                          <td>#<?= (int) ($iscrizione['id'] ?? 0) ?></td>
+                          <td><?= htmlspecialchars((string) ($iscrizione['courses'] ?? '')) ?></td>
                           <td data-order="<?= htmlspecialchars((string) ($iscrizione['start_date'] ?? '')) ?>">
                             <?php
                               $date = (string) ($iscrizione['start_date'] ?? '');
@@ -576,7 +576,7 @@ if ($hasSelectedAtleta) {
                               }
                             ?>
                             <?php if (((string) ($iscrizione['end_date'] ?? '')) !== ''): ?>
-                              - <?php
+                              – <?php
                                 $date = (string) $iscrizione['end_date'];
                                 if ($date && preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
                                   [$y, $m, $d] = explode('-', $date);
@@ -587,10 +587,30 @@ if ($hasSelectedAtleta) {
                               ?>
                             <?php endif; ?>
                           </td>
-                          <td><?= htmlspecialchars((string) ($iscrizione['courses'] ?? '')) ?></td>
                           <td><?= htmlspecialchars((string) ($iscrizione['total'] ?? '')) ?></td>
                           <td><?= htmlspecialchars((string) ($iscrizione['status_label'] ?? '')) ?></td>
                           <td><?= htmlspecialchars((string) ($iscrizione['notes'] ?? '')) ?></td>
+                          <td class="text-end">
+                            <div class="d-flex justify-content-end gap-2">
+                              <button
+                                type="button"
+                                class="btn btn-sm btn-outline-primary js-edit-iscrizione-btn"
+                                data-idcorso="<?= (int) ($iscrizione['course_id'] ?? 0) ?>"
+                                data-corso="<?= htmlspecialchars((string) ($iscrizione['courses'] ?? ''), ENT_QUOTES) ?>"
+                                data-start-date="<?= htmlspecialchars((string) ($iscrizione['start_date'] ?? ''), ENT_QUOTES) ?>"
+                                data-end-date="<?= htmlspecialchars((string) ($iscrizione['end_date'] ?? ''), ENT_QUOTES) ?>"
+                                data-total="<?= htmlspecialchars((string) ($iscrizione['total'] ?? ''), ENT_QUOTES) ?>"
+                                data-status="<?= htmlspecialchars((string) ($iscrizione['status_code'] ?? 'A'), ENT_QUOTES) ?>"
+                                data-notes="<?= htmlspecialchars((string) ($iscrizione['notes'] ?? ''), ENT_QUOTES) ?>"
+                              >Modifica</button>
+                              <form method="post" action="<?= htmlspecialchars($atletiApiUrl) ?>" onsubmit="return confirm('Eliminare questa iscrizione al corso?');" style="display:inline;">
+                                <input type="hidden" name="action" value="delete_iscrizione">
+                                <input type="hidden" name="idatleta" value="<?= (int) ($selectedAtleta['id'] ?? 0) ?>">
+                                <input type="hidden" name="idcorso" value="<?= (int) ($iscrizione['course_id'] ?? 0) ?>">
+                                <button class="btn btn-sm btn-outline-danger" type="submit">Elimina</button>
+                              </form>
+                            </div>
+                          </td>
                         </tr>
                       <?php endforeach; ?>
                     <?php endif; ?>
@@ -642,6 +662,57 @@ if ($hasSelectedAtleta) {
                     </div>
                     <div class="col-12 d-flex justify-content-end">
                       <button class="btn btn-outline-primary" type="submit">Aggiungi iscrizione</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+
+              <div id="editIscrizionePanel" class="card border mt-3 d-none">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                  <h6 class="m-0">Modifica iscrizione</h6>
+                  <button type="button" class="btn btn-sm btn-outline-secondary" id="closeEditIscrizionePanelBtn">Chiudi</button>
+                </div>
+                <div class="card-body">
+                  <form method="post" action="<?= htmlspecialchars($atletiApiUrl) ?>" class="row g-3">
+                    <input type="hidden" name="action" value="update_iscrizione">
+                    <input type="hidden" name="idatleta" value="<?= (int) ($selectedAtleta['id'] ?? 0) ?>">
+                    <input type="hidden" name="idcorso_attuale" id="editIscrizioneIdCorsoAttuale">
+                    <div class="col-12 col-md-6">
+                      <label class="form-label">Corsi collegati</label>
+                      <select class="form-select" name="course_ids[]" id="editIscrizioneCourseIds" multiple size="5" required>
+                        <?php foreach ($corsi as $corso): ?>
+                          <option value="<?= (int) ($corso['id'] ?? 0) ?>"><?= htmlspecialchars((string) ($corso['name'] ?? '')) ?></option>
+                        <?php endforeach; ?>
+                      </select>
+                      <small class="text-muted">Puoi aggiungere altri corsi mantenendo gli stessi dati iscrizione.</small>
+                    </div>
+                    <div class="col-12 col-md-3">
+                      <label class="form-label">Data inizio</label>
+                      <input type="date" class="form-control" name="data_inizio_iscrizione" id="editIscrizioneDataInizio" required>
+                    </div>
+                    <div class="col-12 col-md-3">
+                      <label class="form-label">Data fine</label>
+                      <input type="date" class="form-control" name="data_fine_iscrizione" id="editIscrizioneDataFine">
+                    </div>
+                    <div class="col-12 col-md-3">
+                      <label class="form-label">Totale iscrizione</label>
+                      <input type="number" step="0.01" min="0" class="form-control" name="totale_iscrizione" id="editIscrizioneTotale">
+                    </div>
+                    <div class="col-12 col-md-3">
+                      <label class="form-label">Stato</label>
+                      <select class="form-select" name="stato_iscrizione" id="editIscrizioneStato" required>
+                        <option value="A">Attiva</option>
+                        <option value="S">Sospesa</option>
+                        <option value="C">Conclusa</option>
+                      </select>
+                    </div>
+                    <div class="col-12">
+                      <label class="form-label">Note iscrizione</label>
+                      <textarea class="form-control" rows="3" name="note_iscrizione" id="editIscrizioneNote"></textarea>
+                    </div>
+                    <div class="col-12 d-flex justify-content-end gap-2">
+                      <button class="btn btn-outline-secondary" type="button" id="closeEditIscrizionePanelBtnFooter">Annulla</button>
+                      <button class="btn btn-primary" type="submit">Salva modifiche</button>
                     </div>
                   </form>
                 </div>
@@ -730,7 +801,16 @@ if ($hasSelectedAtleta) {
                           <td class="text-end">
                             <div class="d-flex justify-content-end gap-2">
                               <?php if ($isLast): ?>
-                                <button type="button" class="btn btn-sm btn-outline-primary js-edit-pagamento-btn" data-pagamento-id="<?= (int)($pagamento['id'] ?? 0) ?>">Modifica</button>
+                                <button
+                                  type="button"
+                                  class="btn btn-sm btn-outline-primary js-edit-pagamento-btn"
+                                  data-pagamento-id="<?= (int)($pagamento['id'] ?? 0) ?>"
+                                  data-course-id="<?= (int)($pagamento['course_id'] ?? 0) ?>"
+                                  data-payment-date="<?= htmlspecialchars((string) ($pagamento['payment_date'] ?? ''), ENT_QUOTES) ?>"
+                                  data-expiry-date="<?= htmlspecialchars((string) ($pagamento['expiry_date'] ?? ''), ENT_QUOTES) ?>"
+                                  data-amount="<?= htmlspecialchars((string) ($pagamento['amount'] ?? ''), ENT_QUOTES) ?>"
+                                  data-notes="<?= htmlspecialchars((string) ($pagamento['notes'] ?? ''), ENT_QUOTES) ?>"
+                                >Modifica</button>
                                 <form method="post" action="<?= htmlspecialchars($atletiApiUrl) ?>" onsubmit="return confirm('Eliminare questo pagamento?');" style="display:inline;">
                                   <input type="hidden" name="action" value="delete_pagamento">
                                   <input type="hidden" name="idatleta" value="<?= (int)($selectedAtleta['id'] ?? 0) ?>">
@@ -837,92 +917,6 @@ if ($hasSelectedAtleta) {
                   </form>
                 </div>
               </div>
-            <script>
-            document.addEventListener('DOMContentLoaded', function () {
-              // Gestione apertura/chiusura pannello modifica pagamento
-              document.querySelectorAll('.js-edit-pagamento-btn').forEach(function(btn) {
-                btn.addEventListener('click', function() {
-                  var row = btn.closest('tr');
-                  if (!row) return;
-                  // Recupera dati dalle celle
-                  var id = btn.getAttribute('data-pagamento-id');
-                  var cells = row.querySelectorAll('td');
-                  var dataPagamento = cells[0]?.getAttribute('data-order') || '';
-                  var dataScadenza = cells[1]?.getAttribute('data-order') || '';
-                  var corsoText = cells[2]?.textContent.trim() || '';
-                  var importo = cells[3]?.textContent.trim() || '';
-                  var note = cells[4]?.textContent.trim() || '';
-                  // Popola form
-                  document.getElementById('editPagamentoId').value = id;
-                  document.getElementById('editPagamentoData').value = dataPagamento;
-                  document.getElementById('editPagamentoScadenza').value = dataScadenza;
-                  document.getElementById('editPagamentoImporto').value = importo.replace(',', '.');
-                  document.getElementById('editPagamentoNote').value = note;
-                  // Seleziona corso tramite data-course-id
-                  var corsoSelect = document.getElementById('editPagamentoCorso');
-                  var courseCell = cells[2];
-                  var courseId = courseCell ? courseCell.getAttribute('data-course-id') : '';
-                  if (corsoSelect && courseId) {
-                    for (var i = 0; i < corsoSelect.options.length; i++) {
-                      if (corsoSelect.options[i].value == courseId) {
-                        corsoSelect.selectedIndex = i;
-                        break;
-                      }
-                    }
-                  }
-                  document.getElementById('editPagamentoPanel').classList.remove('d-none');
-                  window.scrollTo({top: document.getElementById('editPagamentoPanel').offsetTop - 80, behavior: 'smooth'});
-                });
-              });
-              document.getElementById('closeEditPagamentoPanelBtn')?.addEventListener('click', function() {
-                document.getElementById('editPagamentoPanel').classList.add('d-none');
-              });
-
-              // Gestione submit AJAX modifica pagamento
-              var editPagamentoForm = document.getElementById('editPagamentoForm');
-              if (editPagamentoForm) {
-                editPagamentoForm.addEventListener('submit', function(e) {
-                  e.preventDefault();
-                  var form = e.target;
-                  var formData = new FormData(form);
-                  var url = form.getAttribute('action');
-                  var alertBox = document.createElement('div');
-                  alertBox.className = 'alert mt-2';
-                  form.querySelectorAll('.alert').forEach(function(a) { a.remove(); });
-                  fetch(url, {
-                    method: 'POST',
-                    body: formData,
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                  })
-                  .then(function(resp) { return resp.json(); })
-                  .then(function(json) {
-                    if (json && json.ok) {
-                      alertBox.classList.add('alert-success');
-                      alertBox.textContent = json.message || 'Pagamento aggiornato con successo';
-                      document.getElementById('editPagamentoPanel').classList.add('d-none');
-                      // Aggiorna tabella pagamenti
-                      var table = document.getElementById('pagamenti-table');
-                      if (window.DataTable && table && table.DataTable) {
-                        table.DataTable().ajax.reload();
-                      } else {
-                        window.location.reload();
-                      }
-                    } else {
-                      alertBox.classList.add('alert-danger');
-                      alertBox.textContent = (json && json.message) ? json.message : 'Errore durante il salvataggio';
-                    }
-                    form.appendChild(alertBox);
-                  })
-                  .catch(function() {
-                    alertBox.classList.add('alert-danger');
-                    alertBox.textContent = 'Errore di rete';
-                    form.appendChild(alertBox);
-                  });
-                });
-              }
-            });
-            </script>
-            </script>
             </div>
           </div>
         </div>
@@ -1820,9 +1814,14 @@ document.addEventListener('DOMContentLoaded', function () {
   const addIscrizionePanel = document.getElementById('addIscrizionePanel');
   const openAddIscrizionePanelBtn = document.getElementById('openAddIscrizionePanelBtn');
   const closeAddIscrizionePanelBtn = document.getElementById('closeAddIscrizionePanelBtn');
+  const editIscrizionePanel = document.getElementById('editIscrizionePanel');
+  const closeEditIscrizionePanelBtn = document.getElementById('closeEditIscrizionePanelBtn');
+  const closeEditIscrizionePanelBtnFooter = document.getElementById('closeEditIscrizionePanelBtnFooter');
   const addPagamentoPanel = document.getElementById('addPagamentoPanel');
   const openAddPagamentoPanelBtn = document.getElementById('openAddPagamentoPanelBtn');
   const closeAddPagamentoPanelBtn = document.getElementById('closeAddPagamentoPanelBtn');
+  const editPagamentoPanel = document.getElementById('editPagamentoPanel');
+  const closeEditPagamentoPanelBtn = document.getElementById('closeEditPagamentoPanelBtn');
   const editDocumentoPanel = document.getElementById('editDocumentoPanel');
   const closeEditDocumentoPanelBtn = document.getElementById('closeEditDocumentoPanelBtn');
   const editDocumentoId = document.getElementById('editDocumentoId');
@@ -1840,21 +1839,27 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   };
 
-  const hideIscrizionePanel = function () {
+  const hideIscrizionePanels = function () {
     if (addIscrizionePanel) {
       addIscrizionePanel.classList.add('d-none');
     }
+    if (editIscrizionePanel) {
+      editIscrizionePanel.classList.add('d-none');
+    }
   };
 
-  const hidePagamentoPanel = function () {
+  const hidePagamentoPanels = function () {
     if (addPagamentoPanel) {
       addPagamentoPanel.classList.add('d-none');
+    }
+    if (editPagamentoPanel) {
+      editPagamentoPanel.classList.add('d-none');
     }
   };
 
   hideDocumentoPanels();
-  hideIscrizionePanel();
-  hidePagamentoPanel();
+  hideIscrizionePanels();
+  hidePagamentoPanels();
 
   document.querySelectorAll('.js-athlete-edit-tab-trigger').forEach(function (tabButton) {
     tabButton.addEventListener('shown.bs.tab', function (event) {
@@ -1863,10 +1868,10 @@ document.addEventListener('DOMContentLoaded', function () {
         hideDocumentoPanels();
       }
       if (!target.includes('iscrizioni')) {
-        hideIscrizionePanel();
+        hideIscrizionePanels();
       }
       if (!target.includes('pagamenti')) {
-        hidePagamentoPanel();
+        hidePagamentoPanels();
       }
     });
   });
@@ -1887,7 +1892,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   if (openAddIscrizionePanelBtn && addIscrizionePanel) {
     openAddIscrizionePanelBtn.addEventListener('click', function () {
-      hideIscrizionePanel();
+      hideIscrizionePanels();
       addIscrizionePanel.classList.remove('d-none');
       addIscrizionePanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     });
@@ -1895,13 +1900,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
   if (closeAddIscrizionePanelBtn && addIscrizionePanel) {
     closeAddIscrizionePanelBtn.addEventListener('click', function () {
-      hideIscrizionePanel();
+      hideIscrizionePanels();
     });
   }
 
   if (openAddPagamentoPanelBtn && addPagamentoPanel) {
     openAddPagamentoPanelBtn.addEventListener('click', function () {
-      hidePagamentoPanel();
+      hidePagamentoPanels();
       addPagamentoPanel.classList.remove('d-none');
       addPagamentoPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     });
@@ -1909,7 +1914,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   if (closeAddPagamentoPanelBtn && addPagamentoPanel) {
     closeAddPagamentoPanelBtn.addEventListener('click', function () {
-      hidePagamentoPanel();
+      hidePagamentoPanels();
     });
   }
 
@@ -1944,6 +1949,85 @@ document.addEventListener('DOMContentLoaded', function () {
   if (closeEditDocumentoPanelBtn && editDocumentoPanel) {
     closeEditDocumentoPanelBtn.addEventListener('click', function () {
       hideDocumentoPanels();
+    });
+  }
+
+  document.querySelectorAll('.js-edit-iscrizione-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      if (!editIscrizionePanel) {
+        return;
+      }
+
+      hideIscrizionePanels();
+
+      const idCorsoAttualeEl = document.getElementById('editIscrizioneIdCorsoAttuale');
+      const courseIdsEl = document.getElementById('editIscrizioneCourseIds');
+      const dataInizioEl = document.getElementById('editIscrizioneDataInizio');
+      const dataFineEl = document.getElementById('editIscrizioneDataFine');
+      const totaleEl = document.getElementById('editIscrizioneTotale');
+      const statoEl = document.getElementById('editIscrizioneStato');
+      const noteEl = document.getElementById('editIscrizioneNote');
+
+      if (idCorsoAttualeEl) idCorsoAttualeEl.value = btn.getAttribute('data-idcorso') || '';
+      if (courseIdsEl) {
+        const selectedCourseId = btn.getAttribute('data-idcorso') || '';
+        Array.from(courseIdsEl.options).forEach(function (opt) {
+          opt.selected = opt.value === selectedCourseId;
+        });
+      }
+      if (dataInizioEl) dataInizioEl.value = btn.getAttribute('data-start-date') || '';
+      if (dataFineEl) dataFineEl.value = btn.getAttribute('data-end-date') || '';
+      if (totaleEl) totaleEl.value = btn.getAttribute('data-total') || '';
+      if (statoEl) statoEl.value = btn.getAttribute('data-status') || 'A';
+      if (noteEl) noteEl.value = btn.getAttribute('data-notes') || '';
+
+      editIscrizionePanel.classList.remove('d-none');
+      editIscrizionePanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+  });
+
+  if (closeEditIscrizionePanelBtn && editIscrizionePanel) {
+    closeEditIscrizionePanelBtn.addEventListener('click', function () {
+      hideIscrizionePanels();
+    });
+  }
+
+  if (closeEditIscrizionePanelBtnFooter && editIscrizionePanel) {
+    closeEditIscrizionePanelBtnFooter.addEventListener('click', function () {
+      hideIscrizionePanels();
+    });
+  }
+
+  document.querySelectorAll('.js-edit-pagamento-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      if (!editPagamentoPanel) {
+        return;
+      }
+
+      hidePagamentoPanels();
+
+      const idEl = document.getElementById('editPagamentoId');
+      const corsoEl = document.getElementById('editPagamentoCorso');
+      const importoEl = document.getElementById('editPagamentoImporto');
+      const dataEl = document.getElementById('editPagamentoData');
+      const scadenzaEl = document.getElementById('editPagamentoScadenza');
+      const noteEl = document.getElementById('editPagamentoNote');
+
+      if (idEl) idEl.value = btn.getAttribute('data-pagamento-id') || '';
+      if (corsoEl) corsoEl.value = btn.getAttribute('data-course-id') || '';
+      if (importoEl) importoEl.value = btn.getAttribute('data-amount') || '';
+      if (dataEl) dataEl.value = btn.getAttribute('data-payment-date') || '';
+      if (scadenzaEl) scadenzaEl.value = btn.getAttribute('data-expiry-date') || '';
+      if (noteEl) noteEl.value = btn.getAttribute('data-notes') || '';
+
+      editPagamentoPanel.classList.remove('d-none');
+      editPagamentoPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+  });
+
+  if (closeEditPagamentoPanelBtn && editPagamentoPanel) {
+    closeEditPagamentoPanelBtn.addEventListener('click', function () {
+      hidePagamentoPanels();
     });
   }
 
