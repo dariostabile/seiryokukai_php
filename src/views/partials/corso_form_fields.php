@@ -25,7 +25,8 @@ $imgSrc = $imgPath ? '/seiryokukai_php/' . htmlspecialchars($imgPath) : '';
 
 <!-- FORM CORSO: immagine prima dei campi principali -->
 <div class="row g-3">
-  <div class="col-12 col-md-4">
+  <div class="col-12 col-md-3 ">
+    <label class="form-label">Logo Corso</label>
     <div class="text-center mb-2">
       <img
         id="corsoImagePreview"
@@ -65,8 +66,10 @@ $imgSrc = $imgPath ? '/seiryokukai_php/' . htmlspecialchars($imgPath) : '';
       </div>
     <?php endif; ?>
   </div>
+    </div>
+    <div class="row g-3">
 
-  <div class="col-12 col-md-4">
+  <div class="col-12 col-md-3">
     <label class="form-label">Stato</label>
     <select class="form-select" name="active" id="<?= htmlspecialchars((string) ($corsoFieldIds['active'] ?? '')) ?>">
       <option value="1" <?= (int) ($corsoFormValues['active'] ?? 1) === 1 ? 'selected' : '' ?>>Attivo</option>
@@ -74,22 +77,28 @@ $imgSrc = $imgPath ? '/seiryokukai_php/' . htmlspecialchars($imgPath) : '';
     </select>
   </div>
 
-  <div class="col-12 col-md-4">
+  <div class="col-12 col-md-3">
     <label class="form-label">Data Inizio</label>
     <input class="form-control" type="date" name="start_date" id="<?= htmlspecialchars((string) ($corsoFieldIds['start_date'] ?? '')) ?>" value="<?= htmlspecialchars((string) ($corsoFormValues['start_date'] ?? '')) ?>">
   </div>
 
-  <div class="col-12 col-md-4">
+  <div class="col-12 col-md-3">
     <label class="form-label">Data Fine</label>
     <input class="form-control" type="date" name="end_date" id="<?= htmlspecialchars((string) ($corsoFieldIds['end_date'] ?? '')) ?>" value="<?= htmlspecialchars((string) ($corsoFormValues['end_date'] ?? '')) ?>">
   </div>
+  <div class="col-12 col-md-3">
+    <label class="form-label">Quota Mensile</label>
+    <input class="form-control" type="number" name="monthly_fee" id="<?= htmlspecialchars((string) ($corsoFieldIds['monthly_fee'] ?? '')) ?>" step="0.01" placeholder="Quota" value="<?= htmlspecialchars((string) ($corsoFormValues['monthly_fee'] ?? '')) ?>">
+  </div>
+    </div>
+    <div class="row g-3">
 
-  <div class="col-12 col-md-4">
+  <div class="col-12 col-md-3">
     <label class="form-label">Nome Corso</label>
     <input class="form-control" name="name" id="<?= htmlspecialchars((string) ($corsoFieldIds['name'] ?? '')) ?>" placeholder="Nome corso" required value="<?= htmlspecialchars((string) ($corsoFormValues['name'] ?? '')) ?>">
   </div>
 
-  <div class="col-12 col-md-4">
+  <div class="col-12 col-md-3">
     <label class="form-label">Disciplina</label>
     <select class="form-select" name="disciplina_id" id="<?= htmlspecialchars((string) ($corsoFieldIds['disciplina_id'] ?? '')) ?>" required>
       <option value="">Seleziona disciplina</option>
@@ -102,7 +111,7 @@ $imgSrc = $imgPath ? '/seiryokukai_php/' . htmlspecialchars($imgPath) : '';
     </select>
   </div>
 
-  <div class="col-12 col-md-4">
+  <div class="col-12 col-md-3">
     <label class="form-label">Istruttore</label>
     <select class="form-select" name="user_id" id="<?= htmlspecialchars((string) ($corsoFieldIds['user_id'] ?? '')) ?>" required>
       <option value="">Seleziona istruttore</option>
@@ -114,7 +123,8 @@ $imgSrc = $imgPath ? '/seiryokukai_php/' . htmlspecialchars($imgPath) : '';
       <?php endforeach; ?>
     </select>
   </div>
-
+      
+      
   <div class="col-12 col-md-3">
     <label class="form-label">Sede</label>
     <select class="form-select" name="sede_id" id="<?= htmlspecialchars((string) ($corsoFieldIds['sede_id'] ?? '')) ?>" required>
@@ -129,29 +139,27 @@ $imgSrc = $imgPath ? '/seiryokukai_php/' . htmlspecialchars($imgPath) : '';
     </select>
   </div>
 
-  <div class="col-12 col-md-2">
-    <label class="form-label">Quota Mensile</label>
-    <input class="form-control" type="number" name="monthly_fee" id="<?= htmlspecialchars((string) ($corsoFieldIds['monthly_fee'] ?? '')) ?>" step="0.01" placeholder="Quota" value="<?= htmlspecialchars((string) ($corsoFormValues['monthly_fee'] ?? '')) ?>">
-  </div>
+  
 
   <div class="col-12 mt-3">
     <small class="text-muted">Orari settimanali:</small>
   </div>
 
   <?php foreach ($dayLabels as $dayKey => $dayLabel): ?>
-    <div class="col-12 col-lg-8">
+    <div class="col-12 col-lg-6">
       <div class="row g-1 align-items-end">
         <div class="col-5 col-md-3">
           <label class="form-label mb-1"><?= htmlspecialchars($dayLabel) ?></label>
         </div>
-        <div class="col-3 col-md-2">
+        <div class="col-3 col-md-3">
           <input type="time" class="form-control" name="<?= htmlspecialchars($dayKey) ?>_inizio" id="<?= htmlspecialchars((string) ($corsoFieldIds[$dayKey . '_inizio'] ?? '')) ?>" value="<?= htmlspecialchars((string) ($corsoFormValues[$dayKey . '_inizio'] ?? '')) ?>">
         </div>
-        <div class="col-3 col-md-2">
+        <div class="col-3 col-md-3">
           <input type="time" class="form-control" name="<?= htmlspecialchars($dayKey) ?>_fine" id="<?= htmlspecialchars((string) ($corsoFieldIds[$dayKey . '_fine'] ?? '')) ?>" value="<?= htmlspecialchars((string) ($corsoFormValues[$dayKey . '_fine'] ?? '')) ?>">
         </div>
       </div>
     </div>
+    <div class="w-100"></div>
   <?php endforeach; ?>
 </div>
 
