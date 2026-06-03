@@ -199,16 +199,20 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // === Gestione immagine corso (preview, crop inline, rimozione) ===
     // Funziona sia in add che in edit panel, come atleta (no modale)
-    function setupCorsoImageHandlers() {
-      const imageInput = document.getElementById('corsoImageInput');
-      const imagePreview = document.getElementById('corsoImagePreview');
-      const imagePlaceholder = document.getElementById('corsoImagePlaceholder');
-      const cropContainer = document.getElementById('corsoImageCropContainer');
-      const cropSource = document.getElementById('corsoImageCropSource');
-      const cropApplyBtn = document.getElementById('corsoImageApplyCropBtn');
-      const cropCancelBtn = document.getElementById('corsoImageCancelCropBtn');
-      const cropBase64Input = document.getElementById('corsoCropImageBase64');
-      const removeCheckbox = document.getElementById('removeImmagineCorsoCheckbox');
+    function setupCorsoImageHandlers(formElement) {
+      if (!formElement) {
+        return;
+      }
+
+      const imageInput = formElement.querySelector('#corsoImageInput');
+      const imagePreview = formElement.querySelector('#corsoImagePreview');
+      const imagePlaceholder = formElement.querySelector('#corsoImagePlaceholder');
+      const cropContainer = formElement.querySelector('#corsoImageCropContainer');
+      const cropSource = formElement.querySelector('#corsoImageCropSource');
+      const cropApplyBtn = formElement.querySelector('#corsoImageApplyCropBtn');
+      const cropCancelBtn = formElement.querySelector('#corsoImageCancelCropBtn');
+      const cropBase64Input = formElement.querySelector('#corsoCropImageBase64');
+      const removeCheckbox = formElement.querySelector('#removeImmagineCorsoCheckbox');
       let cropper = null;
       const ALLOWED = ['image/jpeg', 'image/png'];
       const MAX_SIZE = 2 * 1024 * 1024;
@@ -323,8 +327,6 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     }
 
-    // Setup per add e edit panel
-    setupCorsoImageHandlers('');
   const ui = window.SeiryokukaiUi || null;
   const openAddCorsoPanelBtn = document.getElementById('openAddCorsoPanelBtn');
   const addCorsoPanel = document.getElementById('addCorsoPanel');
@@ -340,6 +342,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
   const corsiOnlyActiveCheckbox = document.getElementById('corsiOnlyActive');
   let corsiTable = null;
+
+  // Setup immagine separato per form Add/Edit (evita conflitti di ID duplicati nel DOM)
+  setupCorsoImageHandlers(addCorsoForm);
+  setupCorsoImageHandlers(editCorsoForm);
 
   function showAlert(type, message) {
     if (ui && typeof ui.showAlert === 'function') {
@@ -499,6 +505,33 @@ document.addEventListener('DOMContentLoaded', function () {
         endInput.value = String(row[day + '_fine'] || '').substring(0, 5);
       }
     });
+
+    if (editCorsoForm) {
+      const imagePath = String(row.image_path || '').trim();
+      const imageInput = editCorsoForm.querySelector('#corsoImageInput');
+      const imagePreview = editCorsoForm.querySelector('#corsoImagePreview');
+      const imagePlaceholder = editCorsoForm.querySelector('#corsoImagePlaceholder');
+      const cropBase64Input = editCorsoForm.querySelector('#corsoCropImageBase64');
+      const removeCheckbox = editCorsoForm.querySelector('#removeImmagineCorsoCheckbox');
+
+      if (imageInput) {
+        imageInput.value = '';
+      }
+      if (cropBase64Input) {
+        cropBase64Input.value = '';
+      }
+      if (removeCheckbox) {
+        removeCheckbox.checked = false;
+      }
+      if (imagePreview) {
+        imagePreview.src = imagePath;
+        imagePreview.dataset.initialSrc = imagePath;
+        imagePreview.classList.toggle('d-none', imagePath === '');
+      }
+      if (imagePlaceholder) {
+        imagePlaceholder.classList.toggle('d-none', imagePath !== '');
+      }
+    }
 
     if (addCorsoPanel) {
       addCorsoPanel.classList.add('d-none');
