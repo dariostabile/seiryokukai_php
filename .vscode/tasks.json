@@ -8,6 +8,127 @@
 			"args": [
 				"src/Requests/Disciplines"
 			]
+		},
+		{
+			"label": "tmp-php-version-check",
+			"type": "shell",
+			"command": "php",
+			"args": [
+				"-v"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "tmp-db-schema-check",
+			"type": "shell",
+			"command": "/Applications/MAMP/bin/php/php8.3.30/bin/php",
+			"args": [
+				"-r",
+				"require 'config/config.php'; $pdo=db_connection(); $tables=['iscrizioni','iscrizioni_has_corsi','atleti_has_corsi','pagamenti','presenze','corsi']; foreach($tables as $t){ echo \"\\n[$t]\\n\"; $stmt=$pdo->prepare('SHOW TABLES LIKE ?'); $stmt->execute([$t]); if(!$stmt->fetchColumn()){ echo \"(missing)\\n\"; continue; } foreach($pdo->query('SHOW COLUMNS FROM `'.$t.'`')->fetchAll(PDO::FETCH_ASSOC) as $c){ echo $c['Field'].':'.$c['Type'].\"\\n\"; } }"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "tmp-db-schema-check-file",
+			"type": "shell",
+			"command": "/Applications/MAMP/bin/php/php8.3.30/bin/php",
+			"args": [
+				"scripts/tmp_schema_check.php"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "tmp-db-data-check",
+			"type": "shell",
+			"command": "/Applications/MAMP/bin/php/php8.3.30/bin/php",
+			"args": [
+				"scripts/tmp_schema_data_check.php"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "tmp-run-iscrizioni-migration",
+			"type": "shell",
+			"command": "/Applications/MAMP/bin/php/php8.3.30/bin/php",
+			"args": [
+				"scripts/tmp_run_sql_file.php",
+				"database/alter_add_iscrizioni_table.sql"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "tmp-db-schema-recheck",
+			"type": "shell",
+			"command": "/Applications/MAMP/bin/php/php8.3.30/bin/php",
+			"args": [
+				"-r",
+				"require 'config/config.php'; $pdo=db_connection(); foreach(['iscrizioni','iscrizioni_has_corsi','pagamenti'] as $t){ echo \"[$t]\\n\"; $rows=$pdo->query('SHOW COLUMNS FROM `'.$t.'`')->fetchAll(PDO::FETCH_ASSOC); foreach($rows as $r){ echo $r['Field'].':'.$r['Type'].\"\\n\"; } echo \"\\n\"; }"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "tmp-db-schema-recheck-file",
+			"type": "shell",
+			"command": "/Applications/MAMP/bin/php/php8.3.30/bin/php",
+			"args": [
+				"scripts/tmp_schema_recheck.php"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "tmp-smoke-atleti-service",
+			"type": "shell",
+			"command": "/Applications/MAMP/bin/php/php8.3.30/bin/php",
+			"args": [
+				"scripts/tmp_smoke_atleti_service.php"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "tmp-smoke-atleti-service-rerun",
+			"type": "shell",
+			"command": "/Applications/MAMP/bin/php/php8.3.30/bin/php",
+			"args": [
+				"scripts/tmp_smoke_atleti_service.php"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "tmp-validation-smoke",
+			"type": "shell",
+			"command": "/Applications/MAMP/bin/php/php8.3.30/bin/php",
+			"args": [
+				"scripts/tmp_validation_smoke.php"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "git-status-check",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"status",
+				"--short"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "git-commit-push-all",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"add",
+				"-A",
+				"&&",
+				"git",
+				"commit",
+				"-m",
+				"Allinea AtletiService a schema DB latest e rifinisce validazioni iscrizioni/pagamenti",
+				"&&",
+				"git",
+				"push"
+			],
+			"isBackground": false
 		}
 	]
 }

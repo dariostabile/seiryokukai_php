@@ -624,7 +624,7 @@ if ($hasSelectedAtleta) {
                   <button type="button" class="btn btn-sm btn-outline-secondary" id="closeAddIscrizionePanelBtn">Chiudi</button>
                 </div>
                 <div class="card-body">
-                  <form method="post" action="<?= htmlspecialchars($atletiApiUrl) ?>" class="row g-3">
+                  <form method="post" action="<?= htmlspecialchars($atletiApiUrl) ?>" class="row g-3" id="addIscrizioneForm">
                     <input type="hidden" name="action" value="add_iscrizione">
                     <input type="hidden" name="idatleta" value="<?= (int) ($selectedAtleta['id'] ?? 0) ?>">
                     <div class="col-12 col-md-3">
@@ -649,12 +649,12 @@ if ($hasSelectedAtleta) {
                     </div>
                     <div class="col-12">
                       <label class="form-label">Corsi collegati</label>
-                      <select class="form-select" name="course_ids[]" multiple size="5">
+                      <select class="form-select" name="course_ids[]" multiple size="5" required>
                         <?php foreach ($corsi as $corso): ?>
                           <option value="<?= (int) ($corso['id'] ?? 0) ?>"><?= htmlspecialchars((string) ($corso['name'] ?? '')) ?></option>
                         <?php endforeach; ?>
                       </select>
-                      <small class="text-muted">Puoi associare piu corsi alla stessa iscrizione.</small>
+                      <small class="text-muted">Seleziona almeno un corso. Usa Cmd/Ctrl + click per selezioni multiple.</small>
                     </div>
                     <div class="col-12">
                       <label class="form-label">Note iscrizione</label>
@@ -673,7 +673,7 @@ if ($hasSelectedAtleta) {
                   <button type="button" class="btn btn-sm btn-outline-secondary" id="closeEditIscrizionePanelBtn">Chiudi</button>
                 </div>
                 <div class="card-body">
-                  <form method="post" action="<?= htmlspecialchars($atletiApiUrl) ?>" class="row g-3">
+                  <form method="post" action="<?= htmlspecialchars($atletiApiUrl) ?>" class="row g-3" id="editIscrizioneForm">
                     <input type="hidden" name="action" value="update_iscrizione">
                     <input type="hidden" name="idatleta" value="<?= (int) ($selectedAtleta['id'] ?? 0) ?>">
                     <input type="hidden" name="idcorso_attuale" id="editIscrizioneIdCorsoAttuale">
@@ -684,7 +684,7 @@ if ($hasSelectedAtleta) {
                           <option value="<?= (int) ($corso['id'] ?? 0) ?>"><?= htmlspecialchars((string) ($corso['name'] ?? '')) ?></option>
                         <?php endforeach; ?>
                       </select>
-                      <small class="text-muted">Puoi aggiungere altri corsi mantenendo gli stessi dati iscrizione.</small>
+                      <small class="text-muted">Mantieni selezionato almeno un corso.</small>
                     </div>
                     <div class="col-12 col-md-3">
                       <label class="form-label">Data inizio</label>
@@ -727,6 +727,17 @@ if ($hasSelectedAtleta) {
                 </div>
                 <button type="button" class="btn btn-outline-primary" id="openAddPagamentoPanelBtn" <?= $selectedIscrizioni === [] ? 'disabled' : '' ?>>Nuovo pagamento</button>
               </div>
+
+              <?php
+                $paymentCourseOptions = [];
+                foreach ($selectedIscrizioni as $iscrizione) {
+                  $courseId = (int) ($iscrizione['course_id'] ?? $iscrizione['id'] ?? 0);
+                  if ($courseId <= 0 || isset($paymentCourseOptions[$courseId])) {
+                    continue;
+                  }
+                  $paymentCourseOptions[$courseId] = $iscrizione;
+                }
+              ?>
 
               <?php if ($selectedIscrizioni === []): ?>
                 <div class="alert alert-info py-2" role="alert">
@@ -818,7 +829,7 @@ if ($hasSelectedAtleta) {
                                   <button class="btn btn-sm btn-outline-danger" type="submit">Elimina</button>
                                 </form>
                               <?php else: ?>
-                                <span class="text-muted" data-bs-toggle="tooltip" title="Solo l'ultimo pagamento per disciplina può essere modificato o eliminato">
+                                <span class="text-muted" data-bs-toggle="tooltip" title="Solo l'ultimo pagamento per corso puo essere modificato o eliminato">
                                   <i class="bi bi-lock" aria-hidden="true"></i>
                                 </span>
                               <?php endif; ?>
@@ -837,14 +848,14 @@ if ($hasSelectedAtleta) {
                   <button type="button" class="btn btn-sm btn-outline-secondary" id="closeAddPagamentoPanelBtn">Chiudi</button>
                 </div>
                 <div class="card-body">
-                  <form method="post" action="<?= htmlspecialchars($atletiApiUrl) ?>" class="row g-3">
+                  <form method="post" action="<?= htmlspecialchars($atletiApiUrl) ?>" class="row g-3" id="addPagamentoForm">
                     <input type="hidden" name="action" value="add_pagamento">
                     <input type="hidden" name="idatleta" value="<?= (int) ($selectedAtleta['id'] ?? 0) ?>">
                     <div class="col-12 col-md-3">
                       <label class="form-label">Corso iscritto</label>
                       <select class="form-select" name="idcorso" <?= $selectedIscrizioni === [] ? 'disabled' : 'required' ?>>
                         <option value="">Seleziona</option>
-                        <?php foreach ($selectedIscrizioni as $iscrizione): ?>
+                        <?php foreach ($paymentCourseOptions as $iscrizione): ?>
                           <option value="<?= (int) ($iscrizione['course_id'] ?? $iscrizione['id'] ?? 0) ?>">
                             #<?= (int) ($iscrizione['course_id'] ?? $iscrizione['id'] ?? 0) ?> - <?= htmlspecialchars((string) ($iscrizione['courses'] ?? '')) ?>
                           </option>
@@ -888,7 +899,7 @@ if ($hasSelectedAtleta) {
                       <label class="form-label">Corso iscritto</label>
                       <select class="form-select" name="idcorso" id="editPagamentoCorso" required>
                         <option value="">Seleziona</option>
-                        <?php foreach ($selectedIscrizioni as $iscrizione): ?>
+                        <?php foreach ($paymentCourseOptions as $iscrizione): ?>
                           <option value="<?= (int) ($iscrizione['course_id'] ?? $iscrizione['id'] ?? 0) ?>">
                             #<?= (int) ($iscrizione['course_id'] ?? $iscrizione['id'] ?? 0) ?> - <?= htmlspecialchars((string) ($iscrizione['courses'] ?? '')) ?>
                           </option>
@@ -2024,6 +2035,54 @@ document.addEventListener('DOMContentLoaded', function () {
       editPagamentoPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     });
   });
+
+  const syncDateMin = function (startEl, endEl) {
+    if (!startEl || !endEl) {
+      return;
+    }
+
+    const applyMin = function () {
+      const startValue = (startEl.value || '').trim();
+      if (startValue !== '') {
+        endEl.min = startValue;
+      } else {
+        endEl.removeAttribute('min');
+      }
+    };
+
+    startEl.addEventListener('change', applyMin);
+    applyMin();
+  };
+
+  const bindDateRangeValidation = function (formId, startName, endName, errorMessage) {
+    const form = document.getElementById(formId);
+    if (!form) {
+      return;
+    }
+
+    const startEl = form.querySelector('[name="' + startName + '"]');
+    const endEl = form.querySelector('[name="' + endName + '"]');
+    if (!startEl || !endEl) {
+      return;
+    }
+
+    syncDateMin(startEl, endEl);
+
+    form.addEventListener('submit', function (event) {
+      const start = (startEl.value || '').trim();
+      const end = (endEl.value || '').trim();
+      if (start !== '' && end !== '' && end < start) {
+        event.preventDefault();
+        alert(errorMessage);
+        endEl.focus();
+      }
+    });
+  };
+
+  bindDateRangeValidation('addIscrizioneForm', 'data_inizio_iscrizione', 'data_fine_iscrizione', 'La data fine iscrizione non puo essere precedente alla data inizio.');
+  bindDateRangeValidation('editIscrizioneForm', 'data_inizio_iscrizione', 'data_fine_iscrizione', 'La data fine iscrizione non puo essere precedente alla data inizio.');
+  bindDateRangeValidation('addPagamentoForm', 'data_pagamento', 'data_scadenza', 'La data scadenza non puo essere precedente alla data pagamento.');
+  bindDateRangeValidation('editPagamentoForm', 'data_pagamento', 'data_scadenza', 'La data scadenza non puo essere precedente alla data pagamento.');
 
   if (closeEditPagamentoPanelBtn && editPagamentoPanel) {
     closeEditPagamentoPanelBtn.addEventListener('click', function () {
