@@ -129,6 +129,34 @@
 				"push"
 			],
 			"isBackground": false
+		},
+		{
+			"label": "git-status-final",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"status",
+				"--short"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "git-commit-push-tasks",
+			"type": "shell",
+			"command": "git",
+			"args": [
+				"add",
+				".vscode/tasks.json",
+				"&&",
+				"git",
+				"commit",
+				"-m",
+				"Aggiorna tasks VS Code di supporto",
+				"&&",
+				"git",
+				"push"
+			],
+			"isBackground": false
 		}
 	]
 }
