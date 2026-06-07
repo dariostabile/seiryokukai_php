@@ -552,7 +552,7 @@ if ($hasSelectedAtleta) {
                 <table id="iscrizioni-table" class="table table-sm align-middle w-100">
                   <thead>
                     <tr>
-                      <th>Corso</th>
+                      <th>Corsi associati</th>
                       <th>Data iscrizione corso</th>
                       <th>Periodo</th>
                       <th>Quota</th>
@@ -607,7 +607,8 @@ if ($hasSelectedAtleta) {
                               <button
                                 type="button"
                                 class="btn btn-sm btn-outline-primary js-edit-iscrizione-btn"
-                                data-idcorso="<?= (int) ($iscrizione['course_id'] ?? 0) ?>"
+                                data-idiscrizione="<?= (int) ($iscrizione['id'] ?? 0) ?>"
+                                data-course-ids="<?= htmlspecialchars((string) ($iscrizione['course_ids_csv'] ?? ''), ENT_QUOTES) ?>"
                                 data-corso="<?= htmlspecialchars((string) ($iscrizione['courses'] ?? ''), ENT_QUOTES) ?>"
                                 data-course-enrollment-date="<?= htmlspecialchars((string) ($iscrizione['course_enrollment_date'] ?? ''), ENT_QUOTES) ?>"
                                 data-start-date="<?= htmlspecialchars((string) ($iscrizione['start_date'] ?? ''), ENT_QUOTES) ?>"
@@ -616,10 +617,10 @@ if ($hasSelectedAtleta) {
                                 data-status="<?= htmlspecialchars((string) ($iscrizione['status_code'] ?? 'A'), ENT_QUOTES) ?>"
                                 data-notes="<?= htmlspecialchars((string) ($iscrizione['notes'] ?? ''), ENT_QUOTES) ?>"
                               >Modifica</button>
-                              <form method="post" action="<?= htmlspecialchars($atletiApiUrl) ?>" onsubmit="return confirm('Eliminare questa iscrizione al corso?');" style="display:inline;">
+                              <form method="post" action="<?= htmlspecialchars($atletiApiUrl) ?>" onsubmit="return confirm('Eliminare questa iscrizione?');" style="display:inline;">
                                 <input type="hidden" name="action" value="delete_iscrizione">
                                 <input type="hidden" name="idatleta" value="<?= (int) ($selectedAtleta['id'] ?? 0) ?>">
-                                <input type="hidden" name="idcorso" value="<?= (int) ($iscrizione['course_id'] ?? 0) ?>">
+                                <input type="hidden" name="idiscrizione" value="<?= (int) ($iscrizione['id'] ?? 0) ?>">
                                 <button class="btn btn-sm btn-outline-danger" type="submit">Elimina</button>
                               </form>
                             </div>
@@ -693,7 +694,7 @@ if ($hasSelectedAtleta) {
                   <form method="post" action="<?= htmlspecialchars($atletiApiUrl) ?>" class="row g-3" id="editIscrizioneForm">
                     <input type="hidden" name="action" value="update_iscrizione">
                     <input type="hidden" name="idatleta" value="<?= (int) ($selectedAtleta['id'] ?? 0) ?>">
-                    <input type="hidden" name="idcorso_attuale" id="editIscrizioneIdCorsoAttuale">
+                    <input type="hidden" name="idiscrizione" id="editIscrizioneIdIscrizione">
                     <div class="col-12 col-md-6">
                       <label class="form-label">Corsi collegati</label>
                       <select class="form-select" name="course_ids[]" id="editIscrizioneCourseIds" multiple size="5" required>
@@ -751,12 +752,26 @@ if ($hasSelectedAtleta) {
 
               <?php
                 $paymentCourseOptions = [];
-                foreach ($selectedIscrizioni as $iscrizione) {
-                  $courseId = (int) ($iscrizione['course_id'] ?? $iscrizione['id'] ?? 0);
-                  if ($courseId <= 0 || isset($paymentCourseOptions[$courseId])) {
+                $coursesById = [];
+                foreach ($corsi as $corso) {
+                  $cid = (int) ($corso['id'] ?? 0);
+                  if ($cid <= 0) {
                     continue;
                   }
-                  $paymentCourseOptions[$courseId] = $iscrizione;
+                  $coursesById[$cid] = (string) ($corso['name'] ?? '');
+                }
+
+                foreach ($selectedIscrizioni as $iscrizione) {
+                  $courseIdsCsv = (string) ($iscrizione['course_ids_csv'] ?? '');
+                  $courseIds = array_values(array_filter(array_map('intval', explode(',', $courseIdsCsv)), static fn (int $value): bool => $value > 0));
+                  foreach ($courseIds as $courseId) {
+                    if (isset($paymentCourseOptions[$courseId])) {
+                      continue;
+                    }
+                    $paymentCourseOptions[$courseId] = [
+                      'courses' => $coursesById[$courseId] ?? ((string) ($iscrizione['courses'] ?? 'Corso #' . $courseId)),
+                    ];
+                  }
                 }
               ?>
 
@@ -1992,7 +2007,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
       hideIscrizionePanels();
 
-      const idCorsoAttualeEl = document.getElementById('editIscrizioneIdCorsoAttuale');
+      const idIscrizioneEl = document.getElementById('editIscrizioneIdIscrizione');
       const courseIdsEl = document.getElementById('editIscrizioneCourseIds');
       const dataCorsoEl = document.getElementById('editIscrizioneDataCorso');
       const dataInizioEl = document.getElementById('editIscrizioneDataInizio');
@@ -2001,11 +2016,15 @@ document.addEventListener('DOMContentLoaded', function () {
       const statoEl = document.getElementById('editIscrizioneStato');
       const noteEl = document.getElementById('editIscrizioneNote');
 
-      if (idCorsoAttualeEl) idCorsoAttualeEl.value = btn.getAttribute('data-idcorso') || '';
+      if (idIscrizioneEl) idIscrizioneEl.value = btn.getAttribute('data-idiscrizione') || '';
       if (courseIdsEl) {
-        const selectedCourseId = btn.getAttribute('data-idcorso') || '';
+        const selectedCourseIds = (btn.getAttribute('data-course-ids') || '').split(',').map(function (value) {
+          return value.trim();
+        }).filter(function (value) {
+          return value !== '';
+        });
         Array.from(courseIdsEl.options).forEach(function (opt) {
-          opt.selected = opt.value === selectedCourseId;
+          opt.selected = selectedCourseIds.includes(opt.value);
         });
       }
       if (dataCorsoEl) dataCorsoEl.value = btn.getAttribute('data-course-enrollment-date') || '';

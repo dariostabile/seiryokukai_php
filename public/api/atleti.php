@@ -744,8 +744,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($action === 'update_iscrizione') {
             $request = new UpdateIscrizioneAtletaRequest($_POST);
             $athleteId = $request->getInt('idatleta');
-            $currentCourseId = $request->getInt('idcorso_attuale');
-            $updated = $atleti->updateIscrizioneAtleta($athleteId, $currentCourseId, $request->all());
+            $idIscrizione = $request->getInt('idiscrizione');
+            $updated = $atleti->updateIscrizioneAtleta($athleteId, $idIscrizione, $request->all());
             if (!$updated) {
                 throw new \RuntimeException('Iscrizione non trovata o gia eliminata');
             }
@@ -760,12 +760,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($action === 'delete_iscrizione') {
             $athleteId = (int) ($_POST['idatleta'] ?? 0);
-            $courseId = (int) ($_POST['idcorso'] ?? 0);
-            if ($athleteId <= 0 || $courseId <= 0) {
+            $idIscrizione = (int) ($_POST['idiscrizione'] ?? 0);
+            if ($athleteId <= 0 || $idIscrizione <= 0) {
                 throw new \RuntimeException('Dati iscrizione non validi');
             }
 
-            $deleted = $atleti->deleteIscrizioneAtleta($athleteId, $courseId);
+            $deleted = $atleti->deleteIscrizioneAtleta($athleteId, $idIscrizione);
             if (!$deleted) {
                 throw new \RuntimeException('Iscrizione non trovata o gia eliminata');
             }

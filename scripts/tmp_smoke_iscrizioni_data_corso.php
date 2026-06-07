@@ -93,7 +93,7 @@ try {
     $payload['data_iscrizione_corso'] = $newDate;
     $payload['note_iscrizione'] = 'smoke-test-data-corso-update';
 
-    $updated = $service->updateIscrizioneAtleta($idAtleta, $idCorso, $payload);
+    $updated = $service->updateIscrizioneAtleta($idAtleta, $idIscrizione, $payload);
     if (!$updated) {
         throw new RuntimeException('updateIscrizioneAtleta ha restituito false');
     }

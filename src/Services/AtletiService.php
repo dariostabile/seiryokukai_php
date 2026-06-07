@@ -500,12 +500,12 @@ final class AtletiService extends BaseService
         return count($courseIds);
     }
 
-    public function updateIscrizioneAtleta(int $idAtleta, int $idCorsoAttuale, array $payload): bool
+    public function updateIscrizioneAtleta(int $idAtleta, int $idIscrizione, array $payload): bool
     {
         $this->assertLatestDatabaseSchema();
 
         $courseIds = array_values(array_unique(array_filter(array_map('intval', (array) ($payload['course_ids'] ?? [])), static fn (int $value): bool => $value > 0)));
-        if ($idAtleta <= 0 || $idCorsoAttuale <= 0 || $courseIds === []) {
+        if ($idAtleta <= 0 || $idIscrizione <= 0 || $courseIds === []) {
             return false;
         }
 
@@ -513,14 +513,31 @@ final class AtletiService extends BaseService
 
         $pdo = db_connection();
 
-        $idIscrizione = $this->findIscrizioneIdByAtletaAndCorso($idAtleta, $idCorsoAttuale);
-        if ($idIscrizione === null) {
+        $ownershipStmt = $pdo->prepare(
+            'SELECT 1
+             FROM iscrizioni
+             WHERE idiscrizione = :idiscrizione
+               AND idatleta = :idatleta
+             LIMIT 1'
+        );
+        $ownershipStmt->execute([
+            'idiscrizione' => $idIscrizione,
+            'idatleta' => $idAtleta,
+        ]);
+        if ($ownershipStmt->fetchColumn() === false) {
             return false;
         }
 
-        $includeCorsoAttuale = in_array($idCorsoAttuale, $courseIds, true);
+        $existingCoursesStmt = $pdo->prepare('SELECT idcorso FROM iscrizioni_has_corsi WHERE idiscrizione = :idiscrizione');
+        $existingCoursesStmt->execute(['idiscrizione' => $idIscrizione]);
+        $existingCourses = array_map('intval', $existingCoursesStmt->fetchAll(\PDO::FETCH_COLUMN) ?: []);
+
         $pagamentiAssociati = $this->countPagamentiByIscrizione($idIscrizione);
-        if ($pagamentiAssociati > 0 && (!$includeCorsoAttuale || count($courseIds) !== 1)) {
+        $normalizedExistingCourses = $existingCourses;
+        sort($normalizedExistingCourses);
+        $normalizedCourseIds = $courseIds;
+        sort($normalizedCourseIds);
+        if ($pagamentiAssociati > 0 && $normalizedExistingCourses !== $normalizedCourseIds) {
             throw new \RuntimeException('Impossibile cambiare corsi all\'iscrizione: sono presenti pagamenti associati.');
         }
 
@@ -564,10 +581,6 @@ final class AtletiService extends BaseService
                 'idiscrizione' => $idIscrizione,
             ]);
 
-            $existingCoursesStmt = $pdo->prepare('SELECT idcorso FROM iscrizioni_has_corsi WHERE idiscrizione = :idiscrizione');
-            $existingCoursesStmt->execute(['idiscrizione' => $idIscrizione]);
-            $existingCourses = array_map('intval', $existingCoursesStmt->fetchAll(\PDO::FETCH_COLUMN) ?: []);
-
             $toDelete = array_diff($existingCourses, $courseIds);
             if ($toDelete !== []) {
                 $deleteStmt = $pdo->prepare('DELETE FROM iscrizioni_has_corsi WHERE idiscrizione = :idiscrizione AND idcorso = :idcorso');
@@ -608,16 +621,27 @@ final class AtletiService extends BaseService
         return true;
     }
 
-    public function deleteIscrizioneAtleta(int $idAtleta, int $idCorso): bool
+    public function deleteIscrizioneAtleta(int $idAtleta, int $idIscrizione): bool
     {
         $this->assertLatestDatabaseSchema();
 
-        if ($idAtleta <= 0 || $idCorso <= 0) {
+        if ($idAtleta <= 0 || $idIscrizione <= 0) {
             return false;
         }
 
-        $idIscrizione = $this->findIscrizioneIdByAtletaAndCorso($idAtleta, $idCorso);
-        if ($idIscrizione === null) {
+        $pdo = db_connection();
+        $ownershipStmt = $pdo->prepare(
+            'SELECT 1
+             FROM iscrizioni
+             WHERE idiscrizione = :idiscrizione
+               AND idatleta = :idatleta
+             LIMIT 1'
+        );
+        $ownershipStmt->execute([
+            'idiscrizione' => $idIscrizione,
+            'idatleta' => $idAtleta,
+        ]);
+        if ($ownershipStmt->fetchColumn() === false) {
             return false;
         }
 
@@ -626,28 +650,24 @@ final class AtletiService extends BaseService
             throw new \RuntimeException('Impossibile eliminare l\'iscrizione: sono presenti pagamenti associati. Elimina prima i pagamenti collegati.');
         }
 
-        $pdo = db_connection();
-        $countCoursesStmt = $pdo->prepare('SELECT COUNT(*) FROM iscrizioni_has_corsi WHERE idiscrizione = :idiscrizione');
-        $countCoursesStmt->execute(['idiscrizione' => $idIscrizione]);
-        $coursesCount = (int) $countCoursesStmt->fetchColumn();
+        $pdo->beginTransaction();
+        try {
+            $deleteLinksStmt = $pdo->prepare('DELETE FROM iscrizioni_has_corsi WHERE idiscrizione = :idiscrizione');
+            $deleteLinksStmt->execute(['idiscrizione' => $idIscrizione]);
 
-        $deleteLinkStmt = $pdo->prepare(
-            'DELETE FROM iscrizioni_has_corsi
-             WHERE idiscrizione = :idiscrizione
-               AND idcorso = :idcorso'
-        );
-        $deleteLinkStmt->execute([
-            'idiscrizione' => $idIscrizione,
-            'idcorso' => $idCorso,
-        ]);
+            $deleteIscrizioneStmt = $pdo->prepare('DELETE FROM iscrizioni WHERE idiscrizione = :idiscrizione AND idatleta = :idatleta');
+            $deleteIscrizioneStmt->execute([
+                'idiscrizione' => $idIscrizione,
+                'idatleta' => $idAtleta,
+            ]);
 
-        if ($deleteLinkStmt->rowCount() <= 0) {
-            return false;
-        }
+            $pdo->commit();
+        } catch (\Throwable $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
 
-        if ($coursesCount <= 1) {
-            $deleteIscrizioneStmt = $pdo->prepare('DELETE FROM iscrizioni WHERE idiscrizione = :idiscrizione');
-            $deleteIscrizioneStmt->execute(['idiscrizione' => $idIscrizione]);
+            throw $e;
         }
 
         return true;
@@ -1047,20 +1067,23 @@ final class AtletiService extends BaseService
         $pdo = db_connection();
         $stmt = $pdo->prepare(
             'SELECT
-                ihc.idcorso AS id,
-                ihc.idcorso AS course_id,
-                ihc.data_iscrizione_corso AS course_enrollment_date,
+                i.idiscrizione AS id,
+                i.idiscrizione AS enrollment_id,
+                MIN(ihc.idcorso) AS course_id,
+                GROUP_CONCAT(CAST(ihc.idcorso AS CHAR) ORDER BY ihc.idcorso SEPARATOR ",") AS course_ids_csv,
+                MIN(ihc.data_iscrizione_corso) AS course_enrollment_date,
                 i.data_inizio_iscrizione AS start_date,
                 i.data_fine_iscrizione AS end_date,
                 i.totale_iscrizione AS total,
                 i.stato_iscrizione AS status_code,
-                COALESCE(i.note_iscrizione, ihc.note, \'\') AS notes,
-                COALESCE(c.nome_corso, \'\') AS courses
+                COALESCE(i.note_iscrizione, MAX(ihc.note), \'\') AS notes,
+                COALESCE(GROUP_CONCAT(COALESCE(c.nome_corso, \'\') ORDER BY ihc.idcorso SEPARATOR ", "), \'\') AS courses
              FROM iscrizioni_has_corsi ihc
              INNER JOIN iscrizioni i ON i.idiscrizione = ihc.idiscrizione
              LEFT JOIN corsi c ON c.idcorso = ihc.idcorso
              WHERE i.idatleta = :idatleta
-             ORDER BY i.data_inizio_iscrizione DESC, ihc.idcorso DESC'
+             GROUP BY i.idiscrizione, i.data_inizio_iscrizione, i.data_fine_iscrizione, i.totale_iscrizione, i.stato_iscrizione, i.note_iscrizione
+             ORDER BY i.data_inizio_iscrizione DESC, i.idiscrizione DESC'
         );
         $stmt->execute(['idatleta' => $idAtleta]);
 
