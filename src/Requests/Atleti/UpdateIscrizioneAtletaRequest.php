@@ -28,6 +28,7 @@ final class UpdateIscrizioneAtletaRequest extends FormRequest
             'course_ids' => 'required|array',
             'data_inizio_iscrizione' => 'required|date',
             'data_fine_iscrizione' => 'nullable|date',
+            'data_iscrizione_corso' => 'nullable|date',
             'totale_iscrizione' => 'nullable|float|min:0',
             'stato_iscrizione' => 'required|string|in:A,S,C',
             'note_iscrizione' => 'nullable|string',

@@ -8666,6 +8666,7 @@ INSERT INTO `impostazioni` (`idimpostazione`, `impostazione`, `valore`, `descriz
 CREATE TABLE `iscrizioni_has_corsi` (
   `idiscrizione` int NOT NULL,
   `idcorso` int NOT NULL,
+  `data_iscrizione_corso` date DEFAULT NULL,
   `note` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 

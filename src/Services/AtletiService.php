@@ -6,7 +6,7 @@ namespace App\Services;
 
 final class AtletiService extends BaseService
 {
-    private const DB_SCHEMA_REFERENCE = 'database/seiryokukai_20260604_mod.sql + database/alter_add_iscrizioni_table.sql';
+    private const DB_SCHEMA_REFERENCE = 'database/seiryokukai_20260604_mod.sql + database/alter_add_iscrizioni_table.sql + database/alter_iscrizioni_has_corsi_add_data_iscrizione_corso.sql';
 
     public function readAtleti(): array
     {
@@ -438,6 +438,8 @@ final class AtletiService extends BaseService
             throw new \InvalidArgumentException('Seleziona almeno un corso per l\'iscrizione');
         }
 
+        $dataIscrizioneCorso = $this->normalizeNullableDate($payload['data_iscrizione_corso'] ?? ($payload['data_inizio_iscrizione'] ?? null));
+
         $pdo = db_connection();
 
         $insertIscrizioneStmt = $pdo->prepare(
@@ -458,9 +460,11 @@ final class AtletiService extends BaseService
             )'
         );
         $insertCorsoStmt = $pdo->prepare(
-            'INSERT INTO iscrizioni_has_corsi (idiscrizione, idcorso, note)
-             VALUES (:idiscrizione, :idcorso, :note)
-             ON DUPLICATE KEY UPDATE note = VALUES(note)'
+            'INSERT INTO iscrizioni_has_corsi (idiscrizione, idcorso, data_iscrizione_corso, note)
+             VALUES (:idiscrizione, :idcorso, :data_iscrizione_corso, :note)
+             ON DUPLICATE KEY UPDATE
+                data_iscrizione_corso = VALUES(data_iscrizione_corso),
+                note = VALUES(note)'
         );
 
         $pdo->beginTransaction();
@@ -479,6 +483,7 @@ final class AtletiService extends BaseService
                 $insertCorsoStmt->execute([
                     'idiscrizione' => $idIscrizione,
                     'idcorso' => $courseId,
+                    'data_iscrizione_corso' => $dataIscrizioneCorso,
                     'note' => $this->normalizeNullableString($payload['note_iscrizione'] ?? null),
                 ]);
             }
@@ -503,6 +508,8 @@ final class AtletiService extends BaseService
         if ($idAtleta <= 0 || $idCorsoAttuale <= 0 || $courseIds === []) {
             return false;
         }
+
+        $dataIscrizioneCorso = $this->normalizeNullableDate($payload['data_iscrizione_corso'] ?? ($payload['data_inizio_iscrizione'] ?? null));
 
         $pdo = db_connection();
 
@@ -573,15 +580,18 @@ final class AtletiService extends BaseService
             }
 
             $upsertStmt = $pdo->prepare(
-                'INSERT INTO iscrizioni_has_corsi (idiscrizione, idcorso, note)
-                 VALUES (:idiscrizione, :idcorso, :note)
-                 ON DUPLICATE KEY UPDATE note = VALUES(note)'
+                'INSERT INTO iscrizioni_has_corsi (idiscrizione, idcorso, data_iscrizione_corso, note)
+                 VALUES (:idiscrizione, :idcorso, :data_iscrizione_corso, :note)
+                 ON DUPLICATE KEY UPDATE
+                    data_iscrizione_corso = VALUES(data_iscrizione_corso),
+                    note = VALUES(note)'
             );
 
             foreach ($courseIds as $courseId) {
                 $upsertStmt->execute([
                     'idiscrizione' => $idIscrizione,
                     'idcorso' => $courseId,
+                    'data_iscrizione_corso' => $dataIscrizioneCorso,
                     'note' => $this->normalizeNullableString($payload['note_iscrizione'] ?? null),
                 ]);
             }
@@ -1039,6 +1049,7 @@ final class AtletiService extends BaseService
             'SELECT
                 ihc.idcorso AS id,
                 ihc.idcorso AS course_id,
+                ihc.data_iscrizione_corso AS course_enrollment_date,
                 i.data_inizio_iscrizione AS start_date,
                 i.data_fine_iscrizione AS end_date,
                 i.totale_iscrizione AS total,
@@ -1152,6 +1163,7 @@ final class AtletiService extends BaseService
             'iscrizioni_has_corsi' => [
                 'idiscrizione',
                 'idcorso',
+                'data_iscrizione_corso',
                 'note',
             ],
             'pagamenti' => [

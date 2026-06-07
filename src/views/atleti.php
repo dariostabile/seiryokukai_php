@@ -553,6 +553,7 @@ if ($hasSelectedAtleta) {
                   <thead>
                     <tr>
                       <th>Corso</th>
+                      <th>Data iscrizione corso</th>
                       <th>Periodo</th>
                       <th>Quota</th>
                       <th>Stato</th>
@@ -565,6 +566,17 @@ if ($hasSelectedAtleta) {
                       <?php foreach ($selectedIscrizioni as $iscrizione): ?>
                         <tr>
                           <td><?= htmlspecialchars((string) ($iscrizione['courses'] ?? '')) ?></td>
+                          <td data-order="<?= htmlspecialchars((string) ($iscrizione['course_enrollment_date'] ?? '')) ?>">
+                            <?php
+                              $date = (string) ($iscrizione['course_enrollment_date'] ?? '');
+                              if ($date && preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+                                [$y, $m, $d] = explode('-', $date);
+                                echo htmlspecialchars("$d/$m/$y");
+                              } else {
+                                echo htmlspecialchars($date);
+                              }
+                            ?>
+                          </td>
                           <td data-order="<?= htmlspecialchars((string) ($iscrizione['start_date'] ?? '')) ?>">
                             <?php
                               $date = (string) ($iscrizione['start_date'] ?? '');
@@ -597,6 +609,7 @@ if ($hasSelectedAtleta) {
                                 class="btn btn-sm btn-outline-primary js-edit-iscrizione-btn"
                                 data-idcorso="<?= (int) ($iscrizione['course_id'] ?? 0) ?>"
                                 data-corso="<?= htmlspecialchars((string) ($iscrizione['courses'] ?? ''), ENT_QUOTES) ?>"
+                                data-course-enrollment-date="<?= htmlspecialchars((string) ($iscrizione['course_enrollment_date'] ?? ''), ENT_QUOTES) ?>"
                                 data-start-date="<?= htmlspecialchars((string) ($iscrizione['start_date'] ?? ''), ENT_QUOTES) ?>"
                                 data-end-date="<?= htmlspecialchars((string) ($iscrizione['end_date'] ?? ''), ENT_QUOTES) ?>"
                                 data-total="<?= htmlspecialchars((string) ($iscrizione['total'] ?? ''), ENT_QUOTES) ?>"
@@ -634,6 +647,10 @@ if ($hasSelectedAtleta) {
                     <div class="col-12 col-md-3">
                       <label class="form-label">Data fine</label>
                       <input type="date" class="form-control" name="data_fine_iscrizione">
+                    </div>
+                    <div class="col-12 col-md-3">
+                      <label class="form-label">Data iscrizione corso</label>
+                      <input type="date" class="form-control" name="data_iscrizione_corso">
                     </div>
                     <div class="col-12 col-md-3">
                       <label class="form-label">Totale iscrizione</label>
@@ -693,6 +710,10 @@ if ($hasSelectedAtleta) {
                     <div class="col-12 col-md-3">
                       <label class="form-label">Data fine</label>
                       <input type="date" class="form-control" name="data_fine_iscrizione" id="editIscrizioneDataFine">
+                    </div>
+                    <div class="col-12 col-md-3">
+                      <label class="form-label">Data iscrizione corso</label>
+                      <input type="date" class="form-control" name="data_iscrizione_corso" id="editIscrizioneDataCorso">
                     </div>
                     <div class="col-12 col-md-3">
                       <label class="form-label">Totale iscrizione</label>
@@ -1973,6 +1994,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
       const idCorsoAttualeEl = document.getElementById('editIscrizioneIdCorsoAttuale');
       const courseIdsEl = document.getElementById('editIscrizioneCourseIds');
+      const dataCorsoEl = document.getElementById('editIscrizioneDataCorso');
       const dataInizioEl = document.getElementById('editIscrizioneDataInizio');
       const dataFineEl = document.getElementById('editIscrizioneDataFine');
       const totaleEl = document.getElementById('editIscrizioneTotale');
@@ -1986,6 +2008,7 @@ document.addEventListener('DOMContentLoaded', function () {
           opt.selected = opt.value === selectedCourseId;
         });
       }
+      if (dataCorsoEl) dataCorsoEl.value = btn.getAttribute('data-course-enrollment-date') || '';
       if (dataInizioEl) dataInizioEl.value = btn.getAttribute('data-start-date') || '';
       if (dataFineEl) dataFineEl.value = btn.getAttribute('data-end-date') || '';
       if (totaleEl) totaleEl.value = btn.getAttribute('data-total') || '';
