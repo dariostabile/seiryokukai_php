@@ -553,9 +553,9 @@ if ($hasSelectedAtleta) {
                   <thead>
                     <tr>
                       <th>Corsi associati</th>
-                      <th>Data iscrizione corso</th>
-                      <th>Periodo</th>
-                      <th>Quota</th>
+                      <th>Data iscrizione</th>
+                      <th>Data scadenza</th>
+                      <th>Totale abbonamento</th>
                       <th>Stato</th>
                       <th>Note</th>
                       <th class="text-end">Azioni</th>
@@ -578,17 +578,8 @@ if ($hasSelectedAtleta) {
                             ?>
                           </td>
                           <td data-order="<?= htmlspecialchars((string) ($iscrizione['start_date'] ?? '')) ?>">
-                            <?php
-                              $date = (string) ($iscrizione['start_date'] ?? '');
-                              if ($date && preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
-                                [$y, $m, $d] = explode('-', $date);
-                                echo htmlspecialchars("$d/$m/$y");
-                              } else {
-                                echo htmlspecialchars($date);
-                              }
-                            ?>
                             <?php if (((string) ($iscrizione['end_date'] ?? '')) !== ''): ?>
-                              – <?php
+                              <?php
                                 $date = (string) $iscrizione['end_date'];
                                 if ($date && preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
                                   [$y, $m, $d] = explode('-', $date);
@@ -613,6 +604,7 @@ if ($hasSelectedAtleta) {
                                 data-course-enrollment-date="<?= htmlspecialchars((string) ($iscrizione['course_enrollment_date'] ?? ''), ENT_QUOTES) ?>"
                                 data-start-date="<?= htmlspecialchars((string) ($iscrizione['start_date'] ?? ''), ENT_QUOTES) ?>"
                                 data-end-date="<?= htmlspecialchars((string) ($iscrizione['end_date'] ?? ''), ENT_QUOTES) ?>"
+                                data-abbonamento="<?= htmlspecialchars((string) ($iscrizione['subscription_months'] ?? ''), ENT_QUOTES) ?>"
                                 data-total="<?= htmlspecialchars((string) ($iscrizione['total'] ?? ''), ENT_QUOTES) ?>"
                                 data-status="<?= htmlspecialchars((string) ($iscrizione['status_code'] ?? 'A'), ENT_QUOTES) ?>"
                                 data-notes="<?= htmlspecialchars((string) ($iscrizione['notes'] ?? ''), ENT_QUOTES) ?>"
@@ -638,50 +630,39 @@ if ($hasSelectedAtleta) {
                   <button type="button" class="btn btn-sm btn-outline-secondary" id="closeAddIscrizionePanelBtn">Chiudi</button>
                 </div>
                 <div class="card-body">
-                  <form method="post" action="<?= htmlspecialchars($atletiApiUrl) ?>" class="row g-3" id="addIscrizioneForm">
-                    <input type="hidden" name="action" value="add_iscrizione">
-                    <input type="hidden" name="idatleta" value="<?= (int) ($selectedAtleta['id'] ?? 0) ?>">
-                    <div class="col-12 col-md-3">
-                      <label class="form-label">Data inizio</label>
-                      <input type="date" class="form-control" name="data_inizio_iscrizione" required>
-                    </div>
-                    <div class="col-12 col-md-3">
-                      <label class="form-label">Data fine</label>
-                      <input type="date" class="form-control" name="data_fine_iscrizione">
-                    </div>
-                    <div class="col-12 col-md-3">
-                      <label class="form-label">Data iscrizione corso</label>
-                      <input type="date" class="form-control" name="data_iscrizione_corso">
-                    </div>
-                    <div class="col-12 col-md-3">
-                      <label class="form-label">Totale iscrizione</label>
-                      <input type="number" step="0.01" min="0" class="form-control" name="totale_iscrizione">
-                    </div>
-                    <div class="col-12 col-md-3">
-                      <label class="form-label">Stato</label>
-                      <select class="form-select" name="stato_iscrizione" required>
-                        <option value="A">Attiva</option>
-                        <option value="S">Sospesa</option>
-                        <option value="C">Conclusa</option>
-                      </select>
-                    </div>
-                    <div class="col-12">
-                      <label class="form-label">Corsi collegati</label>
-                      <select class="form-select" name="course_ids[]" multiple size="5" required>
-                        <?php foreach ($corsi as $corso): ?>
-                          <option value="<?= (int) ($corso['id'] ?? 0) ?>"><?= htmlspecialchars((string) ($corso['name'] ?? '')) ?></option>
-                        <?php endforeach; ?>
-                      </select>
-                      <small class="text-muted">Seleziona almeno un corso. Usa Cmd/Ctrl + click per selezioni multiple.</small>
-                    </div>
-                    <div class="col-12">
-                      <label class="form-label">Note iscrizione</label>
-                      <textarea class="form-control" rows="3" name="note_iscrizione"></textarea>
-                    </div>
-                    <div class="col-12 d-flex justify-content-end">
-                      <button class="btn btn-outline-primary" type="submit">Aggiungi iscrizione</button>
-                    </div>
-                  </form>
+                  <?php
+                  $formAction = $atletiApiUrl;
+                  $formId = 'addIscrizioneForm';
+                  $hiddenFields = [
+                    '<input type="hidden" name="action" value="add_iscrizione">',
+                    '<input type="hidden" name="idatleta" value="' . (int) ($selectedAtleta['id'] ?? 0) . '">',
+                  ];
+                  $values = [
+                    'abbonamento' => '1',
+                    'data_inizio_iscrizione' => date('Y-m-d'),
+                    'data_fine_iscrizione' => '',
+                    'totale_abbonamento' => '',
+                    'stato_iscrizione' => 'A',
+                    'course_ids' => [],
+                    'note_iscrizione' => '',
+                  ];
+                  $fieldIds = [
+                    'abbonamento' => '',
+                    'data_inizio_iscrizione' => '',
+                    'data_fine_iscrizione' => '',
+                    'totale_abbonamento' => '',
+                    'stato_iscrizione' => '',
+                    'course_ids' => '',
+                    'note_iscrizione' => '',
+                  ];
+                  $courseHelpText = 'Seleziona almeno un corso. Usa Cmd/Ctrl + click per selezioni multiple.';
+                  $submitLabel = 'Aggiungi iscrizione';
+                  $submitButtonClass = 'btn-outline-primary';
+                  $footerJustifyClass = 'justify-content-end';
+                  $cancelButtonId = '';
+                  $cancelButtonLabel = '';
+                  require __DIR__ . '/partials/iscrizione_form.php';
+                  ?>
                 </div>
               </div>
 
@@ -691,52 +672,40 @@ if ($hasSelectedAtleta) {
                   <button type="button" class="btn btn-sm btn-outline-secondary" id="closeEditIscrizionePanelBtn">Chiudi</button>
                 </div>
                 <div class="card-body">
-                  <form method="post" action="<?= htmlspecialchars($atletiApiUrl) ?>" class="row g-3" id="editIscrizioneForm">
-                    <input type="hidden" name="action" value="update_iscrizione">
-                    <input type="hidden" name="idatleta" value="<?= (int) ($selectedAtleta['id'] ?? 0) ?>">
-                    <input type="hidden" name="idiscrizione" id="editIscrizioneIdIscrizione">
-                    <div class="col-12 col-md-6">
-                      <label class="form-label">Corsi collegati</label>
-                      <select class="form-select" name="course_ids[]" id="editIscrizioneCourseIds" multiple size="5" required>
-                        <?php foreach ($corsi as $corso): ?>
-                          <option value="<?= (int) ($corso['id'] ?? 0) ?>"><?= htmlspecialchars((string) ($corso['name'] ?? '')) ?></option>
-                        <?php endforeach; ?>
-                      </select>
-                      <small class="text-muted">Mantieni selezionato almeno un corso.</small>
-                    </div>
-                    <div class="col-12 col-md-3">
-                      <label class="form-label">Data inizio</label>
-                      <input type="date" class="form-control" name="data_inizio_iscrizione" id="editIscrizioneDataInizio" required>
-                    </div>
-                    <div class="col-12 col-md-3">
-                      <label class="form-label">Data fine</label>
-                      <input type="date" class="form-control" name="data_fine_iscrizione" id="editIscrizioneDataFine">
-                    </div>
-                    <div class="col-12 col-md-3">
-                      <label class="form-label">Data iscrizione corso</label>
-                      <input type="date" class="form-control" name="data_iscrizione_corso" id="editIscrizioneDataCorso">
-                    </div>
-                    <div class="col-12 col-md-3">
-                      <label class="form-label">Totale iscrizione</label>
-                      <input type="number" step="0.01" min="0" class="form-control" name="totale_iscrizione" id="editIscrizioneTotale">
-                    </div>
-                    <div class="col-12 col-md-3">
-                      <label class="form-label">Stato</label>
-                      <select class="form-select" name="stato_iscrizione" id="editIscrizioneStato" required>
-                        <option value="A">Attiva</option>
-                        <option value="S">Sospesa</option>
-                        <option value="C">Conclusa</option>
-                      </select>
-                    </div>
-                    <div class="col-12">
-                      <label class="form-label">Note iscrizione</label>
-                      <textarea class="form-control" rows="3" name="note_iscrizione" id="editIscrizioneNote"></textarea>
-                    </div>
-                    <div class="col-12 d-flex justify-content-end gap-2">
-                      <button class="btn btn-outline-secondary" type="button" id="closeEditIscrizionePanelBtnFooter">Annulla</button>
-                      <button class="btn btn-primary" type="submit">Salva modifiche</button>
-                    </div>
-                  </form>
+                  <?php
+                  $formAction = $atletiApiUrl;
+                  $formId = 'editIscrizioneForm';
+                  $hiddenFields = [
+                    '<input type="hidden" name="action" value="update_iscrizione">',
+                    '<input type="hidden" name="idatleta" value="' . (int) ($selectedAtleta['id'] ?? 0) . '">',
+                    '<input type="hidden" name="idiscrizione" id="editIscrizioneIdIscrizione">',
+                  ];
+                  $values = [
+                    'abbonamento' => '1',
+                    'data_inizio_iscrizione' => '',
+                    'data_fine_iscrizione' => '',
+                    'totale_abbonamento' => '',
+                    'stato_iscrizione' => 'A',
+                    'course_ids' => [],
+                    'note_iscrizione' => '',
+                  ];
+                  $fieldIds = [
+                    'abbonamento' => 'editIscrizioneAbbonamento',
+                    'data_inizio_iscrizione' => 'editIscrizioneDataInizio',
+                    'data_fine_iscrizione' => 'editIscrizioneDataFine',
+                    'totale_abbonamento' => 'editIscrizioneTotale',
+                    'stato_iscrizione' => 'editIscrizioneStato',
+                    'course_ids' => 'editIscrizioneCourseIds',
+                    'note_iscrizione' => 'editIscrizioneNote',
+                  ];
+                  $courseHelpText = 'Mantieni selezionato almeno un corso.';
+                  $submitLabel = 'Salva modifiche';
+                  $submitButtonClass = 'btn-primary';
+                  $footerJustifyClass = 'justify-content-end';
+                  $cancelButtonId = 'closeEditIscrizionePanelBtnFooter';
+                  $cancelButtonLabel = 'Annulla';
+                  require __DIR__ . '/partials/iscrizione_form.php';
+                  ?>
                 </div>
               </div>
             </div>
@@ -2009,7 +1978,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
       const idIscrizioneEl = document.getElementById('editIscrizioneIdIscrizione');
       const courseIdsEl = document.getElementById('editIscrizioneCourseIds');
-      const dataCorsoEl = document.getElementById('editIscrizioneDataCorso');
+      const abbonamentoEl = document.getElementById('editIscrizioneAbbonamento');
       const dataInizioEl = document.getElementById('editIscrizioneDataInizio');
       const dataFineEl = document.getElementById('editIscrizioneDataFine');
       const totaleEl = document.getElementById('editIscrizioneTotale');
@@ -2027,7 +1996,7 @@ document.addEventListener('DOMContentLoaded', function () {
           opt.selected = selectedCourseIds.includes(opt.value);
         });
       }
-      if (dataCorsoEl) dataCorsoEl.value = btn.getAttribute('data-course-enrollment-date') || '';
+      if (abbonamentoEl) abbonamentoEl.value = btn.getAttribute('data-abbonamento') || '1';
       if (dataInizioEl) dataInizioEl.value = btn.getAttribute('data-start-date') || '';
       if (dataFineEl) dataFineEl.value = btn.getAttribute('data-end-date') || '';
       if (totaleEl) totaleEl.value = btn.getAttribute('data-total') || '';
@@ -2121,8 +2090,83 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   };
 
+  const bindAbbonamentoEndDateSuggestion = function (formId) {
+    const form = document.getElementById(formId);
+    if (!form) {
+      return;
+    }
+
+    const abbonamentoEl = form.querySelector('[name="abbonamento"]');
+    const startEl = form.querySelector('[name="data_inizio_iscrizione"]');
+    const endEl = form.querySelector('[name="data_fine_iscrizione"]');
+    if (!abbonamentoEl || !startEl || !endEl) {
+      return;
+    }
+
+    const addMonths = function (isoDate, monthsToAdd) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(isoDate)) {
+        return '';
+      }
+
+      const parts = isoDate.split('-').map(function (value) {
+        return Number(value);
+      });
+      const year = parts[0];
+      const monthIndex = parts[1] - 1;
+      const day = parts[2];
+
+      const lastDayTargetMonth = new Date(year, monthIndex + monthsToAdd + 1, 0).getDate();
+      const safeDay = Math.min(day, lastDayTargetMonth);
+      const result = new Date(year, monthIndex + monthsToAdd, safeDay);
+
+      const yyyy = result.getFullYear();
+      const mm = String(result.getMonth() + 1).padStart(2, '0');
+      const dd = String(result.getDate()).padStart(2, '0');
+      return yyyy + '-' + mm + '-' + dd;
+    };
+
+    const syncSuggestedEndDate = function () {
+      const startValue = String(startEl.value || '').trim();
+      const months = Number(abbonamentoEl.value || 1);
+      if (startValue === '' || !Number.isInteger(months) || months <= 0) {
+        return;
+      }
+
+      if (months === 1) {
+        if (endEl.dataset.autoSuggested === '1') {
+          endEl.value = '';
+        }
+        delete endEl.dataset.autoSuggested;
+        return;
+      }
+
+      const suggestedEndDate = addMonths(startValue, months);
+      if (suggestedEndDate === '') {
+        return;
+      }
+
+      const currentEndValue = String(endEl.value || '').trim();
+      const canAutofill = currentEndValue === '' || endEl.dataset.autoSuggested === '1';
+      if (!canAutofill) {
+        return;
+      }
+
+      endEl.value = suggestedEndDate;
+      endEl.dataset.autoSuggested = '1';
+    };
+
+    endEl.addEventListener('input', function () {
+      endEl.dataset.autoSuggested = '0';
+    });
+
+    abbonamentoEl.addEventListener('change', syncSuggestedEndDate);
+    startEl.addEventListener('change', syncSuggestedEndDate);
+  };
+
   bindDateRangeValidation('addIscrizioneForm', 'data_inizio_iscrizione', 'data_fine_iscrizione', 'La data fine iscrizione non puo essere precedente alla data inizio.');
   bindDateRangeValidation('editIscrizioneForm', 'data_inizio_iscrizione', 'data_fine_iscrizione', 'La data fine iscrizione non puo essere precedente alla data inizio.');
+  bindAbbonamentoEndDateSuggestion('addIscrizioneForm');
+  bindAbbonamentoEndDateSuggestion('editIscrizioneForm');
   bindDateRangeValidation('addPagamentoForm', 'data_pagamento', 'data_scadenza', 'La data scadenza non puo essere precedente alla data pagamento.');
   bindDateRangeValidation('editPagamentoForm', 'data_pagamento', 'data_scadenza', 'La data scadenza non puo essere precedente alla data pagamento.');
 

@@ -54,7 +54,7 @@ try {
         'course_ids' => [$idCorso],
         'data_inizio_iscrizione' => $testDate,
         'data_fine_iscrizione' => null,
-        'totale_iscrizione' => 0,
+        'totale_abbonamento' => 0,
         'stato_iscrizione' => 'A',
         'note_iscrizione' => 'smoke-test-data-corso',
         'data_iscrizione_corso' => $testDate,

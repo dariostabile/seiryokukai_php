@@ -29,7 +29,8 @@ final class UpdateIscrizioneAtletaRequest extends FormRequest
             'data_inizio_iscrizione' => 'required|date',
             'data_fine_iscrizione' => 'nullable|date',
             'data_iscrizione_corso' => 'nullable|date',
-            'totale_iscrizione' => 'nullable|float|min:0',
+            'abbonamento' => 'required|int|in:1,2,3,4,6,12',
+            'totale_abbonamento' => 'nullable|float|min:0',
             'stato_iscrizione' => 'required|string|in:A,S,C',
             'note_iscrizione' => 'nullable|string',
         ];
@@ -42,6 +43,8 @@ final class UpdateIscrizioneAtletaRequest extends FormRequest
             'idiscrizione.required' => 'Iscrizione non valida',
             'course_ids.required' => 'Seleziona almeno un corso',
             'data_inizio_iscrizione.required' => 'La data inizio iscrizione è obbligatoria',
+            'abbonamento.required' => 'Seleziona il tipo di abbonamento',
+            'abbonamento.in' => 'Il valore abbonamento selezionato non è valido',
             'stato_iscrizione.required' => 'Lo stato iscrizione è obbligatorio',
             'stato_iscrizione.in' => 'Lo stato iscrizione selezionato non è valido',
         ];

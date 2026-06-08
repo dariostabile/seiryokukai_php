@@ -432,29 +432,50 @@ final class AtletiService extends BaseService
     public function addIscrizioneAtleta(int $idAtleta, array $payload): int
     {
         $this->assertLatestDatabaseSchema();
+        $iscrizioniColumns = $this->resolveIscrizioniColumnNames();
 
         $courseIds = array_values(array_filter(array_map('intval', (array) ($payload['course_ids'] ?? [])), static fn (int $value): bool => $value > 0));
         if ($courseIds === []) {
             throw new \InvalidArgumentException('Seleziona almeno un corso per l\'iscrizione');
         }
 
-        $dataIscrizioneCorso = $this->normalizeNullableDate($payload['data_iscrizione_corso'] ?? ($payload['data_inizio_iscrizione'] ?? null));
+        $dataIscrizioneCorso = $this->normalizeNullableDate($payload['data_inizio_iscrizione'] ?? null);
 
         $pdo = db_connection();
+
+        $duplicateStmt = $pdo->prepare(
+            'SELECT 1
+             FROM iscrizioni_has_corsi ihc
+             INNER JOIN iscrizioni i ON i.idiscrizione = ihc.idiscrizione
+             WHERE i.idatleta = :idatleta
+               AND ihc.idcorso = :idcorso
+             LIMIT 1'
+        );
+        foreach ($courseIds as $courseId) {
+            $duplicateStmt->execute([
+                'idatleta' => $idAtleta,
+                'idcorso' => $courseId,
+            ]);
+            if ($duplicateStmt->fetchColumn() !== false) {
+                throw new \RuntimeException('Esiste gia una iscrizione per questo corso.');
+            }
+        }
 
         $insertIscrizioneStmt = $pdo->prepare(
             'INSERT INTO iscrizioni (
                 idatleta,
-                data_inizio_iscrizione,
-                data_fine_iscrizione,
-                totale_iscrizione,
+                ' . $iscrizioniColumns['start'] . ',
+                ' . $iscrizioniColumns['end'] . ',
+                abbonamento,
+                ' . $iscrizioniColumns['total'] . ',
                 stato_iscrizione,
                 note_iscrizione
             ) VALUES (
                 :idatleta,
-                :data_inizio_iscrizione,
-                :data_fine_iscrizione,
-                :totale_iscrizione,
+                :start_date,
+                :end_date,
+                :abbonamento,
+                :total,
                 :stato_iscrizione,
                 :note_iscrizione
             )'
@@ -471,9 +492,10 @@ final class AtletiService extends BaseService
         try {
             $insertIscrizioneStmt->execute([
                 'idatleta' => $idAtleta,
-                'data_inizio_iscrizione' => $this->normalizeNullableDate($payload['data_inizio_iscrizione'] ?? null),
-                'data_fine_iscrizione' => $this->normalizeNullableDate($payload['data_fine_iscrizione'] ?? null),
-                'totale_iscrizione' => $this->normalizeNullableFloat($payload['totale_iscrizione'] ?? null),
+                'start_date' => $this->normalizeNullableDate($payload['data_inizio_iscrizione'] ?? null),
+                'end_date' => $this->normalizeNullableDate($payload['data_fine_iscrizione'] ?? null),
+                'abbonamento' => $this->normalizeNullableInt($payload['abbonamento'] ?? 1),
+                'total' => $this->normalizeNullableFloat($payload['totale_abbonamento'] ?? ($payload['totale_iscrizione'] ?? null)),
                 'stato_iscrizione' => $this->normalizeNullableString($payload['stato_iscrizione'] ?? null),
                 'note_iscrizione' => $this->normalizeNullableString($payload['note_iscrizione'] ?? null),
             ]);
@@ -503,6 +525,7 @@ final class AtletiService extends BaseService
     public function updateIscrizioneAtleta(int $idAtleta, int $idIscrizione, array $payload): bool
     {
         $this->assertLatestDatabaseSchema();
+        $iscrizioniColumns = $this->resolveIscrizioniColumnNames();
 
         $courseIds = array_values(array_unique(array_filter(array_map('intval', (array) ($payload['course_ids'] ?? [])), static fn (int $value): bool => $value > 0)));
         if ($idAtleta <= 0 || $idIscrizione <= 0 || $courseIds === []) {
@@ -565,17 +588,19 @@ final class AtletiService extends BaseService
         try {
             $updateIscrizioneStmt = $pdo->prepare(
                 'UPDATE iscrizioni SET
-                    data_inizio_iscrizione = :data_inizio_iscrizione,
-                    data_fine_iscrizione = :data_fine_iscrizione,
-                    totale_iscrizione = :totale_iscrizione,
+                    ' . $iscrizioniColumns['start'] . ' = :start_date,
+                    ' . $iscrizioniColumns['end'] . ' = :end_date,
+                    abbonamento = :abbonamento,
+                    ' . $iscrizioniColumns['total'] . ' = :total,
                     stato_iscrizione = :stato_iscrizione,
                     note_iscrizione = :note_iscrizione
                  WHERE idiscrizione = :idiscrizione'
             );
             $updateIscrizioneStmt->execute([
-                'data_inizio_iscrizione' => $this->normalizeNullableDate($payload['data_inizio_iscrizione'] ?? null),
-                'data_fine_iscrizione' => $this->normalizeNullableDate($payload['data_fine_iscrizione'] ?? null),
-                'totale_iscrizione' => $this->normalizeNullableFloat($payload['totale_iscrizione'] ?? null),
+                'start_date' => $this->normalizeNullableDate($payload['data_inizio_iscrizione'] ?? null),
+                'end_date' => $this->normalizeNullableDate($payload['data_fine_iscrizione'] ?? null),
+                'abbonamento' => $this->normalizeNullableInt($payload['abbonamento'] ?? 1),
+                'total' => $this->normalizeNullableFloat($payload['totale_abbonamento'] ?? ($payload['totale_iscrizione'] ?? null)),
                 'stato_iscrizione' => $this->normalizeNullableString($payload['stato_iscrizione'] ?? null),
                 'note_iscrizione' => $this->normalizeNullableString($payload['note_iscrizione'] ?? null),
                 'idiscrizione' => $idIscrizione,
@@ -1063,6 +1088,7 @@ final class AtletiService extends BaseService
     private function readIscrizioniAtleta(int $idAtleta): array
     {
         $this->assertLatestDatabaseSchema();
+        $iscrizioniColumns = $this->resolveIscrizioniColumnNames();
 
         $pdo = db_connection();
         $stmt = $pdo->prepare(
@@ -1072,9 +1098,10 @@ final class AtletiService extends BaseService
                 MIN(ihc.idcorso) AS course_id,
                 GROUP_CONCAT(CAST(ihc.idcorso AS CHAR) ORDER BY ihc.idcorso SEPARATOR ",") AS course_ids_csv,
                 MIN(ihc.data_iscrizione_corso) AS course_enrollment_date,
-                i.data_inizio_iscrizione AS start_date,
-                i.data_fine_iscrizione AS end_date,
-                i.totale_iscrizione AS total,
+                 i.abbonamento AS subscription_months,
+                     i.' . $iscrizioniColumns['start'] . ' AS start_date,
+                     i.' . $iscrizioniColumns['end'] . ' AS end_date,
+                     i.' . $iscrizioniColumns['total'] . ' AS total,
                 i.stato_iscrizione AS status_code,
                 COALESCE(i.note_iscrizione, MAX(ihc.note), \'\') AS notes,
                 COALESCE(GROUP_CONCAT(COALESCE(c.nome_corso, \'\') ORDER BY ihc.idcorso SEPARATOR ", "), \'\') AS courses
@@ -1082,8 +1109,8 @@ final class AtletiService extends BaseService
              INNER JOIN iscrizioni i ON i.idiscrizione = ihc.idiscrizione
              LEFT JOIN corsi c ON c.idcorso = ihc.idcorso
              WHERE i.idatleta = :idatleta
-             GROUP BY i.idiscrizione, i.data_inizio_iscrizione, i.data_fine_iscrizione, i.totale_iscrizione, i.stato_iscrizione, i.note_iscrizione
-             ORDER BY i.data_inizio_iscrizione DESC, i.idiscrizione DESC'
+                 GROUP BY i.idiscrizione, i.abbonamento, i.' . $iscrizioniColumns['start'] . ', i.' . $iscrizioniColumns['end'] . ', i.' . $iscrizioniColumns['total'] . ', i.stato_iscrizione, i.note_iscrizione
+                 ORDER BY i.' . $iscrizioniColumns['start'] . ' DESC, i.idiscrizione DESC'
         );
         $stmt->execute(['idatleta' => $idAtleta]);
 
@@ -1111,6 +1138,7 @@ final class AtletiService extends BaseService
     private function readPagamentiAtleta(int $idAtleta): array
     {
         $this->assertLatestDatabaseSchema();
+        $iscrizioniColumns = $this->resolveIscrizioniColumnNames();
 
         $pdo = db_connection();
         $stmt = $pdo->prepare(
@@ -1123,8 +1151,8 @@ final class AtletiService extends BaseService
                 p.data_scadenza AS expiry_date,
                 p.quota AS amount,
                 COALESCE(p.note_pagamento, \'\') AS notes,
-                i.data_inizio_iscrizione AS enrollment_start_date,
-                i.data_fine_iscrizione AS enrollment_end_date
+                     i.' . $iscrizioniColumns['start'] . ' AS enrollment_start_date,
+                     i.' . $iscrizioniColumns['end'] . ' AS enrollment_end_date
              FROM pagamenti p
              INNER JOIN iscrizioni i ON i.idiscrizione = p.idiscrizione
              LEFT JOIN (
@@ -1165,6 +1193,50 @@ final class AtletiService extends BaseService
         return $stmt->fetchColumn() !== false;
     }
 
+    /**
+     * Supporta sia naming schema nuovo che legacy per la tabella iscrizioni.
+     *
+     * @return array{start:string,end:string,total:string}
+     */
+    private function resolveIscrizioniColumnNames(): array
+    {
+        static $resolved = null;
+
+        if (is_array($resolved)) {
+            return $resolved;
+        }
+
+        $startColumn = $this->columnExists('iscrizioni', 'data_inizio_iscrizione')
+            ? 'data_inizio_iscrizione'
+            : ($this->columnExists('iscrizioni', 'data_iscrizione') ? 'data_iscrizione' : null);
+        $endColumn = $this->columnExists('iscrizioni', 'data_fine_iscrizione')
+            ? 'data_fine_iscrizione'
+            : ($this->columnExists('iscrizioni', 'data_scadenza_iscrizione') ? 'data_scadenza_iscrizione' : null);
+        $totalColumn = $this->columnExists('iscrizioni', 'totale_abbonamento')
+            ? 'totale_abbonamento'
+            : ($this->columnExists('iscrizioni', 'totale_iscrizione')
+                ? 'totale_iscrizione'
+                : ($this->columnExists('iscrizioni', 'quota') ? 'quota' : null));
+
+        if ($startColumn === null) {
+            throw new \RuntimeException('Schema DB non allineato alla versione corrente (' . self::DB_SCHEMA_REFERENCE . '): colonna mancante `iscrizioni.data_inizio_iscrizione` (oppure `iscrizioni.data_iscrizione`).');
+        }
+        if ($endColumn === null) {
+            throw new \RuntimeException('Schema DB non allineato alla versione corrente (' . self::DB_SCHEMA_REFERENCE . '): colonna mancante `iscrizioni.data_fine_iscrizione` (oppure `iscrizioni.data_scadenza_iscrizione`).');
+        }
+        if ($totalColumn === null) {
+            throw new \RuntimeException('Schema DB non allineato alla versione corrente (' . self::DB_SCHEMA_REFERENCE . '): colonna mancante `iscrizioni.totale_abbonamento` (oppure `iscrizioni.totale_iscrizione` / `iscrizioni.quota`).');
+        }
+
+        $resolved = [
+            'start' => $startColumn,
+            'end' => $endColumn,
+            'total' => $totalColumn,
+        ];
+
+        return $resolved;
+    }
+
     private function assertLatestDatabaseSchema(): void
     {
         static $checked = false;
@@ -1177,9 +1249,7 @@ final class AtletiService extends BaseService
             'iscrizioni' => [
                 'idiscrizione',
                 'idatleta',
-                'data_inizio_iscrizione',
-                'data_fine_iscrizione',
-                'totale_iscrizione',
+                'abbonamento',
                 'stato_iscrizione',
                 'note_iscrizione',
             ],
@@ -1210,6 +1280,8 @@ final class AtletiService extends BaseService
                 }
             }
         }
+
+        $this->resolveIscrizioniColumnNames();
 
         $checked = true;
     }
