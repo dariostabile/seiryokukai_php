@@ -28,8 +28,8 @@ $defaultAccountExpiryDate = (new \DateTimeImmutable('last day of december next y
 $addPrefill = [
     'nome' => trim((string) ($_GET['add_nome'] ?? '')),
     'cognome' => trim((string) ($_GET['add_cognome'] ?? '')),
-  'piva' => trim((string) ($_GET['add_piva'] ?? '')),
-  'codice_univoco_fatturazione' => trim((string) ($_GET['add_codice_univoco_fatturazione'] ?? '')),
+    'piva' => trim((string) ($_GET['add_piva'] ?? '')),
+    'codice_univoco_fatturazione' => trim((string) ($_GET['add_codice_univoco_fatturazione'] ?? '')),
     'email_1' => trim((string) ($_GET['add_email_1'] ?? '')),
     'email_2' => trim((string) ($_GET['add_email_2'] ?? '')),
     'pec' => trim((string) ($_GET['add_pec'] ?? '')),
@@ -38,35 +38,35 @@ $addPrefill = [
 ];
 
 $addAthleteFormValues = [
-  'status' => 'Attivo',
-  'sesso' => '',
-  'data_scadenza_account' => $addPrefill['data_scadenza_account'],
-  'cognome' => $addPrefill['cognome'],
-  'nome' => $addPrefill['nome'],
-  'data_nascita' => '',
-  'citta_nascita' => '',
-  'provincia_nascita' => '',
-  'stato_nascita' => '',
-  'codice_fiscale' => '',
-  'piva' => $addPrefill['piva'],
-  'codice_univoco_fatturazione' => $addPrefill['codice_univoco_fatturazione'],
-  'note_atleta' => '',
-  'indirizzo_residenza' => '',
-  'citta_residenza' => '',
-  'provincia_residenza' => '',
-  'cap_residenza' => '',
-  'stato_residenza' => '',
-  'telefono_1' => $addPrefill['telefono_1'],
-  'telefono_2' => '',
-  'email_1' => $addPrefill['email_1'],
-  'email_2' => $addPrefill['email_2'],
-  'pec' => $addPrefill['pec'],
-  'altezza' => '',
-  'peso' => '',
-  'misura' => '',
-  'misura_maglia' => '',
-  'misura_pantaloni' => '',
-  'image_url' => '',
+    'status' => 'Attivo',
+    'sesso' => '',
+    'data_scadenza_account' => $addPrefill['data_scadenza_account'],
+    'cognome' => $addPrefill['cognome'],
+    'nome' => $addPrefill['nome'],
+    'data_nascita' => '',
+    'citta_nascita' => '',
+    'provincia_nascita' => '',
+    'stato_nascita' => '',
+    'codice_fiscale' => '',
+    'piva' => $addPrefill['piva'],
+    'codice_univoco_fatturazione' => $addPrefill['codice_univoco_fatturazione'],
+    'note_atleta' => '',
+    'indirizzo_residenza' => '',
+    'citta_residenza' => '',
+    'provincia_residenza' => '',
+    'cap_residenza' => '',
+    'stato_residenza' => '',
+    'telefono_1' => $addPrefill['telefono_1'],
+    'telefono_2' => '',
+    'email_1' => $addPrefill['email_1'],
+    'email_2' => $addPrefill['email_2'],
+    'pec' => $addPrefill['pec'],
+    'altezza' => '',
+    'peso' => '',
+    'misura' => '',
+    'misura_maglia' => '',
+    'misura_pantaloni' => '',
+    'image_url' => '',
 ];
 
 if (!$openAddPanel) {
@@ -94,69 +94,69 @@ $selectedPagamenti = $hasSelectedAtleta && isset($selectedAtleta['pagamenti']) &
     : [];
 
 $editAthleteFormValues = [
-  'status' => 'Attivo',
-  'sesso' => '',
-  'data_scadenza_account' => '',
-  'cognome' => '',
-  'nome' => '',
-  'data_nascita' => '',
-  'citta_nascita' => '',
-  'provincia_nascita' => '',
-  'stato_nascita' => '',
-  'codice_fiscale' => '',
-  'piva' => '',
-  'codice_univoco_fatturazione' => '',
-  'note_atleta' => '',
-  'indirizzo_residenza' => '',
-  'citta_residenza' => '',
-  'provincia_residenza' => '',
-  'cap_residenza' => '',
-  'stato_residenza' => '',
-  'telefono_1' => '',
-  'telefono_2' => '',
-  'email_1' => '',
-  'email_2' => '',
-  'pec' => '',
-  'altezza' => '',
-  'peso' => '',
-  'misura' => '',
-  'misura_maglia' => '',
-  'misura_pantaloni' => '',
-  'image_url' => '',
+    'status' => 'Attivo',
+    'sesso' => '',
+    'data_scadenza_account' => '',
+    'cognome' => '',
+    'nome' => '',
+    'data_nascita' => '',
+    'citta_nascita' => '',
+    'provincia_nascita' => '',
+    'stato_nascita' => '',
+    'codice_fiscale' => '',
+    'piva' => '',
+    'codice_univoco_fatturazione' => '',
+    'note_atleta' => '',
+    'indirizzo_residenza' => '',
+    'citta_residenza' => '',
+    'provincia_residenza' => '',
+    'cap_residenza' => '',
+    'stato_residenza' => '',
+    'telefono_1' => '',
+    'telefono_2' => '',
+    'email_1' => '',
+    'email_2' => '',
+    'pec' => '',
+    'altezza' => '',
+    'peso' => '',
+    'misura' => '',
+    'misura_maglia' => '',
+    'misura_pantaloni' => '',
+    'image_url' => '',
 ];
 
 if ($hasSelectedAtleta) {
-  $editAthleteFormValues = [
-    'status' => (string) ($selectedAtleta['status'] ?? 'Attivo'),
-    'sesso' => (string) ($selectedAtleta['gender'] ?? ''),
-    'data_scadenza_account' => (string) ($selectedAtleta['account_expiry_date'] ?? ''),
-    'cognome' => (string) ($selectedAtleta['last_name'] ?? ''),
-    'nome' => (string) ($selectedAtleta['first_name'] ?? ''),
-    'data_nascita' => (string) ($selectedAtleta['birth_date'] ?? ''),
-    'citta_nascita' => (string) ($selectedAtleta['birth_city'] ?? ''),
-    'provincia_nascita' => (string) ($selectedAtleta['birth_province'] ?? ''),
-    'stato_nascita' => (string) ($selectedAtleta['birth_country'] ?? ''),
-    'codice_fiscale' => (string) ($selectedAtleta['tax_code'] ?? ''),
-    'piva' => (string) ($selectedAtleta['vat_number'] ?? ''),
-    'codice_univoco_fatturazione' => (string) ($selectedAtleta['invoice_code'] ?? ''),
-    'note_atleta' => (string) ($selectedAtleta['notes'] ?? ''),
-    'indirizzo_residenza' => (string) ($selectedAtleta['address'] ?? ''),
-    'citta_residenza' => (string) ($selectedAtleta['city'] ?? ''),
-    'provincia_residenza' => (string) ($selectedAtleta['province'] ?? ''),
-    'cap_residenza' => (string) ($selectedAtleta['postal_code'] ?? ''),
-    'stato_residenza' => (string) ($selectedAtleta['country'] ?? ''),
-    'telefono_1' => (string) ($selectedAtleta['phone'] ?? ''),
-    'telefono_2' => (string) ($selectedAtleta['phone_alt'] ?? ''),
-    'email_1' => (string) ($selectedAtleta['email'] ?? ''),
-    'email_2' => (string) ($selectedAtleta['email_alt'] ?? ''),
-    'pec' => (string) ($selectedAtleta['pec'] ?? ''),
-    'altezza' => (string) ($selectedAtleta['height'] ?? ''),
-    'peso' => (string) ($selectedAtleta['weight'] ?? ''),
-    'misura' => (string) ($selectedAtleta['size'] ?? ''),
-    'misura_maglia' => (string) ($selectedAtleta['shirt_size'] ?? ''),
-    'misura_pantaloni' => (string) ($selectedAtleta['pants_size'] ?? ''),
-    'image_url' => (string) ($selectedAtleta['image_url'] ?? ''),
-  ];
+    $editAthleteFormValues = [
+        'status' => (string) ($selectedAtleta['status'] ?? 'Attivo'),
+        'sesso' => (string) ($selectedAtleta['gender'] ?? ''),
+        'data_scadenza_account' => (string) ($selectedAtleta['account_expiry_date'] ?? ''),
+        'cognome' => (string) ($selectedAtleta['last_name'] ?? ''),
+        'nome' => (string) ($selectedAtleta['first_name'] ?? ''),
+        'data_nascita' => (string) ($selectedAtleta['birth_date'] ?? ''),
+        'citta_nascita' => (string) ($selectedAtleta['birth_city'] ?? ''),
+        'provincia_nascita' => (string) ($selectedAtleta['birth_province'] ?? ''),
+        'stato_nascita' => (string) ($selectedAtleta['birth_country'] ?? ''),
+        'codice_fiscale' => (string) ($selectedAtleta['tax_code'] ?? ''),
+        'piva' => (string) ($selectedAtleta['vat_number'] ?? ''),
+        'codice_univoco_fatturazione' => (string) ($selectedAtleta['invoice_code'] ?? ''),
+        'note_atleta' => (string) ($selectedAtleta['notes'] ?? ''),
+        'indirizzo_residenza' => (string) ($selectedAtleta['address'] ?? ''),
+        'citta_residenza' => (string) ($selectedAtleta['city'] ?? ''),
+        'provincia_residenza' => (string) ($selectedAtleta['province'] ?? ''),
+        'cap_residenza' => (string) ($selectedAtleta['postal_code'] ?? ''),
+        'stato_residenza' => (string) ($selectedAtleta['country'] ?? ''),
+        'telefono_1' => (string) ($selectedAtleta['phone'] ?? ''),
+        'telefono_2' => (string) ($selectedAtleta['phone_alt'] ?? ''),
+        'email_1' => (string) ($selectedAtleta['email'] ?? ''),
+        'email_2' => (string) ($selectedAtleta['email_alt'] ?? ''),
+        'pec' => (string) ($selectedAtleta['pec'] ?? ''),
+        'altezza' => (string) ($selectedAtleta['height'] ?? ''),
+        'peso' => (string) ($selectedAtleta['weight'] ?? ''),
+        'misura' => (string) ($selectedAtleta['size'] ?? ''),
+        'misura_maglia' => (string) ($selectedAtleta['shirt_size'] ?? ''),
+        'misura_pantaloni' => (string) ($selectedAtleta['pants_size'] ?? ''),
+        'image_url' => (string) ($selectedAtleta['image_url'] ?? ''),
+    ];
 }
 ?>
 <div class="card shadow-sm border-0 mt-3">
@@ -600,8 +600,6 @@ if ($hasSelectedAtleta) {
                                 class="btn btn-sm btn-outline-primary js-edit-iscrizione-btn"
                                 data-idiscrizione="<?= (int) ($iscrizione['id'] ?? 0) ?>"
                                 data-course-ids="<?= htmlspecialchars((string) ($iscrizione['course_ids_csv'] ?? ''), ENT_QUOTES) ?>"
-                                data-corso="<?= htmlspecialchars((string) ($iscrizione['courses'] ?? ''), ENT_QUOTES) ?>"
-                                data-course-enrollment-date="<?= htmlspecialchars((string) ($iscrizione['course_enrollment_date'] ?? ''), ENT_QUOTES) ?>"
                                 data-start-date="<?= htmlspecialchars((string) ($iscrizione['start_date'] ?? ''), ENT_QUOTES) ?>"
                                 data-end-date="<?= htmlspecialchars((string) ($iscrizione['end_date'] ?? ''), ENT_QUOTES) ?>"
                                 data-abbonamento="<?= htmlspecialchars((string) ($iscrizione['subscription_months'] ?? ''), ENT_QUOTES) ?>"
@@ -722,6 +720,7 @@ if ($hasSelectedAtleta) {
               <?php
                 $paymentCourseOptions = [];
                 $coursesById = [];
+                $paidByEnrollmentId = [];
                 foreach ($corsi as $corso) {
                   $cid = (int) ($corso['id'] ?? 0);
                   if ($cid <= 0) {
@@ -730,7 +729,27 @@ if ($hasSelectedAtleta) {
                   $coursesById[$cid] = (string) ($corso['name'] ?? '');
                 }
 
+                foreach ($selectedPagamenti as $pagamento) {
+                  $enrollmentId = (int) ($pagamento['enrollment_id'] ?? 0);
+                  if ($enrollmentId <= 0) {
+                    continue;
+                  }
+
+                  $amount = (float) ($pagamento['amount'] ?? 0);
+                  if (!isset($paidByEnrollmentId[$enrollmentId])) {
+                    $paidByEnrollmentId[$enrollmentId] = 0.0;
+                  }
+                  $paidByEnrollmentId[$enrollmentId] += $amount;
+                }
+
                 foreach ($selectedIscrizioni as $iscrizione) {
+                  $enrollmentId = (int) ($iscrizione['id'] ?? 0);
+                  $subscriptionMonths = (int) ($iscrizione['subscription_months'] ?? 1);
+                  $totalSubscription = (float) ($iscrizione['total'] ?? 0);
+                  $paidAmount = (float) ($paidByEnrollmentId[$enrollmentId] ?? 0.0);
+                  $residualAmount = max(0.0, $totalSubscription - $paidAmount);
+                  $suggestedAmount = $subscriptionMonths === 1 ? $totalSubscription : $residualAmount;
+
                   $courseIdsCsv = (string) ($iscrizione['course_ids_csv'] ?? '');
                   $courseIds = array_values(array_filter(array_map('intval', explode(',', $courseIdsCsv)), static fn (int $value): bool => $value > 0));
                   foreach ($courseIds as $courseId) {
@@ -738,6 +757,13 @@ if ($hasSelectedAtleta) {
                       continue;
                     }
                     $paymentCourseOptions[$courseId] = [
+                      'course_id' => $courseId,
+                      'enrollment_id' => $enrollmentId,
+                      'subscription_months' => $subscriptionMonths,
+                      'total_subscription' => $totalSubscription,
+                      'paid_amount' => $paidAmount,
+                      'residual_amount' => $residualAmount,
+                      'suggested_amount' => $suggestedAmount,
                       'courses' => $coursesById[$courseId] ?? ((string) ($iscrizione['courses'] ?? 'Corso #' . $courseId)),
                     ];
                   }
@@ -853,40 +879,36 @@ if ($hasSelectedAtleta) {
                   <button type="button" class="btn btn-sm btn-outline-secondary" id="closeAddPagamentoPanelBtn">Chiudi</button>
                 </div>
                 <div class="card-body">
-                  <form method="post" action="<?= htmlspecialchars($atletiApiUrl) ?>" class="row g-3" id="addPagamentoForm">
-                    <input type="hidden" name="action" value="add_pagamento">
-                    <input type="hidden" name="idatleta" value="<?= (int) ($selectedAtleta['id'] ?? 0) ?>">
-                    <div class="col-12 col-md-3">
-                      <label class="form-label">Corso iscritto</label>
-                      <select class="form-select" name="idcorso" <?= $selectedIscrizioni === [] ? 'disabled' : 'required' ?>>
-                        <option value="">Seleziona</option>
-                        <?php foreach ($paymentCourseOptions as $iscrizione): ?>
-                          <option value="<?= (int) ($iscrizione['course_id'] ?? $iscrizione['id'] ?? 0) ?>">
-                            #<?= (int) ($iscrizione['course_id'] ?? $iscrizione['id'] ?? 0) ?> - <?= htmlspecialchars((string) ($iscrizione['courses'] ?? '')) ?>
-                          </option>
-                        <?php endforeach; ?>
-                      </select>
-                    </div>
-                    <div class="col-12 col-md-3">
-                      <label class="form-label">Importo</label>
-                      <input type="number" step="0.01" min="0" class="form-control" name="quota_pagamento" required>
-                    </div>
-                    <div class="col-12 col-md-3">
-                      <label class="form-label">Data pagamento</label>
-                      <input type="date" class="form-control" name="data_pagamento" required value="<?= date('Y-m-d') ?>">
-                    </div>
-                    <div class="col-12 col-md-3">
-                      <label class="form-label">Data scadenza</label>
-                      <input type="date" class="form-control" name="data_scadenza">
-                    </div>
-                    <div class="col-6">
-                      <label class="form-label">Note pagamento</label>
-                      <textarea class="form-control" rows="3" name="note_pagamento"></textarea>
-                    </div>
-                    <div class="col-12 d-flex justify-content-end">
-                      <button class="btn btn-outline-primary" type="submit" <?= $selectedIscrizioni === [] ? 'disabled' : '' ?>>Registra pagamento</button>
-                    </div>
-                  </form>
+                  <?php
+                  $formAction = $atletiApiUrl;
+                  $formId = 'addPagamentoForm';
+                  $hiddenFields = [
+                    '<input type="hidden" name="action" value="add_pagamento">',
+                    '<input type="hidden" name="idatleta" value="' . (int) ($selectedAtleta['id'] ?? 0) . '">',
+                  ];
+                  $values = [
+                    'idcorso' => '',
+                    'quota_pagamento' => '',
+                    'data_pagamento' => date('Y-m-d'),
+                    'data_scadenza' => '',
+                    'note_pagamento' => '',
+                  ];
+                  $fieldIds = [
+                    'idcorso' => '',
+                    'quota_pagamento' => '',
+                    'data_pagamento' => '',
+                    'data_scadenza' => '',
+                    'note_pagamento' => '',
+                  ];
+                  $submitLabel = 'Registra pagamento';
+                  $submitButtonClass = 'btn-outline-primary';
+                  $footerJustifyClass = 'justify-content-end';
+                  $cancelButtonId = '';
+                  $cancelButtonLabel = '';
+                  $courseHelpText = 'Seleziona un corso tra quelli presenti nelle iscrizioni dell\'atleta.';
+                  $disablePaymentActions = $selectedIscrizioni === [];
+                  require __DIR__ . '/partials/pagamento_form.php';
+                  ?>
                 </div>
               </div>
 
@@ -896,41 +918,37 @@ if ($hasSelectedAtleta) {
                   <button type="button" class="btn btn-sm btn-outline-secondary" id="closeEditPagamentoPanelBtn">Chiudi</button>
                 </div>
                 <div class="card-body">
-                  <form method="post" action="<?= htmlspecialchars($atletiApiUrl) ?>" class="row g-3" id="editPagamentoForm">
-                    <input type="hidden" name="action" value="update_pagamento">
-                    <input type="hidden" name="idatleta" value="<?= (int) ($selectedAtleta['id'] ?? 0) ?>">
-                    <input type="hidden" name="idpagamento" id="editPagamentoId">
-                    <div class="col-12 col-md-3">
-                      <label class="form-label">Corso iscritto</label>
-                      <select class="form-select" name="idcorso" id="editPagamentoCorso" required>
-                        <option value="">Seleziona</option>
-                        <?php foreach ($paymentCourseOptions as $iscrizione): ?>
-                          <option value="<?= (int) ($iscrizione['course_id'] ?? $iscrizione['id'] ?? 0) ?>">
-                            #<?= (int) ($iscrizione['course_id'] ?? $iscrizione['id'] ?? 0) ?> - <?= htmlspecialchars((string) ($iscrizione['courses'] ?? '')) ?>
-                          </option>
-                        <?php endforeach; ?>
-                      </select>
-                    </div>
-                    <div class="col-12 col-md-3">
-                      <label class="form-label">Importo</label>
-                      <input type="number" step="0.01" min="0" class="form-control" name="quota_pagamento" id="editPagamentoImporto" required>
-                    </div>
-                    <div class="col-12 col-md-3">
-                      <label class="form-label">Data pagamento</label>
-                      <input type="date" class="form-control" name="data_pagamento" id="editPagamentoData" required>
-                    </div>
-                    <div class="col-12 col-md-3">
-                      <label class="form-label">Data scadenza</label>
-                      <input type="date" class="form-control" name="data_scadenza" id="editPagamentoScadenza">
-                    </div>
-                    <div class="col-6">
-                      <label class="form-label">Note pagamento</label>
-                      <textarea class="form-control" rows="3" name="note_pagamento" id="editPagamentoNote"></textarea>
-                    </div>
-                    <div class="col-12 d-flex justify-content-end">
-                      <button class="btn btn-outline-primary" type="submit">Salva modifiche</button>
-                    </div>
-                  </form>
+                  <?php
+                  $formAction = $atletiApiUrl;
+                  $formId = 'editPagamentoForm';
+                  $hiddenFields = [
+                    '<input type="hidden" name="action" value="update_pagamento">',
+                    '<input type="hidden" name="idatleta" value="' . (int) ($selectedAtleta['id'] ?? 0) . '">',
+                    '<input type="hidden" name="idpagamento" id="editPagamentoId">',
+                  ];
+                  $values = [
+                    'idcorso' => '',
+                    'quota_pagamento' => '',
+                    'data_pagamento' => '',
+                    'data_scadenza' => '',
+                    'note_pagamento' => '',
+                  ];
+                  $fieldIds = [
+                    'idcorso' => 'editPagamentoCorso',
+                    'quota_pagamento' => 'editPagamentoImporto',
+                    'data_pagamento' => 'editPagamentoData',
+                    'data_scadenza' => 'editPagamentoScadenza',
+                    'note_pagamento' => 'editPagamentoNote',
+                  ];
+                  $submitLabel = 'Salva modifiche';
+                  $submitButtonClass = 'btn-outline-primary';
+                  $footerJustifyClass = 'justify-content-end';
+                  $cancelButtonId = '';
+                  $cancelButtonLabel = '';
+                  $courseHelpText = 'Mantieni il corso associato oppure selezionane uno tra le iscrizioni disponibili.';
+                  $disablePaymentActions = false;
+                  require __DIR__ . '/partials/pagamento_form.php';
+                  ?>
                 </div>
               </div>
             </div>
@@ -1342,7 +1360,7 @@ document.addEventListener('DOMContentLoaded', function () {
   let addAthleteImageCropper = null;
   let editAthleteImageCropper = null;
 
-  const getAthleteInitials = function (isEdit) {
+  const buildAthleteInitials = function (isEdit) {
     const prefix = isEdit ? 'edit' : 'add';
     const nameInput = document.getElementById(prefix + 'Nome');
     const surnameInput = document.getElementById(prefix + 'Cognome');
@@ -1359,7 +1377,7 @@ document.addEventListener('DOMContentLoaded', function () {
     return (parts[0][0] + parts[1][0]).toUpperCase();
   };
 
-  const renderAthletePreview = function (isEdit, imageUrl, initials) {
+  const updateAthletePreview = function (isEdit, imageUrl, initials) {
     const preview = isEdit ? editAthleteImagePreview : addAthleteImagePreview;
     const placeholder = isEdit ? editAthleteImagePlaceholder : addAthleteImagePlaceholder;
 
@@ -1381,7 +1399,7 @@ document.addEventListener('DOMContentLoaded', function () {
     placeholder.classList.remove('d-none');
   };
 
-  const destroyAthleteCropper = function (isEdit) {
+  const teardownAthleteCropper = function (isEdit) {
     const cropper = isEdit ? editAthleteImageCropper : addAthleteImageCropper;
     const cropContainer = isEdit ? editAthleteCropContainer : addAthleteCropContainer;
     const cropSource = isEdit ? editAthleteCropSource : addAthleteCropSource;
@@ -1404,7 +1422,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   };
 
-  const showAthleteCropper = function (isEdit, dataUrl) {
+  const initAthleteCropper = function (isEdit, dataUrl) {
     const cropContainer = isEdit ? editAthleteCropContainer : addAthleteCropContainer;
     const cropSource = isEdit ? editAthleteCropSource : addAthleteCropSource;
 
@@ -1412,7 +1430,7 @@ document.addEventListener('DOMContentLoaded', function () {
       return false;
     }
 
-    destroyAthleteCropper(isEdit);
+    teardownAthleteCropper(isEdit);
     cropSource.src = dataUrl;
     cropContainer.classList.remove('d-none');
 
@@ -1435,7 +1453,7 @@ document.addEventListener('DOMContentLoaded', function () {
     return true;
   };
 
-  const applyAthleteCrop = function (isEdit) {
+  const applyAthleteImageCrop = function (isEdit) {
     const cropper = isEdit ? editAthleteImageCropper : addAthleteImageCropper;
     const cropDataInput = isEdit ? editAthleteCropDataInput : addAthleteCropDataInput;
     const imageInput = isEdit ? editAthleteImageInput : addAthleteImageInput;
@@ -1470,8 +1488,8 @@ document.addEventListener('DOMContentLoaded', function () {
       editAthleteRemoveImageInput.value = '0';
     }
 
-    renderAthletePreview(isEdit, dataUrl, getAthleteInitials(isEdit));
-    destroyAthleteCropper(isEdit);
+    updateAthletePreview(isEdit, dataUrl, buildAthleteInitials(isEdit));
+    teardownAthleteCropper(isEdit);
 
     return true;
   };
@@ -1537,7 +1555,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
       const hasCropData = addAthleteCropDataInput && String(addAthleteCropDataInput.value || '').trim() !== '';
       if (!hasCropData && addAthleteImageCropper) {
-        applyAthleteCrop(false);
+        applyAthleteImageCrop(false);
       }
     });
   }
@@ -1552,22 +1570,22 @@ document.addEventListener('DOMContentLoaded', function () {
       }
 
       if (!file) {
-        destroyAthleteCropper(false);
-        renderAthletePreview(false, '', getAthleteInitials(false));
+        teardownAthleteCropper(false);
+        updateAthletePreview(false, '', buildAthleteInitials(false));
         return;
       }
 
       if (!ALLOWED_IMAGE_MIMES.includes(file.type)) {
         window.alert('Formato immagine non supportato. Usa JPG, PNG, WEBP o GIF.');
         addAthleteImageInput.value = '';
-        renderAthletePreview(false, '', getAthleteInitials(false));
+        updateAthletePreview(false, '', buildAthleteInitials(false));
         return;
       }
 
       if (file.size > MAX_IMAGE_SIZE) {
         window.alert('Immagine troppo grande. Dimensione massima 5MB.');
         addAthleteImageInput.value = '';
-        renderAthletePreview(false, '', getAthleteInitials(false));
+        updateAthletePreview(false, '', buildAthleteInitials(false));
         return;
       }
 
@@ -1578,14 +1596,14 @@ document.addEventListener('DOMContentLoaded', function () {
           return;
         }
 
-        const cropShown = showAthleteCropper(false, dataUrl);
+        const cropShown = initAthleteCropper(false, dataUrl);
         if (!cropShown) {
-          renderAthletePreview(false, dataUrl, getAthleteInitials(false));
+          updateAthletePreview(false, dataUrl, buildAthleteInitials(false));
         }
       };
       reader.onerror = function () {
         addAthleteImageInput.value = '';
-        renderAthletePreview(false, '', getAthleteInitials(false));
+        updateAthletePreview(false, '', buildAthleteInitials(false));
       };
       reader.readAsDataURL(file);
     });
@@ -1593,7 +1611,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   if (applyAddAthleteImageCropBtn) {
     applyAddAthleteImageCropBtn.addEventListener('click', function () {
-      if (!applyAthleteCrop(false)) {
+      if (!applyAthleteImageCrop(false)) {
         window.alert('Impossibile applicare il ritaglio immagine.');
       }
     });
@@ -1607,8 +1625,8 @@ document.addEventListener('DOMContentLoaded', function () {
       if (addAthleteCropDataInput) {
         addAthleteCropDataInput.value = '';
       }
-      destroyAthleteCropper(false);
-      renderAthletePreview(false, '', getAthleteInitials(false));
+      teardownAthleteCropper(false);
+      updateAthletePreview(false, '', buildAthleteInitials(false));
     });
   }
 
@@ -1618,7 +1636,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     const initialSrc = String(editAthleteImagePreview.dataset.initialSrc || '');
-    renderAthletePreview(true, initialSrc, getAthleteInitials(true));
+    updateAthletePreview(true, initialSrc, buildAthleteInitials(true));
   };
 
   const applyEditImageRemovalState = function () {
@@ -1633,8 +1651,8 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     if (isRemoving) {
-      destroyAthleteCropper(true);
-      renderAthletePreview(true, '', getAthleteInitials(true));
+      teardownAthleteCropper(true);
+      updateAthletePreview(true, '', buildAthleteInitials(true));
       if (editAthleteImageInput) {
         editAthleteImageInput.value = '';
       }
@@ -1658,7 +1676,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (editAthleteCropDataInput) {
           editAthleteCropDataInput.value = '';
         }
-        destroyAthleteCropper(true);
+        teardownAthleteCropper(true);
         resetEditImagePreview();
         return;
       }
@@ -1694,9 +1712,9 @@ document.addEventListener('DOMContentLoaded', function () {
           return;
         }
 
-        const cropShown = showAthleteCropper(true, dataUrl);
+        const cropShown = initAthleteCropper(true, dataUrl);
         if (!cropShown) {
-          renderAthletePreview(true, dataUrl, getAthleteInitials(true));
+          updateAthletePreview(true, dataUrl, buildAthleteInitials(true));
         }
       };
       reader.onerror = function () {
@@ -1709,7 +1727,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   if (applyEditAthleteImageCropBtn) {
     applyEditAthleteImageCropBtn.addEventListener('click', function () {
-      if (!applyAthleteCrop(true)) {
+      if (!applyAthleteImageCrop(true)) {
         window.alert('Impossibile applicare il ritaglio immagine.');
       }
     });
@@ -1723,14 +1741,14 @@ document.addEventListener('DOMContentLoaded', function () {
       if (editAthleteCropDataInput) {
         editAthleteCropDataInput.value = '';
       }
-      destroyAthleteCropper(true);
+      teardownAthleteCropper(true);
       if (editAthleteRemoveImageCheckbox && editAthleteRemoveImageCheckbox.checked) {
-        renderAthletePreview(true, '', getAthleteInitials(true));
+        updateAthletePreview(true, '', buildAthleteInitials(true));
         return;
       }
 
       const initialSrc = String((editAthleteImagePreview && editAthleteImagePreview.dataset.initialSrc) || '');
-      renderAthletePreview(true, initialSrc, getAthleteInitials(true));
+      updateAthletePreview(true, initialSrc, buildAthleteInitials(true));
     });
   }
 
@@ -1758,15 +1776,15 @@ document.addEventListener('DOMContentLoaded', function () {
     if (addAthleteCropDataInput) {
       addAthleteCropDataInput.value = '';
     }
-    destroyAthleteCropper(false);
-    renderAthletePreview(false, '', getAthleteInitials(false));
+    teardownAthleteCropper(false);
+    updateAthletePreview(false, '', buildAthleteInitials(false));
   };
 
   if (editAthleteForm) {
     editAthleteForm.addEventListener('submit', function () {
       const hasCropData = editAthleteCropDataInput && String(editAthleteCropDataInput.value || '').trim() !== '';
       if (!hasCropData && editAthleteImageCropper) {
-        applyAthleteCrop(true);
+        applyAthleteImageCrop(true);
       }
     });
   }
@@ -1836,41 +1854,64 @@ document.addEventListener('DOMContentLoaded', function () {
   const addPagamentoPanel = document.getElementById('addPagamentoPanel');
   const openAddPagamentoPanelBtn = document.getElementById('openAddPagamentoPanelBtn');
   const closeAddPagamentoPanelBtn = document.getElementById('closeAddPagamentoPanelBtn');
+  const addPagamentoForm = document.getElementById('addPagamentoForm');
   const editPagamentoPanel = document.getElementById('editPagamentoPanel');
   const closeEditPagamentoPanelBtn = document.getElementById('closeEditPagamentoPanelBtn');
+  const editPagamentoForm = document.getElementById('editPagamentoForm');
   const editDocumentoPanel = document.getElementById('editDocumentoPanel');
   const closeEditDocumentoPanelBtn = document.getElementById('closeEditDocumentoPanelBtn');
-  const editDocumentoId = document.getElementById('editDocumentoId');
-  const editDocumentoType = document.getElementById('editDocumentoType');
-  const editDocumentoDescription = document.getElementById('editDocumentoDescription');
-  const editDocumentoDate = document.getElementById('editDocumentoDate');
-  const editDocumentoExpiryDate = document.getElementById('editDocumentoExpiryDate');
+
+  const togglePanel = function (panel, shouldShow) {
+    if (!panel) {
+      return;
+    }
+
+    panel.classList.toggle('d-none', !shouldShow);
+  };
+
+  const showPanel = function (panel) {
+    if (!panel) {
+      return;
+    }
+
+    togglePanel(panel, true);
+    panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  };
+
+  const bindPanelOpenButton = function (button, panel, hideGroupFn) {
+    if (!button || !panel) {
+      return;
+    }
+
+    button.addEventListener('click', function () {
+      hideGroupFn();
+      showPanel(panel);
+    });
+  };
+
+  const bindPanelCloseButton = function (button, hideGroupFn) {
+    if (!button) {
+      return;
+    }
+
+    button.addEventListener('click', function () {
+      hideGroupFn();
+    });
+  };
 
   const hideDocumentoPanels = function () {
-    if (addDocumentoPanel) {
-      addDocumentoPanel.classList.add('d-none');
-    }
-    if (editDocumentoPanel) {
-      editDocumentoPanel.classList.add('d-none');
-    }
+    togglePanel(addDocumentoPanel, false);
+    togglePanel(editDocumentoPanel, false);
   };
 
   const hideIscrizionePanels = function () {
-    if (addIscrizionePanel) {
-      addIscrizionePanel.classList.add('d-none');
-    }
-    if (editIscrizionePanel) {
-      editIscrizionePanel.classList.add('d-none');
-    }
+    togglePanel(addIscrizionePanel, false);
+    togglePanel(editIscrizionePanel, false);
   };
 
   const hidePagamentoPanels = function () {
-    if (addPagamentoPanel) {
-      addPagamentoPanel.classList.add('d-none');
-    }
-    if (editPagamentoPanel) {
-      editPagamentoPanel.classList.add('d-none');
-    }
+    togglePanel(addPagamentoPanel, false);
+    togglePanel(editPagamentoPanel, false);
   };
 
   hideDocumentoPanels();
@@ -1892,45 +1933,16 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
-  if (openAddDocumentoPanelBtn && addDocumentoPanel) {
-    openAddDocumentoPanelBtn.addEventListener('click', function () {
-      hideDocumentoPanels();
-      addDocumentoPanel.classList.remove('d-none');
-      addDocumentoPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    });
-  }
+  bindPanelOpenButton(openAddDocumentoPanelBtn, addDocumentoPanel, hideDocumentoPanels);
+  bindPanelCloseButton(closeAddDocumentoPanelBtn, hideDocumentoPanels);
+  bindPanelOpenButton(openAddIscrizionePanelBtn, addIscrizionePanel, hideIscrizionePanels);
+  bindPanelCloseButton(closeAddIscrizionePanelBtn, hideIscrizionePanels);
+  bindPanelOpenButton(openAddPagamentoPanelBtn, addPagamentoPanel, hidePagamentoPanels);
+  bindPanelCloseButton(closeAddPagamentoPanelBtn, hidePagamentoPanels);
 
-  if (closeAddDocumentoPanelBtn && addDocumentoPanel) {
-    closeAddDocumentoPanelBtn.addEventListener('click', function () {
-      hideDocumentoPanels();
-    });
-  }
-
-  if (openAddIscrizionePanelBtn && addIscrizionePanel) {
-    openAddIscrizionePanelBtn.addEventListener('click', function () {
-      hideIscrizionePanels();
-      addIscrizionePanel.classList.remove('d-none');
-      addIscrizionePanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    });
-  }
-
-  if (closeAddIscrizionePanelBtn && addIscrizionePanel) {
-    closeAddIscrizionePanelBtn.addEventListener('click', function () {
-      hideIscrizionePanels();
-    });
-  }
-
-  if (openAddPagamentoPanelBtn && addPagamentoPanel) {
+  if (openAddPagamentoPanelBtn && addPagamentoForm) {
     openAddPagamentoPanelBtn.addEventListener('click', function () {
-      hidePagamentoPanels();
-      addPagamentoPanel.classList.remove('d-none');
-      addPagamentoPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    });
-  }
-
-  if (closeAddPagamentoPanelBtn && addPagamentoPanel) {
-    closeAddPagamentoPanelBtn.addEventListener('click', function () {
-      hidePagamentoPanels();
+      addPagamentoForm.reset();
     });
   }
 
@@ -1957,16 +1969,11 @@ document.addEventListener('DOMContentLoaded', function () {
         }
       });
 
-      editDocumentoPanel.classList.remove('d-none');
-      editDocumentoPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      showPanel(editDocumentoPanel);
     });
   });
 
-  if (closeEditDocumentoPanelBtn && editDocumentoPanel) {
-    closeEditDocumentoPanelBtn.addEventListener('click', function () {
-      hideDocumentoPanels();
-    });
-  }
+  bindPanelCloseButton(closeEditDocumentoPanelBtn, hideDocumentoPanels);
 
   document.querySelectorAll('.js-edit-iscrizione-btn').forEach(function (btn) {
     btn.addEventListener('click', function () {
@@ -2003,22 +2010,27 @@ document.addEventListener('DOMContentLoaded', function () {
       if (statoEl) statoEl.value = btn.getAttribute('data-status') || 'A';
       if (noteEl) noteEl.value = btn.getAttribute('data-notes') || '';
 
-      editIscrizionePanel.classList.remove('d-none');
-      editIscrizionePanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      showPanel(editIscrizionePanel);
     });
   });
 
-  if (closeEditIscrizionePanelBtn && editIscrizionePanel) {
-    closeEditIscrizionePanelBtn.addEventListener('click', function () {
-      hideIscrizionePanels();
-    });
-  }
+  bindPanelCloseButton(closeEditIscrizionePanelBtn, hideIscrizionePanels);
+  bindPanelCloseButton(closeEditIscrizionePanelBtnFooter, hideIscrizionePanels);
 
-  if (closeEditIscrizionePanelBtnFooter && editIscrizionePanel) {
-    closeEditIscrizionePanelBtnFooter.addEventListener('click', function () {
-      hideIscrizionePanels();
+  const ensureSelectOptionValue = function (selectEl, value, label) {
+    if (!selectEl || value === '') {
+      return;
+    }
+
+    const hasValue = Array.from(selectEl.options).some(function (opt) {
+      return opt.value === value;
     });
-  }
+
+    if (!hasValue) {
+      const fallbackLabel = label !== '' ? label : ('#' + value + ' - Corso non disponibile');
+      selectEl.add(new Option(fallbackLabel, value));
+    }
+  };
 
   document.querySelectorAll('.js-edit-pagamento-btn').forEach(function (btn) {
     btn.addEventListener('click', function () {
@@ -2034,35 +2046,47 @@ document.addEventListener('DOMContentLoaded', function () {
       const dataEl = document.getElementById('editPagamentoData');
       const scadenzaEl = document.getElementById('editPagamentoScadenza');
       const noteEl = document.getElementById('editPagamentoNote');
+      const courseIdValue = btn.getAttribute('data-course-id') || '';
+      const courseLabelValue = String(courseIdValue !== '' ? ('#' + courseIdValue + ' - ') : '') + String(btn.closest('tr')?.querySelector('td[data-course-id]')?.textContent || '').trim();
 
       if (idEl) idEl.value = btn.getAttribute('data-pagamento-id') || '';
-      if (corsoEl) corsoEl.value = btn.getAttribute('data-course-id') || '';
+      if (corsoEl) {
+        ensureSelectOptionValue(corsoEl, courseIdValue, courseLabelValue);
+        corsoEl.value = courseIdValue;
+      }
       if (importoEl) importoEl.value = btn.getAttribute('data-amount') || '';
       if (dataEl) dataEl.value = btn.getAttribute('data-payment-date') || '';
-      if (scadenzaEl) scadenzaEl.value = btn.getAttribute('data-expiry-date') || '';
+      if (scadenzaEl) {
+        scadenzaEl.value = btn.getAttribute('data-expiry-date') || '';
+        scadenzaEl.dataset.autoSuggested = '0';
+      }
       if (noteEl) noteEl.value = btn.getAttribute('data-notes') || '';
 
-      editPagamentoPanel.classList.remove('d-none');
-      editPagamentoPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      showPanel(editPagamentoPanel);
     });
   });
+
+  const readTrimmedValue = function (el) {
+    return String((el && el.value) || '').trim();
+  };
 
   const syncDateMin = function (startEl, endEl) {
     if (!startEl || !endEl) {
       return;
     }
 
-    const applyMin = function () {
-      const startValue = (startEl.value || '').trim();
+    const setMinDate = function () {
+      const startValue = readTrimmedValue(startEl);
       if (startValue !== '') {
         endEl.min = startValue;
-      } else {
-        endEl.removeAttribute('min');
+        return;
       }
+
+      endEl.removeAttribute('min');
     };
 
-    startEl.addEventListener('change', applyMin);
-    applyMin();
+    startEl.addEventListener('change', setMinDate);
+    setMinDate();
   };
 
   const bindDateRangeValidation = function (formId, startName, endName, errorMessage) {
@@ -2080,9 +2104,9 @@ document.addEventListener('DOMContentLoaded', function () {
     syncDateMin(startEl, endEl);
 
     form.addEventListener('submit', function (event) {
-      const start = (startEl.value || '').trim();
-      const end = (endEl.value || '').trim();
-      if (start !== '' && end !== '' && end < start) {
+      const startValue = readTrimmedValue(startEl);
+      const endValue = readTrimmedValue(endEl);
+      if (startValue !== '' && endValue !== '' && endValue < startValue) {
         event.preventDefault();
         alert(errorMessage);
         endEl.focus();
@@ -2103,8 +2127,12 @@ document.addEventListener('DOMContentLoaded', function () {
       return;
     }
 
+    const isIsoDate = function (value) {
+      return /^\d{4}-\d{2}-\d{2}$/.test(value);
+    };
+
     const addMonths = function (isoDate, monthsToAdd) {
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(isoDate)) {
+      if (!isIsoDate(isoDate)) {
         return '';
       }
 
@@ -2115,8 +2143,8 @@ document.addEventListener('DOMContentLoaded', function () {
       const monthIndex = parts[1] - 1;
       const day = parts[2];
 
-      const lastDayTargetMonth = new Date(year, monthIndex + monthsToAdd + 1, 0).getDate();
-      const safeDay = Math.min(day, lastDayTargetMonth);
+      const maxDay = new Date(year, monthIndex + monthsToAdd + 1, 0).getDate();
+      const safeDay = Math.min(day, maxDay);
       const result = new Date(year, monthIndex + monthsToAdd, safeDay);
 
       const yyyy = result.getFullYear();
@@ -2125,15 +2153,19 @@ document.addEventListener('DOMContentLoaded', function () {
       return yyyy + '-' + mm + '-' + dd;
     };
 
+    const isAutoSuggested = function () {
+      return endEl.dataset.autoSuggested === '1';
+    };
+
     const syncSuggestedEndDate = function () {
-      const startValue = String(startEl.value || '').trim();
+      const startValue = readTrimmedValue(startEl);
       const months = Number(abbonamentoEl.value || 1);
       if (startValue === '' || !Number.isInteger(months) || months <= 0) {
         return;
       }
 
       if (months === 1) {
-        if (endEl.dataset.autoSuggested === '1') {
+        if (isAutoSuggested()) {
           endEl.value = '';
         }
         delete endEl.dataset.autoSuggested;
@@ -2145,8 +2177,8 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
       }
 
-      const currentEndValue = String(endEl.value || '').trim();
-      const canAutofill = currentEndValue === '' || endEl.dataset.autoSuggested === '1';
+      const currentEndValue = readTrimmedValue(endEl);
+      const canAutofill = currentEndValue === '' || isAutoSuggested();
       if (!canAutofill) {
         return;
       }
@@ -2163,18 +2195,144 @@ document.addEventListener('DOMContentLoaded', function () {
     startEl.addEventListener('change', syncSuggestedEndDate);
   };
 
+  const bindPagamentoExpirySuggestion = function (formId, paymentFieldName, expiryFieldName, runOnInit) {
+    const form = document.getElementById(formId);
+    if (!form) {
+      return;
+    }
+
+    const paymentEl = form.querySelector('[name="' + paymentFieldName + '"]');
+    const expiryEl = form.querySelector('[name="' + expiryFieldName + '"]');
+    if (!paymentEl || !expiryEl) {
+      return;
+    }
+
+    const isIsoDate = function (value) {
+      return /^\d{4}-\d{2}-\d{2}$/.test(value);
+    };
+
+    const addOneMonth = function (isoDate) {
+      if (!isIsoDate(isoDate)) {
+        return '';
+      }
+
+      const parts = isoDate.split('-').map(function (value) {
+        return Number(value);
+      });
+      const year = parts[0];
+      const monthIndex = parts[1] - 1;
+      const day = parts[2];
+
+      const maxDay = new Date(year, monthIndex + 2, 0).getDate();
+      const safeDay = Math.min(day, maxDay);
+      const result = new Date(year, monthIndex + 1, safeDay);
+
+      const yyyy = result.getFullYear();
+      const mm = String(result.getMonth() + 1).padStart(2, '0');
+      const dd = String(result.getDate()).padStart(2, '0');
+      return yyyy + '-' + mm + '-' + dd;
+    };
+
+    const isAutoSuggested = function () {
+      return expiryEl.dataset.autoSuggested === '1';
+    };
+
+    const syncExpiryDate = function () {
+      const paymentValue = readTrimmedValue(paymentEl);
+      if (paymentValue === '') {
+        return;
+      }
+
+      const suggestedExpiry = addOneMonth(paymentValue);
+      if (suggestedExpiry === '') {
+        return;
+      }
+
+      const currentExpiryValue = readTrimmedValue(expiryEl);
+      const canAutofill = currentExpiryValue === '' || isAutoSuggested();
+      if (!canAutofill) {
+        return;
+      }
+
+      expiryEl.value = suggestedExpiry;
+      expiryEl.dataset.autoSuggested = '1';
+    };
+
+    expiryEl.addEventListener('input', function () {
+      expiryEl.dataset.autoSuggested = '0';
+    });
+
+    paymentEl.addEventListener('change', syncExpiryDate);
+    if (runOnInit) {
+      syncExpiryDate();
+    }
+  };
+
+  const bindPagamentoAmountSuggestion = function (formId) {
+    const form = document.getElementById(formId);
+    if (!form) {
+      return;
+    }
+
+    const corsoEl = form.querySelector('[name="idcorso"]');
+    const quotaEl = form.querySelector('[name="quota_pagamento"]');
+    if (!corsoEl || !quotaEl) {
+      return;
+    }
+
+    const formatAmount = function (value) {
+      const rounded = Math.max(0, Math.round(value * 100) / 100);
+      return rounded.toFixed(2);
+    };
+
+    const syncSuggestedAmount = function () {
+      const selectedOption = corsoEl.options[corsoEl.selectedIndex] || null;
+      const selectedValue = readTrimmedValue(corsoEl);
+
+      if (!selectedOption || selectedValue === '') {
+        quotaEl.value = '';
+        quotaEl.removeAttribute('max');
+        return;
+      }
+
+      const subscriptionMonths = Number(selectedOption.dataset.subscriptionMonths || 1);
+      const totalSubscription = Number(selectedOption.dataset.totalSubscription || 0);
+      const residualAmount = Number(selectedOption.dataset.residualAmount || 0);
+      const suggestedAmountFromData = Number(selectedOption.dataset.suggestedAmount || NaN);
+
+      let suggestedAmount = suggestedAmountFromData;
+      if (!Number.isFinite(suggestedAmount)) {
+        suggestedAmount = subscriptionMonths === 1 ? totalSubscription : Math.max(0, residualAmount);
+      }
+
+      quotaEl.value = formatAmount(Number.isFinite(suggestedAmount) ? suggestedAmount : 0);
+
+      if (subscriptionMonths > 1 && Number.isFinite(residualAmount)) {
+        quotaEl.max = formatAmount(residualAmount);
+        return;
+      }
+
+      quotaEl.removeAttribute('max');
+    };
+
+    corsoEl.addEventListener('change', syncSuggestedAmount);
+    form.addEventListener('reset', function () {
+      window.setTimeout(syncSuggestedAmount, 0);
+    });
+    syncSuggestedAmount();
+  };
+
   bindDateRangeValidation('addIscrizioneForm', 'data_inizio_iscrizione', 'data_fine_iscrizione', 'La data fine iscrizione non puo essere precedente alla data inizio.');
   bindDateRangeValidation('editIscrizioneForm', 'data_inizio_iscrizione', 'data_fine_iscrizione', 'La data fine iscrizione non puo essere precedente alla data inizio.');
   bindAbbonamentoEndDateSuggestion('addIscrizioneForm');
   bindAbbonamentoEndDateSuggestion('editIscrizioneForm');
   bindDateRangeValidation('addPagamentoForm', 'data_pagamento', 'data_scadenza', 'La data scadenza non puo essere precedente alla data pagamento.');
   bindDateRangeValidation('editPagamentoForm', 'data_pagamento', 'data_scadenza', 'La data scadenza non puo essere precedente alla data pagamento.');
+  bindPagamentoExpirySuggestion('addPagamentoForm', 'data_pagamento', 'data_scadenza', true);
+  bindPagamentoExpirySuggestion('editPagamentoForm', 'data_pagamento', 'data_scadenza', false);
+  bindPagamentoAmountSuggestion('addPagamentoForm');
 
-  if (closeEditPagamentoPanelBtn && editPagamentoPanel) {
-    closeEditPagamentoPanelBtn.addEventListener('click', function () {
-      hidePagamentoPanels();
-    });
-  }
+  bindPanelCloseButton(closeEditPagamentoPanelBtn, hidePagamentoPanels);
 
   setupCodiceFiscaleAutocalcolo('addAthleteForm');
   setupCodiceFiscaleAutocalcolo('editAthleteProfileForm');
