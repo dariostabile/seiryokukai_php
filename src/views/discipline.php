@@ -15,11 +15,11 @@ $addPrefill = [
 ];
 $openAddPanel = $addPrefill['name'] !== '' || $addPrefill['notes'] !== '';
 
-$openEdit = ((string) ($_GET['open_edit'] ?? '0')) === '1';
+$openEdit = ((string) ($_POST['open_edit'] ?? $_GET['open_edit'] ?? '0')) === '1';
 $editPrefill = [
-  'id' => (int) ($_GET['edit_id'] ?? 0),
-  'name' => trim((string) ($_GET['edit_name'] ?? '')),
-  'notes' => trim((string) ($_GET['edit_notes'] ?? '')),
+  'id' => (int) ($_POST['edit_id'] ?? $_GET['edit_id'] ?? 0),
+  'name' => trim((string) ($_POST['edit_name'] ?? $_GET['edit_name'] ?? '')),
+  'notes' => trim((string) ($_POST['edit_notes'] ?? $_GET['edit_notes'] ?? '')),
 ];
 $openDisciplinaPanel = $openAddPanel || ($openEdit && $editPrefill['id'] > 0);
 ?>

@@ -6,6 +6,7 @@ declare(strict_types=1);
 /** @var array $tipiDocumenti */
 /** @var array $corsi */
 /** @var array|null $selectedAtleta */
+/** @var bool $openEditFromFlash */
 
 $frontendApi = frontend_api_urls();
 $atletiApiUrl = (string) ($frontendApi['atleti'] ?? '');
@@ -13,6 +14,11 @@ $frontendAssets = frontend_asset_urls();
 $appPaths = app_paths();
 $indexPath = (string) ($appPaths['index'] ?? '/seiryokukai_php/public/index.php');
 $atletiPageUrl = $indexPath . '?page=atleti';
+
+$openEdit = ((string) ($_POST['open_edit'] ?? $_GET['open_edit'] ?? '0')) === '1' || (bool) ($openEditFromFlash ?? false);
+$editData = [
+  'id' => (int) ($_POST['edit_id'] ?? $_GET['edit_id'] ?? 0),
+];
 
 $okMessage = trim((string) ($_GET['ok'] ?? ''));
 $errMessage = trim((string) ($_GET['err'] ?? ''));
@@ -77,7 +83,7 @@ if (!$openAddPanel) {
 }
 
 $hasSelectedAtleta = is_array($selectedAtleta ?? null);
-$openEditPanel = $hasSelectedAtleta && (((string) ($_GET['open_edit'] ?? '0')) === '1' || (int) ($_GET['edit_id'] ?? 0) > 0);
+$openEditPanel = $hasSelectedAtleta && ($openEdit || $editData['id'] > 0);
 
 $tabPaneClass = static function (string $tabName) use ($activeTab): string {
     return $activeTab === $tabName ? 'tab-pane fade show active' : 'tab-pane fade';
@@ -552,10 +558,11 @@ if ($hasSelectedAtleta) {
                 <table id="iscrizioni-table" class="table table-sm align-middle w-100">
                   <thead>
                     <tr>
-                      <th>Corsi associati</th>
+                      <th>Corso/i</th>
                       <th>Data iscrizione</th>
                       <th>Data scadenza</th>
-                      <th>Totale abbonamento</th>
+                      <th>Tipo abbonamento</th>
+                      <th>Totale €</th>
                       <th>Stato</th>
                       <th>Note</th>
                       <th class="text-end">Azioni</th>
@@ -589,6 +596,21 @@ if ($hasSelectedAtleta) {
                                 }
                               ?>
                             <?php endif; ?>
+                          </td>
+                          <td>
+                            <?php
+                              $subscriptionMonths = (int) ($iscrizione['subscription_months'] ?? 0);
+                              $subscriptionTypeLabel = match ($subscriptionMonths) {
+                                1 => '1 - mensile',
+                                2 => '2 - bimestrale',
+                                3 => '3 - trimestrale',
+                                4 => '4 - quadrimestrale',
+                                6 => '6 - semestrale',
+                                12 => '12 - annuale',
+                                default => $subscriptionMonths > 0 ? (string) $subscriptionMonths . ' mesi' : '',
+                              };
+                              echo htmlspecialchars($subscriptionTypeLabel);
+                            ?>
                           </td>
                           <td><?= htmlspecialchars((string) ($iscrizione['total'] ?? '')) ?></td>
                           <td><?= htmlspecialchars((string) ($iscrizione['status_label'] ?? '')) ?></td>
@@ -955,7 +977,7 @@ if ($hasSelectedAtleta) {
           </div>
         </div>
       </div>
-    <?php elseif (((string) ($_GET['open_edit'] ?? '0')) === '1'): ?>
+    <?php elseif ($openEdit): ?>
       <div class="alert alert-warning mt-4 mb-0" role="alert">
         Scheda atleta non trovata. Seleziona un atleta dalla tabella e clicca su "Scheda" per aprire tutti i tab (Documenti/Certificati, Iscrizioni, Pagamenti).
       </div>
@@ -1280,7 +1302,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
             return ''
               + '<div class="d-flex justify-content-end gap-2 flex-wrap">'
-              + '<a class="btn btn-sm btn-primary" href="' + escapeHtml(atletiPageUrl + '&open_edit=1&edit_id=' + id) + '">Scheda</a>'
+              + '<form method="post" action="' + escapeHtml(atletiPageUrl) + '">'
+              + '<input type="hidden" name="open_edit" value="1">'
+              + '<input type="hidden" name="edit_id" value="' + id + '">'
+              + '<button class="btn btn-sm btn-primary" type="submit">Scheda</button>'
+              + '</form>'
               + '<form method="post" action="' + escapeHtml(atletiApiUrl) + '">'
               + '<input type="hidden" name="action" value="status">'
               + '<input type="hidden" name="id" value="' + id + '">'

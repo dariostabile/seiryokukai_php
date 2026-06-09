@@ -1122,9 +1122,9 @@ final class AtletiService extends BaseService
 
         return array_map(function (array $row): array {
             $row['status_label'] = match ((string) ($row['status_code'] ?? '')) {
-                'A' => 'Attiva',
-                'S' => 'Sospesa',
-                'C' => 'Conclusa',
+                'A' => 'Attivo',
+                'S' => 'Sospeso',
+                'C' => 'Concluso',
                 default => '',
             };
 

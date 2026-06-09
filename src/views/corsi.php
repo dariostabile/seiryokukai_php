@@ -49,22 +49,22 @@ $openAddPanel =
     || $addPrefill['end_date'] !== ''
     || $addPrefill['monthly_fee'] !== '';
 
-$openEdit = ((string) ($_GET['open_edit'] ?? '0')) === '1';
+$openEdit = ((string) ($_POST['open_edit'] ?? $_GET['open_edit'] ?? '0')) === '1';
 $editPrefill = [
-    'id' => (int) ($_GET['edit_id'] ?? 0),
-    'name' => trim((string) ($_GET['edit_name'] ?? '')),
-    'sede_id' => (int) ($_GET['edit_sede_id'] ?? 0),
-    'disciplina_id' => (int) ($_GET['edit_disciplina_id'] ?? 0),
-    'user_id' => (int) ($_GET['edit_user_id'] ?? 0),
-    'start_date' => trim((string) ($_GET['edit_start_date'] ?? '')),
-    'end_date' => trim((string) ($_GET['edit_end_date'] ?? '')),
-    'monthly_fee' => trim((string) ($_GET['edit_monthly_fee'] ?? '')),
-    'active' => (int) ($_GET['edit_active'] ?? 1),
+  'id' => (int) ($_POST['edit_id'] ?? $_GET['edit_id'] ?? 0),
+  'name' => trim((string) ($_POST['edit_name'] ?? $_GET['edit_name'] ?? '')),
+  'sede_id' => (int) ($_POST['edit_sede_id'] ?? $_GET['edit_sede_id'] ?? 0),
+  'disciplina_id' => (int) ($_POST['edit_disciplina_id'] ?? $_GET['edit_disciplina_id'] ?? 0),
+  'user_id' => (int) ($_POST['edit_user_id'] ?? $_GET['edit_user_id'] ?? 0),
+  'start_date' => trim((string) ($_POST['edit_start_date'] ?? $_GET['edit_start_date'] ?? '')),
+  'end_date' => trim((string) ($_POST['edit_end_date'] ?? $_GET['edit_end_date'] ?? '')),
+  'monthly_fee' => trim((string) ($_POST['edit_monthly_fee'] ?? $_GET['edit_monthly_fee'] ?? '')),
+  'active' => (int) ($_POST['edit_active'] ?? $_GET['edit_active'] ?? 1),
 ];
 
 foreach (array_keys($dayLabels) as $dayKey) {
-    $editPrefill[$dayKey . '_inizio'] = trim((string) ($_GET['edit_' . $dayKey . '_inizio'] ?? ''));
-    $editPrefill[$dayKey . '_fine'] = trim((string) ($_GET['edit_' . $dayKey . '_fine'] ?? ''));
+  $editPrefill[$dayKey . '_inizio'] = trim((string) ($_POST['edit_' . $dayKey . '_inizio'] ?? $_GET['edit_' . $dayKey . '_inizio'] ?? ''));
+  $editPrefill[$dayKey . '_fine'] = trim((string) ($_POST['edit_' . $dayKey . '_fine'] ?? $_GET['edit_' . $dayKey . '_fine'] ?? ''));
 }
 ?>
 <div class="card shadow-sm border-0 mt-3">

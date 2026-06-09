@@ -41,21 +41,21 @@ $openAddPanel =
   || $addPrefill['email2'] !== ''
   || count($addPrefill['application_ids']) > 0
   || count($addPrefill['profile_ids']) > 0;
-$openEdit = ((string) ($_GET['open_edit'] ?? '0')) === '1';
+$openEdit = ((string) ($_POST['open_edit'] ?? $_GET['open_edit'] ?? '0')) === '1';
 $editPrefill = [
-  'id' => (int) ($_GET['edit_id'] ?? 0),
-  'first_name' => trim((string) ($_GET['edit_nome'] ?? '')),
-  'last_name' => trim((string) ($_GET['edit_cognome'] ?? '')),
-  'username' => trim((string) ($_GET['edit_username'] ?? '')),
-  'email' => trim((string) ($_GET['edit_email'] ?? '')),
-  'telefono1' => trim((string) ($_GET['edit_telefono1'] ?? '')),
-  'telefono2' => trim((string) ($_GET['edit_telefono2'] ?? '')),
-  'email2' => trim((string) ($_GET['edit_email2'] ?? '')),
-  'profile_ids' => array_values(array_filter(array_map('intval', explode(',', trim((string) ($_GET['edit_profile_ids'] ?? ($_GET['edit_profile_id'] ?? ''))))), static fn (int $id): bool => $id > 0)),
-  'status' => trim((string) ($_GET['edit_status'] ?? 'Attivo')),
-  'image_path' => trim((string) ($_GET['edit_image'] ?? '')),
-  'application_ids' => array_values(array_filter(array_map('intval', explode(',', trim((string) ($_GET['edit_application_ids'] ?? '')))), static fn (int $id): bool => $id > 0)),
-  'data_scadenza_account' => trim((string) ($_GET['edit_data_scadenza_account'] ?? '')),
+  'id' => (int) ($_POST['edit_id'] ?? $_GET['edit_id'] ?? 0),
+  'first_name' => trim((string) ($_POST['edit_nome'] ?? $_GET['edit_nome'] ?? '')),
+  'last_name' => trim((string) ($_POST['edit_cognome'] ?? $_GET['edit_cognome'] ?? '')),
+  'username' => trim((string) ($_POST['edit_username'] ?? $_GET['edit_username'] ?? '')),
+  'email' => trim((string) ($_POST['edit_email'] ?? $_GET['edit_email'] ?? '')),
+  'telefono1' => trim((string) ($_POST['edit_telefono1'] ?? $_GET['edit_telefono1'] ?? '')),
+  'telefono2' => trim((string) ($_POST['edit_telefono2'] ?? $_GET['edit_telefono2'] ?? '')),
+  'email2' => trim((string) ($_POST['edit_email2'] ?? $_GET['edit_email2'] ?? '')),
+  'profile_ids' => array_values(array_filter(array_map('intval', explode(',', trim((string) ($_POST['edit_profile_ids'] ?? $_GET['edit_profile_ids'] ?? ($_POST['edit_profile_id'] ?? $_GET['edit_profile_id'] ?? ''))))), static fn (int $id): bool => $id > 0)),
+  'status' => trim((string) ($_POST['edit_status'] ?? $_GET['edit_status'] ?? 'Attivo')),
+  'image_path' => trim((string) ($_POST['edit_image'] ?? $_GET['edit_image'] ?? '')),
+  'application_ids' => array_values(array_filter(array_map('intval', explode(',', trim((string) ($_POST['edit_application_ids'] ?? $_GET['edit_application_ids'] ?? '')))), static fn (int $id): bool => $id > 0)),
+  'data_scadenza_account' => trim((string) ($_POST['edit_data_scadenza_account'] ?? $_GET['edit_data_scadenza_account'] ?? '')),
 ];
 
 $editPrefill['image_url'] = $editPrefill['image_path'] !== ''

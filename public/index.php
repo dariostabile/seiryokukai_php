@@ -43,8 +43,34 @@ if ($page === 'atleti') {
     $atleti = [];
     $tipiDocumenti = $data->readTipiDocumenti();
     $corsi = $data->readCorsi();
+
+    $openEditFromFlash = false;
+    if (
+        ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST'
+        && isset($_POST['open_edit'])
+        && !isset($_POST['action'])
+    ) {
+        $_SESSION['atleti_open_edit_flash'] = [
+            'open_edit' => ((string) ($_POST['open_edit'] ?? '0')) === '1',
+            'edit_id' => (int) ($_POST['edit_id'] ?? 0),
+        ];
+
+        header('Location: ' . $indexPath . '?page=atleti');
+        exit;
+    }
+
+    $selectedAtletaId = (int) ($_POST['edit_id'] ?? $_GET['edit_id'] ?? 0);
+    $openEditFromRequest = ((string) ($_POST['open_edit'] ?? $_GET['open_edit'] ?? '0')) === '1';
+
+    if (!$openEditFromRequest && $selectedAtletaId <= 0 && isset($_SESSION['atleti_open_edit_flash']) && is_array($_SESSION['atleti_open_edit_flash'])) {
+        $flash = $_SESSION['atleti_open_edit_flash'];
+        unset($_SESSION['atleti_open_edit_flash']);
+
+        $openEditFromFlash = ((bool) ($flash['open_edit'] ?? false)) === true;
+        $selectedAtletaId = (int) ($flash['edit_id'] ?? 0);
+    }
+
     $selectedAtleta = null;
-    $selectedAtletaId = (int) ($_GET['edit_id'] ?? 0);
     if ($selectedAtletaId > 0) {
         $selectedAtleta = atleti_service()->findAtletaById($selectedAtletaId);
     }

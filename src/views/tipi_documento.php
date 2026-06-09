@@ -14,10 +14,10 @@ $addPrefill = [
 ];
 $openAddPanel = $addPrefill['type'] !== '';
 
-$openEdit = ((string) ($_GET['open_edit'] ?? '0')) === '1';
+$openEdit = ((string) ($_POST['open_edit'] ?? $_GET['open_edit'] ?? '0')) === '1';
 $editPrefill = [
-  'id' => (int) ($_GET['edit_id'] ?? 0),
-  'type' => trim((string) ($_GET['edit_type'] ?? '')),
+  'id' => (int) ($_POST['edit_id'] ?? $_GET['edit_id'] ?? 0),
+  'type' => trim((string) ($_POST['edit_type'] ?? $_GET['edit_type'] ?? '')),
 ];
 $openTipoDocumentoPanel = $openAddPanel || ($openEdit && $editPrefill['id'] > 0);
 ?>
