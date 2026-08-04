@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:8889
--- Creato il: Mag 13, 2026 alle 16:25
+-- Creato il: Mag 14, 2026 alle 21:03
 -- Versione del server: 8.0.44
 -- Versione PHP: 8.3.30
 
@@ -45,9 +45,7 @@ INSERT INTO `applicazioni` (`idapplicazione`, `idgruppo_applicazioni`, `applicaz
 (1, 1, 'utenti', 'utenti', 'gestione utenti', 10, 'fas fa-users'),
 (2, 3, 'atleti', 'atleti', 'gestione atleti', 10, 'fa-solid fa-people-group'),
 (3, 1, 'sedi', 'sedi', 'gestione sedi', 10, 'fa-solid fa-house-flag'),
-(4, 1, 'tipi documento', 'tipi_documento', 'gestione tipi documento', 10, 'fa-solid fa-id-card-clip'),
-(5, 1, 'discipline', 'disciplina', 'gestione discipline', 20, 'fa-solid fa-medal'),
-(6, 3, 'corsi', 'corsi', 'gestione corsi', 20, 'fa-solid fa-dumbbell');
+(4, 1, 'tipi documento', 'tipi_documento', 'gestione tipi documento', 10, 'fa-solid fa-id-card-clip');
 
 -- --------------------------------------------------------
 
@@ -523,8 +521,9 @@ CREATE TABLE `utenti` (
 --
 
 INSERT INTO `utenti` (`idutente`, `titolo`, `cognome`, `nome`, `username`, `password`, `telefono1`, `telefono2`, `email1`, `email2`, `attivo`, `cancellato`, `superadmin`, `data_creazione_account`, `data_scadenza_account`, `data_cambio_password`, `immagine_utente`, `note_utente`) VALUES
-(1, 'Ing.', 'Stabile', 'Dario', 'dario.stabile', 'c63288911e9f9a3702eb90efb460706716ba4a54e359ebd5e61c025e2bd889bc', '3291650348', '', 'dario.stabile@gmail.com', '', 1, 0, 0, '2024-08-01 10:24:26', '2034-08-01 23:59:59', '2024-08-01 10:24:26', 'public/utenti/1/1.jpg', ''),
-(2, 'Sig.', 'Sciabbica', 'Maurizio', 'maurizio.sciabbica', 'e9f754fa2f7ebd2b7fb0c260ade90a3d5debb144ac5cbfe0db45bcc87bf02996', '3297295585', '', '', '', 1, 0, 0, '2024-08-09 09:52:34', '2025-08-09 23:59:59', '2024-08-09 09:52:34', 'public/utenti/2/2.png', '');
+(1, 'Ing.', 'Stabile', 'Dario', 'dario.stabile', '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9', '3291650348', '', 'dario.stabile@gmail.com', '', 1, 0, 0, '2024-08-01 10:24:26', '2034-08-01 23:59:59', '2024-08-01 10:24:26', 'public/utenti/1/1_20260514151347_d6576a81.jpg', ''),
+(2, 'Sig.', 'Sciabbica', 'Maurizio', 'maurizio.sciabbica', 'e9f754fa2f7ebd2b7fb0c260ade90a3d5debb144ac5cbfe0db45bcc87bf02996', '3297295585', '', NULL, '', 1, 0, 0, '2024-08-09 09:52:34', '2025-08-09 23:59:59', '2024-08-09 09:52:34', 'public/utenti/2/2_20260514151202_8d0a547c.jpg', ''),
+(3, NULL, 'Seiryokukai', 'Admin', 'admin', '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9', NULL, NULL, NULL, NULL, 1, 0, 1, '2026-05-14 12:44:48', NULL, NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -545,9 +544,7 @@ INSERT INTO `utenti_has_applicazioni` (`idutente`, `idapplicazione`) VALUES
 (1, 1),
 (1, 2),
 (1, 3),
-(1, 4),
-(1, 5),
-(1, 6);
+(1, 4);
 
 -- --------------------------------------------------------
 
@@ -651,8 +648,7 @@ ALTER TABLE `corsi`
 -- Indici per le tabelle `discipline`
 --
 ALTER TABLE `discipline`
-  ADD PRIMARY KEY (`iddisciplina`),
-  ADD UNIQUE KEY `uq_discipline_disciplina` (`disciplina`);
+  ADD PRIMARY KEY (`iddisciplina`);
 
 --
 -- Indici per le tabelle `documenti`
@@ -812,7 +808,7 @@ ALTER TABLE `utenti_has_sedi`
 -- AUTO_INCREMENT per la tabella `applicazioni`
 --
 ALTER TABLE `applicazioni`
-  MODIFY `idapplicazione` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `idapplicazione` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT per la tabella `applicazioni_atleta`
@@ -938,7 +934,7 @@ ALTER TABLE `tipi_notifica`
 -- AUTO_INCREMENT per la tabella `utenti`
 --
 ALTER TABLE `utenti`
-  MODIFY `idutente` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `idutente` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- Limiti per le tabelle scaricate

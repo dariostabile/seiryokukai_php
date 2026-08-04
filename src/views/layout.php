@@ -31,6 +31,7 @@ $templateDistPath = (string) $appPaths['public'] . '/template/university/dist';
   <link href="<?= htmlspecialchars((string) ($frontendAssets['select2_bootstrap5_css'] ?? 'https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css')) ?>" rel="stylesheet">
   <link href="<?= htmlspecialchars((string) ($frontendAssets['fontawesome_css'] ?? 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css')) ?>" rel="stylesheet">
   <link href="<?= htmlspecialchars($publicAssetsPath . '/app.css') ?>" rel="stylesheet">
+  <link href="<?= htmlspecialchars($templateDistPath . '/css/pages/tab-page.css') ?>" rel="stylesheet">  
 </head>
 <body class="skin-default fixed-header fixed-sidebar card-no-border">
   <div id="main-wrapper">
@@ -124,6 +125,13 @@ $templateDistPath = (string) $appPaths['public'] . '/template/university/dist';
                 </ul>
               </li>
             <?php endforeach; ?>
+
+            <li class="mt-3 border-top pt-2">
+              <a class="waves-effect waves-dark text-danger" href="<?= htmlspecialchars($indexPath) ?>?page=logout" aria-expanded="false">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span class="hide-menu">Logout</span>
+              </a>
+            </li>
           </ul>
         </nav>
       </div>

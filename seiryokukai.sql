@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:8889
--- Creato il: Giu 04, 2026 alle 16:03
+-- Creato il: Lug 13, 2026 alle 08:05
 -- Versione del server: 8.0.44
 -- Versione PHP: 8.3.30
 
@@ -8554,7 +8554,7 @@ CREATE TABLE `corsi` (
 
 INSERT INTO `corsi` (`idcorso`, `idsede`, `iddisciplina`, `idutente`, `attivo`, `nome_corso`, `descrizione_corso`, `data_inizio_corso`, `data_fine_corso`, `quota_mensile_corso`, `orari`, `lun_inizio`, `lun_fine`, `mar_inizio`, `mar_fine`, `mer_inizio`, `mer_fine`, `gio_inizio`, `gio_fine`, `ven_inizio`, `ven_fine`, `sab_inizio`, `sab_fine`, `dom_inizio`, `dom_fine`, `immagine_corso`) VALUES
 (1, 1, 1, 2, 1, 'Karate Adulti', 'Corso di Karate adulti', '2025-09-15', '2026-06-30', 40.00, NULL, NULL, NULL, '19:00:00', '20:30:00', NULL, NULL, '19:00:00', '20:30:00', '19:00:00', '20:30:00', NULL, NULL, NULL, NULL, 'public/corsi/1/1_20260529210534_f33d591c.jpg'),
-(2, 1, 2, 4, 1, 'Pilates', NULL, '2025-09-15', '2026-07-31', NULL, NULL, NULL, NULL, '09:00:00', '10:00:00', NULL, NULL, '09:00:00', '10:00:00', NULL, NULL, NULL, NULL, NULL, NULL, 'public/corsi/2/2_20260603162945_b39588e3.jpg');
+(2, 1, 2, 4, 1, 'Pilates', 'Corso di Pilates', '2025-09-15', '2026-07-31', NULL, NULL, NULL, NULL, '09:00:00', '10:00:00', NULL, NULL, '09:00:00', '10:00:00', NULL, NULL, NULL, NULL, NULL, NULL, 'public/corsi/2/2_20260603162945_b39588e3.jpg');
 
 -- --------------------------------------------------------
 
@@ -8597,7 +8597,7 @@ CREATE TABLE `documenti` (
 --
 
 INSERT INTO `documenti` (`iddocumento`, `idatleta`, `idtipo_documento`, `descrizione_documento`, `data_documento`, `data_scadenza`, `url_documento`) VALUES
-(1, 3, 2, NULL, NULL, '2031-11-06', 'public/atleti/3/documenti/3_20260524073046_carta_identita_dario_stabile.pdf');
+(1, 3, 2, 'carta identità', '2021-04-21', '2031-11-06', 'public/atleti/3/documenti/3_20260524073046_carta_identita_dario_stabile.pdf');
 
 -- --------------------------------------------------------
 
@@ -8660,6 +8660,30 @@ INSERT INTO `impostazioni` (`idimpostazione`, `impostazione`, `valore`, `descriz
 -- --------------------------------------------------------
 
 --
+-- Struttura della tabella `iscrizioni`
+--
+
+CREATE TABLE `iscrizioni` (
+  `idiscrizione` int NOT NULL,
+  `idatleta` int NOT NULL,
+  `data_iscrizione` date DEFAULT NULL,
+  `data_scadenza_iscrizione` date DEFAULT NULL,
+  `abbonamento` tinyint DEFAULT '1',
+  `totale_abbonamento` decimal(6,2) DEFAULT NULL,
+  `stato_iscrizione` varchar(45) DEFAULT NULL,
+  `note_iscrizione` longtext
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+
+--
+-- Dump dei dati per la tabella `iscrizioni`
+--
+
+INSERT INTO `iscrizioni` (`idiscrizione`, `idatleta`, `data_iscrizione`, `data_scadenza_iscrizione`, `abbonamento`, `totale_abbonamento`, `stato_iscrizione`, `note_iscrizione`) VALUES
+(3, 3, '2025-09-15', '2026-07-31', 1, 40.00, 'A', NULL);
+
+-- --------------------------------------------------------
+
+--
 -- Struttura della tabella `iscrizioni_has_corsi`
 --
 
@@ -8669,6 +8693,13 @@ CREATE TABLE `iscrizioni_has_corsi` (
   `data_iscrizione_corso` date DEFAULT NULL,
   `note` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
+
+--
+-- Dump dei dati per la tabella `iscrizioni_has_corsi`
+--
+
+INSERT INTO `iscrizioni_has_corsi` (`idiscrizione`, `idcorso`, `data_iscrizione_corso`, `note`) VALUES
+(3, 1, '2025-09-15', NULL);
 
 -- --------------------------------------------------------
 
@@ -9107,6 +9138,13 @@ ALTER TABLE `impostazioni`
   ADD PRIMARY KEY (`idimpostazione`);
 
 --
+-- Indici per le tabelle `iscrizioni`
+--
+ALTER TABLE `iscrizioni`
+  ADD PRIMARY KEY (`idiscrizione`),
+  ADD KEY `fk_iscrizioni_atleti1_idx` (`idatleta`);
+
+--
 -- Indici per le tabelle `iscrizioni_has_corsi`
 --
 ALTER TABLE `iscrizioni_has_corsi`
@@ -9298,6 +9336,12 @@ ALTER TABLE `impostazioni`
   MODIFY `idimpostazione` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
+-- AUTO_INCREMENT per la tabella `iscrizioni`
+--
+ALTER TABLE `iscrizioni`
+  MODIFY `idiscrizione` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
 -- AUTO_INCREMENT per la tabella `letture_notifiche`
 --
 ALTER TABLE `letture_notifiche`
@@ -9337,7 +9381,7 @@ ALTER TABLE `notifiche_has_destinatari`
 -- AUTO_INCREMENT per la tabella `pagamenti`
 --
 ALTER TABLE `pagamenti`
-  MODIFY `idpagamento` int NOT NULL AUTO_INCREMENT;
+  MODIFY `idpagamento` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT per la tabella `profili`
@@ -9410,6 +9454,12 @@ ALTER TABLE `corsi`
 --
 ALTER TABLE `documenti`
   ADD CONSTRAINT `fk_documenti_tipi_documento1` FOREIGN KEY (`idtipo_documento`) REFERENCES `tipi_documento` (`idtipo_documento`);
+
+--
+-- Limiti per la tabella `iscrizioni`
+--
+ALTER TABLE `iscrizioni`
+  ADD CONSTRAINT `fk_iscrizioni_atleti1` FOREIGN KEY (`idatleta`) REFERENCES `atleti` (`idatleta`);
 
 --
 -- Limiti per la tabella `iscrizioni_has_corsi`

@@ -92,7 +92,6 @@ $tabId = static function (string $name) use ($athletePaneIds): string {
             <?= htmlspecialchars($initials) ?>
           </div>
         </div>
-
         <label class="form-label" for="<?= htmlspecialchars((string) ($athleteImageInputId ?? '')) ?>">Immagine atleta</label>
         <input class="form-control" type="file" id="<?= htmlspecialchars((string) ($athleteImageInputId ?? '')) ?>" name="image" form="<?= htmlspecialchars($formId) ?>" accept="image/jpeg,image/png,image/webp,image/gif">
 

@@ -95,7 +95,7 @@ foreach (array_keys($dayLabels) as $dayKey) {
           <label class="form-check-label" for="corsiOnlyActive">Mostra solo corsi attivi</label>
         </div>
       </div>
-      <table id="corsi-table" class="table align-middle js-datatable" data-server-side="1">
+      <table id="corsi-table" class="table table-hover align-middle js-datatable" data-server-side="1">
         <thead>
           <tr>
               <th>Immagine</th>

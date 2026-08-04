@@ -375,10 +375,11 @@ if ($hasSelectedAtleta) {
               ],
           ];
           $athleteNavTabsExtraClass = '';
+          $athleteNavTabsVertical = true;
           require __DIR__ . '/partials/atleta_form_nav_tabs.php';
           ?>
 
-          <div class="tab-content border border-top-0 rounded-bottom p-3">
+          <div class="tab-content p-3 w-100">
             <?php
             $athleteFormId = 'editAthleteProfileForm';
             $athleteFormValues = $editAthleteFormValues;
@@ -975,7 +976,7 @@ if ($hasSelectedAtleta) {
               </div>
             </div>
           </div>
-        </div>
+        </div><!-- /vtabs -->
       </div>
     <?php elseif ($openEdit): ?>
       <div class="alert alert-warning mt-4 mb-0" role="alert">
